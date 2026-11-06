@@ -9,7 +9,7 @@ description: Diagnóstico de solo lectura de la mensajería - almacén, plugin h
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" check [--component <alias>|--all] [--json]
 ```
 
-Salida `ESTADO|ID|detalle` y `RESUMEN`. Comprueba: `almacen`, `plugin` (habilitado en `~/.claude/settings.json`), `latido` (los hooks han corrido en esta sesión, por `CLAUDE_CODE_SESSION_ID`) y `semilla-<alias>`.
+Salida `ESTADO|ID|detalle` y `RESUMEN`. Comprueba: `almacen`, `plugin` (habilitado en `~/.claude/settings.json`), `latido` (los hooks han corrido en esta sesión, por `CLAUDE_CODE_SESSION_ID`; respaldo: latido del componente en los últimos 15 min) y `semilla-<alias>`.
 
 ## Pasos
 

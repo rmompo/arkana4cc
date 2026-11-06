@@ -6,7 +6,7 @@ description: Corrige lo que check --all marca en la mensajería (almacén, plugi
 # arkana-messaging:fix
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" fix [--dry-run] [--json]
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" fix [--dry-run] [--no-settings] [--json]
 ```
 
 Aplica solo lo que `check --all` marca con `WARN` (lo que ya está `OK` no se toca).

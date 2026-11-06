@@ -9,6 +9,8 @@ description: Primera puesta en marcha (repetible) de la mensajería - crea el al
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" install [--dry-run] [--no-settings] [--json]
 ```
 
+`--no-settings` no toca `~/.claude/settings.json`. Si falta un `CLAUDE.md` versionado no lo crea (`WARN`): eso lo hace `/arkana-workspace:fix`.
+
 Hace: (1) crea `.arkana/arkana-messaging/state/messages/`; (2) habilita `arkana-messaging@arkana` en `~/.claude/settings.json` (copia previa en `.arkana/arkana-messaging/bak/`); (3) pone el bloque `<!-- arkana:messaging:start -->…end -->` en el `CLAUDE.md` de ARKANA y en el de cada componente (`CLAUDE.local.md` en los que lo declaran como `seed_file`, que no se versiona); (4) quita de ARKANA la importación obsoleta `@.arkana/core/novedades.md`.
 
 ## Pasos

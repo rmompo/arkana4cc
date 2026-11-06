@@ -5,7 +5,7 @@ description: Lista o muestra los mensajes dirigidos al componente actual (o todo
 
 # arkana-messaging:get
 
-Herramienta: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" get [filtros]`. Lee del almacén local; no usa git ni red y no modifica nada.
+Herramienta: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" get [filtros]`. Lee del almacén local; no usa git ni red y no modifica mensajes. Única escritura: `--detail <id>` marca ese mensaje como **leído** (`state/read/<actor>.json`); para mirar sin marcar, usa `query`.
 
 El que ve es el componente que contiene el directorio actual: ve lo dirigido a él o escrito por él; ARKANA ve todo. Los mensajes `deleted` y `reconciled` no se muestran salvo `--state <estado>` o `--include-hidden`.
 
@@ -15,7 +15,8 @@ El que ve es el componente que contiene el directorio actual: ve lo dirigido a �
 | `--repeat` | Solo las directrices permanentes (`repeat`; `propuesto` o `vigente`) |
 | `--id`, `--type`, `--state` | Filtros exactos (`open`, `done`, `discarded`, `deleted`, `reconciled`) |
 | `--to <alias>`, `--from <alias>`, `--user <u>`, `--since AAAA-MM-DD`, `--n <N>` | Filtros y límite (20 por defecto) |
-| `--detail <id>` | Detalle completo (cuerpo, instrucciones, criterios, historial) |
+| `--include-hidden` | Incluye también los `deleted` y `reconciled` |
+| `--detail <id>` | Detalle completo (cuerpo, instrucciones, criterios, historial) de ese mensaje, ignorando el resto de filtros. **Lo marca como leído** |
 | `--json` | Array de mensajes (para scripts y hooks) |
 
 ## Pasos

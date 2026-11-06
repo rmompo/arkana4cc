@@ -129,7 +129,7 @@ Un mensaje está **leído para un actor** cuando consta en `state/read/<actor>.j
 
 ## Salida y códigos de salida
 
-Todos los subcomandos (salvo `get` y `query`, que imprimen tabla o JSON propios) emiten una línea `ESTADO|ID|detalle` por resultado (`OK`, `WARN`, `FAIL`, `INFO`, `DRY`) y al final `RESUMEN|n FAIL|n WARN`; con `--json`, un objeto `{plugin, skill, status, items[{id,status,detail,component}], summary{fail,warn,ok,info,dry}}`.
+Todos los subcomandos (salvo `get`, `query` y `reconcile candidates`, que imprimen tabla o JSON propios) emiten una línea `ESTADO|ID|detalle` por resultado (`OK`, `WARN`, `FAIL`, `INFO`, `DRY`) y al final `RESUMEN|n FAIL|n WARN`; con `--json`, un objeto `{plugin, skill, status, items[{id,status,detail,component}], summary{fail,warn,ok,info,dry}}`.
 
 | Código | Significado |
 |---|---|
