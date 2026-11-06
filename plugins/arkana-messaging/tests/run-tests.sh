@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Pruebas de arkana-messaging (almacén local de mensajes). Sin red, sin API y sin tocar ~/.claude.
+# Uso: bash tests/run-tests.sh [-v|-q] [-k <patron>]
+set -uo pipefail
+AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PYTHONDONTWRITEBYTECODE=1
+cd "$AQUI" && python3 -I -m unittest discover -s . -p 'test_*.py' "${@:--v}" 2>&1

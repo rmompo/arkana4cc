@@ -1,0 +1,57 @@
+{
+  "plugin": "arkana-messaging",
+  "contract": 1,
+  "provides": [
+    "install",
+    "check",
+    "fix",
+    "put",
+    "get",
+    "query",
+    "delete",
+    "sync"
+  ],
+  "requires": [
+    {
+      "plugin": "arkana-workspace"
+    }
+  ],
+  "data": [
+    {
+      "path": "arkana-messaging/state/messages/",
+      "class": "data",
+      "description": "un JSON por mensaje (clase once|repeat, para y destinatarios, confirmaciones por destinatario, entregas, ejecuciones, historial); el borrado es lógico y viaja en export/import"
+    },
+    {
+      "path": "arkana-messaging/state/index.json",
+      "class": "local",
+      "description": "índice pequeño derivado de los mensajes (se reconstruye con sync)"
+    },
+    {
+      "path": "arkana-messaging/state/.lock",
+      "class": "local",
+      "description": "cerrojo entre procesos"
+    },
+    {
+      "path": "arkana-messaging/state/read/",
+      "class": "local",
+      "description": "mensajes ya leídos por cada componente"
+    },
+    {
+      "path": "arkana-messaging/state/sessions/",
+      "class": "local",
+      "description": "latido de los hooks por sesión y mensajes ya recordados en Stop"
+    },
+    {
+      "path": "arkana-messaging/bak/",
+      "class": "local",
+      "description": "copias de seguridad de los ficheros que install modifica"
+    }
+  ],
+  "check": "bash scripts/messaging.sh check --all",
+  "hooks": [
+    "SessionStart",
+    "UserPromptSubmit",
+    "Stop"
+  ]
+}
