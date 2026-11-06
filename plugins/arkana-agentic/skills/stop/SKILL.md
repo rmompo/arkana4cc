@@ -18,4 +18,4 @@ Si el usuario pide parar, **hazlo al momento** sin discutir.
 
 1. Si no queda claro cuál quiere, pregunta (`AskUserQuestion`): *Suave* · *Forzosa* · *Solo pausar*. Si dice «para ya», «mátalo» o similar, es forzosa.
 2. Ejecuta el comando y confirma con `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh status`.
-3. Tras una parada forzosa, el repo puede tener cambios sin commitear de la tarea cancelada: indícaselo y ofrece `/arkana-agentic:fix` o `integrate keep` o `integrate discard`.
+3. Tras una parada forzosa, el repo puede tener cambios sin commitear de la tarea cancelada: indícaselo. La tarea queda `cancelada` (`fix` no la recupera) y `integrate keep` se niega con el repo sucio: ofrece `integrate discard` (descarta también lo no commiteado de la rama del plan) o, si quiere conservarlo, que lo revise y lo commitee a mano en esa rama.

@@ -23,7 +23,7 @@ Una `violacion` solo admite `reject <G> --stop`. Un gate `limite` se resuelve su
 
 ## Decisiones manuales
 
-- Reintentar: `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh retry <T>` · omitir: `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh skip <T>`.
+- Reintentar (solo una tarea `rechazada`, `parcial`, `fallida` o `interrumpida`; una `esperando_usuario` se resuelve con `approve`/`reject` de su gate): `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh retry <T>` · omitir: `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh skip <T>`.
 - Límites: `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh policy show` · `policy set <clave> <valor>` (`--ceiling` para el techo).
 
 ## Reglas

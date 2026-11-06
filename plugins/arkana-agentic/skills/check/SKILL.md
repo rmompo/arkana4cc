@@ -1,6 +1,6 @@
 ---
 name: check
-description: Comprueba la salud de la orquestación de arkana-agentic - versión y flags de claude, utilidades, directorio de ejecución (700), política válida, workers huérfanos, reglas de permisos de arkana y ORQUESTADOR.md. Solo lectura y sin coste (con --deep ejecuta además la batería de contención con claude real, ~0,1 USD).
+description: Comprueba la salud de la orquestación de arkana-agentic - versión y flags de claude, utilidades, directorio de ejecución (700), política válida, workers huérfanos, reglas de permisos de arkana y ORQUESTADOR.md. Solo lectura y sin coste (con --deep ejecuta además la batería de contención con claude real, ~0,3-0,6 USD).
 ---
 
 # arkana-agentic:check
@@ -17,7 +17,7 @@ Valida que el entorno puede orquestar con garantías. **No modifica nada.**
    bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh check
    ```
 
-   Con `--deep` ejecuta también la batería de contención con `claude` real. **Cuesta dinero (unos 0,1 USD con haiku, con un tope de seguridad de 2 USD) y tarda unos 4 minutos**: pide confirmación al usuario antes de usarlo.
+   Con `--deep` ejecuta también la batería de contención con `claude` real. **Cuesta dinero (unos 0,3-0,6 USD con haiku, con un tope de seguridad de 2 USD) y tarda varios minutos**: pide confirmación al usuario antes de usarlo.
 
    **`red-vpn` es un `WARN`, no un `FAIL`**: agentic solo edita y hace commits locales en la rama del plan (no hace `fetch`, `pull` ni `push`), así que sin VPN el trabajo sigue; `launch` también avisa y lanza. Con `--need-network` pasa a `FAIL` (úsalo antes de algo que sí necesite los remotos).
 
@@ -29,13 +29,15 @@ Valida que el entorno puede orquestar con garantías. **No modifica nada.**
 
 | ID | Si no está OK |
 |---|---|
-| `claude-version`, `claude-flags` | Actualiza Claude Code; sin los flags `--restricted`, `--tools`, `--json-schema` y `--permission-prompts` no se puede garantizar la contención. **No se orquesta.** |
+| `claude-version`, `claude-flags` | Actualiza Claude Code; sin los flags `--restricted`, `--tools`, `--json-schema`, `--permission-prompts`, `--max-budget-usd`, `--no-session-persistence` y `--settings` no se puede garantizar la contención. **No se orquesta.** |
 | `utilidades` | Instala lo que falte (`timeout`, `setsid`, `flock`, `python3`, `jq`, `git`, `sha256sum`). |
 | `runtime-700` | `chmod 700` sobre el directorio de ejecución indicado. |
-| `politica-valida` | Revisa `<arkana>/.arkana/arkana-agentic/politica.json` (`agentic.sh policy show`). |
+| `politica-valida` | Revisa `<arkana>/.arkana/arkana-agentic/config/politica.json` (`agentic.sh policy show`). |
 | `layout` | Layout antiguo (planes/, run/…): `/arkana-agentic:fix` migra a `config/`, `state/` y `data/`. |
-| `worker-huerfano` | Ejecuta `agentic.sh fix`. |
+| `worker-huerfano` | Ejecuta `agentic.sh fix` (si el worker sigue vivo, no lo mates sin que el usuario lo pida). |
+| `adaptadores` | `WARN`: el verificador no encuentra una herramienta del tipo de componente (no hereda el `PATH` del shell): `/arkana-workspace:config tools --tool <nombre> --version <v> --path <ruta>`. |
 | `permisos-arkana` | `/arkana-workspace:fix` en `arkana` (añade las reglas del orquestador). |
+| `metadatos-ubicacion` | Informativo (dónde está `.arkana`). |
 | `instrucciones` | Falta o está desactualizado el bloque `arkana:agentic` del `CLAUDE.md` de ARKANA: `/arkana-agentic:install`. |
 | `contencion` | Una aserción de contención ha fallado: **no orquestes** hasta resolverlo. |
 
