@@ -17,4 +17,4 @@ Guarda conocimiento común en `arkana-knowledge/<topic>/<slug>.md` y lo registra
 
 ## Reglas
 
-- Una nota = un tema; el `id` sale de `topic-título`. No guardes copias de lo que es de otro componente: enlaza a su ruta. Idempotente: no dupliques.
+- Una nota = un tema; el `id` es `<topic>-<slug>` (el slug sale del título o de `--slug`). Si ya existe ese id (aunque esté borrada) `add` falla con salida 1: usa `modify` (con `--restore` si está borrada). No guardes copias de lo que es de otro componente: enlaza a su ruta.

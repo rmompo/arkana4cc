@@ -16,4 +16,4 @@ Sube la versión (`1.0` → `1.1`; `--major` → `2.0`), reescribe el cuerpo si 
 1. Localiza la nota (`query`), léela y redacta el cambio sin inventar ni incluir secretos. Pasa **el cuerpo completo** nuevo (sin el Changelog: la herramienta lo conserva).
 2. Ensaya con `--dry-run` si hay duda; ejecuta con un `--change` claro (una frase).
 3. `validate` debe seguir sin `FAIL`. Queda sin commitear.
-4. Una nota **borrada** no se modifica: se recupera antes con `--restore` (pregunta al usuario).
+4. Una nota **borrada** no se modifica: solo se puede tocar con `--restore` en la misma orden (restaura y aplica los cambios; pregunta antes al usuario).

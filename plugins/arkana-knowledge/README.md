@@ -286,7 +286,7 @@ python3 scripts/lib/knowledge.py query --q "cache" --include-deleted
 1. Localizar la nota (`query`), leerla y redactar el cambio sin inventar ni incluir secretos. Pasar **el cuerpo completo** nuevo, sin el Changelog (la herramienta lo conserva).
 2. Ensayar con `--dry-run` si hay duda y ejecutar con un `--change` claro (una frase).
 3. `validate` debe seguir sin `FAIL`. Queda sin commitear.
-4. Una nota **borrada** no se modifica: antes se recupera con `--restore` (preguntando al usuario).
+4. Una nota **borrada** solo se toca con `--restore` en la misma orden (restaura y aplica los cambios; preguntando antes al usuario).
 
 **Parámetros de `modify`**
 
