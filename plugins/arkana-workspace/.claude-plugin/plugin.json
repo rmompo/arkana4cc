@@ -1,0 +1,8 @@
+{
+  "name": "arkana-workspace",
+  "version": "5.1.0",
+  "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
+  "author": {
+    "name": "R. Mompó Pavesi"
+  }
+}

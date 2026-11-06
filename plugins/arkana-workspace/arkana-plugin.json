@@ -1,0 +1,57 @@
+{
+  "plugin": "arkana-workspace",
+  "contract": 1,
+  "provides": [
+    "install",
+    "check",
+    "fix",
+    "component",
+    "config",
+    "status",
+    "sync",
+    "rew-grants",
+    "export",
+    "import",
+    "handover"
+  ],
+  "data": [
+    {
+      "path": "arkana.json",
+      "class": "config",
+      "description": "identidad del workspace y raíz"
+    },
+    {
+      "path": "core/workspace.json",
+      "class": "config",
+      "description": "manifiesto portable: ARKANA y componentes"
+    },
+    {
+      "path": "arkana-workspace/tools.json",
+      "class": "config",
+      "description": "herramientas y versiones (la ruta local no se exporta)"
+    },
+    {
+      "path": "arkana-workspace/local.json",
+      "class": "local",
+      "description": "identidad git personal y rutas absolutas de esta instalación"
+    },
+    {
+      "path": "arkana-workspace/bak/",
+      "class": "local",
+      "description": "copias de seguridad de los cambios"
+    },
+    {
+      "path": "arkana-workspace/bin/",
+      "class": "local",
+      "description": "asistente de credenciales de git"
+    },
+    {
+      "path": ".credentials",
+      "class": "secret",
+      "description": "CLAVE=valor, modo 600; solo se exporta la referencia por nombre"
+    }
+  ],
+  "hooks": [
+    "SessionStart"
+  ]
+}
