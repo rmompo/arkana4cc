@@ -1,0 +1,8 @@
+{
+  "name": "arkana-knowledge",
+  "version": "1.0.0",
+  "description": "Conocimiento común de un workspace de Arkana: notas versionadas con catálogo, por topic y componente, con Changelog en cada nota y borrado lógico (add, query, modify, delete)",
+  "author": {
+    "name": "R. Mompó Pavesi"
+  }
+}

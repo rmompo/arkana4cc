@@ -1,0 +1,7 @@
+{
+  "plugin": "arkana-knowledge",
+  "contract": 1,
+  "provides": ["install", "check", "fix", "add", "query", "modify", "delete"],
+  "check": "python3 scripts/lib/knowledge.py validate",
+  "data": []
+}
