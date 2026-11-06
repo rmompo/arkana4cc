@@ -8,6 +8,7 @@
                                                               no se repite. Sin opciones lista
   Comunes: --home DIR  --dry-run  --json
 """
+from pathlib import Path
 import argparse
 import json
 import os
@@ -27,7 +28,7 @@ def tools_path(home):
 
 def read_tools(home):
     try:
-        d = json.load(open(tools_path(home), encoding="utf-8"))
+        d = json.loads(Path(tools_path(home)).read_text(encoding="utf-8"))
         return d if isinstance(d, dict) else {"schema_version": 1, "tools": d}
     except (OSError, ValueError):
         return {"schema_version": 1, "tools": []}

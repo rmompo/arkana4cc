@@ -17,6 +17,7 @@
 Opciones comunes: --plan <id> (por defecto el plan actual) y --json.
 Codigos de salida: 0 ok, 1 error, 2 uso, 3 precondicion, 4 violacion, 5 esperando usuario, 6 limite, 7 detenido/pausado.
 """
+from pathlib import Path
 import argparse
 import json
 import os
@@ -415,7 +416,7 @@ def cmd_act(a):
         if not ok:
             return fail_exit(err, PRE)
         if a.feedback_file:
-            t.setdefault("feedback", []).append(open(a.feedback_file, encoding="utf-8").read().strip()[:4000])
+            t.setdefault("feedback", []).append(Path(a.feedback_file).read_text(encoding="utf-8").strip()[:4000])
         save_task(pid, t)
         state.transition_task(pid, t["id"], "lista", quien, a.motivo or "reintento")
         print(f"OK|act|{t['id']} lista para reintentar (intento {t['intentos'] + 1})")
@@ -817,7 +818,7 @@ def cmd_log(a):
         out.append(f"Verificacion: {v['veredicto']} ({v.get('motivo')}) · acciones: {', '.join(v.get('acciones_permitidas', []))}")
     err = plan_path(pid, "logs", f"{t['id']}.{n}.error.log")
     if os.path.exists(err):
-        out += [f"--- error.log (ultimas {a.tail} lineas)"] + open(err, encoding="utf-8", errors="replace").read().splitlines()[-a.tail:]
+        out += [f"--- error.log (ultimas {a.tail} lineas)"] + Path(err).read_text(encoding="utf-8", errors="replace").splitlines()[-a.tail:]
     out.append(f"Prompt enviado: {plan_path(pid, 'logs', f'{t[chr(105)+chr(100)]}.{n}.prompt.md')}")
     print("\n".join(out))
     return OK

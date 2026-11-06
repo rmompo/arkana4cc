@@ -7,6 +7,7 @@ Solo lectura. NUNCA imprime valores de `.env`, tokens ni credenciales: solo nomb
 con `/arkana-workspace:config tools` (`.arkana/arkana-workspace/tools.json`: `tools[{tool, version, path, packages, registries}]`, `urls` y `ports`; opciones `--package`, `--registry`, `--check-url` y `--port`) y de
 `tools[]` de cada componente; en el código no hay ninguna herramienta, versión, paquete ni registro fijados.
 """
+from pathlib import Path
 import argparse
 import json
 import os
@@ -45,14 +46,14 @@ def http_code(url, timeout=8):
 
 def pkg_version(path):
     try:
-        return json.load(open(path, encoding="utf-8")).get("version", "")
+        return json.loads(Path(path).read_text(encoding="utf-8")).get("version", "")
     except (OSError, ValueError):
         return ""
 
 
 def tools_file(ws):
     try:
-        d = json.load(open(os.path.join(ws.state, "arkana-workspace", "tools.json"), encoding="utf-8"))
+        d = json.loads(Path(os.path.join(ws.state, "arkana-workspace", "tools.json")).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
     return d if isinstance(d, dict) else {"tools": d}
@@ -127,7 +128,7 @@ def global_packages(name, info):
 def npmrc_registries():
     res = {}
     try:
-        for l in open(os.path.join(os.path.expanduser("~"), ".npmrc"), encoding="utf-8"):
+        for l in Path(os.path.join(os.path.expanduser("~"), ".npmrc")).read_text(encoding="utf-8").splitlines():
             m = re.match(r"^(@[^:]+):registry=(.*)$", l.strip())
             if m:
                 res[m.group(1)] = m.group(2).strip()
@@ -205,7 +206,7 @@ def check(ws, network=True):
     hosts = sorted({ws.get(a).get("remote_host") for a in ws.aliases() if ws.get(a).get("remote_host")})
     gc = ""
     try:
-        gc = open(os.path.join(home, ".git-credentials"), encoding="utf-8").read()
+        gc = Path(os.path.join(home, ".git-credentials")).read_text(encoding="utf-8")
     except OSError:
         pass
     store = credentials.load(ws.home)
@@ -236,7 +237,7 @@ def check(ws, network=True):
         if not os.path.isfile(jenv):
             jenv = os.path.join(home, ".claude", ".env")
         if os.path.isfile(jenv):
-            vals = dict(l.rstrip("\n").split("=", 1) for l in open(jenv, encoding="utf-8", errors="replace") if "=" in l and not l.startswith("#"))
+            vals = dict(l.rstrip("\n").split("=", 1) for l in Path(jenv).read_text(encoding="utf-8", errors="replace").splitlines() if "=" in l and not l.startswith("#"))
             missing = [v for v in ("JIRA_HOST", "JIRA_API_TOKEN") if v not in vals]
             empty = [v for v in ("JIRA_HOST", "JIRA_API_TOKEN") if v in vals and (not vals[v].strip() or re.match(r"^<.*>$", vals[v].strip()))]
             if missing:
@@ -252,7 +253,7 @@ def check(ws, network=True):
             pe = os.path.join(ws.path(comp), ".env")
             if os.path.isfile(pe):
                 try:
-                    if re.search(r"(?m)^JIRA_", open(pe, encoding="utf-8", errors="replace").read()):
+                    if re.search(r"(?m)^JIRA_", Path(pe).read_text(encoding="utf-8", errors="replace")):
                         add("WARN", "jira-env-proyecto", f"{os.path.relpath(pe, ws.root)} define variables JIRA_*, pero el conector no lee el .env del proyecto (moverlas a ~/.ia4d/.env)", )
                         break
                 except OSError:
@@ -274,7 +275,7 @@ def check(ws, network=True):
         sett = os.path.join(home, ".claude", "settings.json")
         if os.path.isfile(sett):
             try:
-                c = (json.load(open(sett, encoding="utf-8")).get("mcpServers") or {}).get("jira-connector")
+                c = (json.loads(Path(sett).read_text(encoding="utf-8")).get("mcpServers") or {}).get("jira-connector")
             except ValueError:
                 c = None
             if not c:

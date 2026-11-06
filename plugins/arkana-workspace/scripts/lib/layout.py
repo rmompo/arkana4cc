@@ -10,6 +10,7 @@
      `arkana-workspace/local.json` (identidad git y rutas absolutas), `arkana-workspace/tools.json`;
   4. registro del workspace en `~/.arkana-workspaces.json`.
 """
+from pathlib import Path
 import argparse
 import datetime
 import json
@@ -54,8 +55,8 @@ def active_plan(state):
     base = os.path.join(state, "arkana-agentic")
     for sub in ("state", ""):                                   # layout nuevo (state/) y antiguo
         try:
-            pid = open(os.path.join(base, sub, "actual"), encoding="utf-8").read().strip()
-            plan = json.load(open(os.path.join(base, sub, "planes", pid, "plan.json"), encoding="utf-8"))
+            pid = Path(os.path.join(base, sub, "actual")).read_text(encoding="utf-8").strip()
+            plan = json.loads(Path(os.path.join(base, sub, "planes", pid, "plan.json")).read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue
         return pid if plan.get("estado") in ACTIVE_PLAN_STATES else None
@@ -130,7 +131,7 @@ def init(home, root=None, dry=False):
     if hay_datos:
         rep.add("DRY" if dry else "OK", "backup", backup(state, dry))
 
-    data, abs_paths = (json.load(open(ws_json, encoding="utf-8")), None) if os.path.isfile(ws_json) else build_manifest(home, root)
+    data, abs_paths = (json.loads(Path(ws_json).read_text(encoding="utf-8")), None) if os.path.isfile(ws_json) else build_manifest(home, root)
     if abs_paths is None:
         abs_paths = {a: manifest.Workspace(home, data).path(a) for a in manifest.Workspace(home, data).aliases()}
     errs = manifest.validate(data)

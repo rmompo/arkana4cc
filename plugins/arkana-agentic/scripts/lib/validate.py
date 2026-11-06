@@ -85,7 +85,11 @@ def main(argv):
         return 2
     with open(argv[1], encoding="utf-8") as f:
         esquema = json.load(f)
-    inst = json.load(sys.stdin if argv[2] == "-" else open(argv[2], encoding="utf-8"))
+    if argv[2] == "-":
+        inst = json.load(sys.stdin)
+    else:
+        with open(argv[2], encoding="utf-8") as f:
+            inst = json.load(f)
     errs = check_schema(inst, esquema)
     for e in errs:
         print(f"FAIL|esquema|{e}")

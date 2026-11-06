@@ -6,6 +6,7 @@
 Sin --component se deduce del directorio actual (el componente más específico que lo contiene). Salida común: `ESTADO|ID|detalle`
 y `RESUMEN|n FAIL|n WARN` (o --json). Las correcciones las hace `arkana-workspace:fix`.
 """
+from pathlib import Path
 import argparse
 import os
 import subprocess
@@ -97,7 +98,7 @@ def check(ws, alias, network=True):
     else:
         add("FAIL", "git-identidad", f"{email} no encaja con los dominios del componente ({', '.join('@' + d for d in want)})")
     ga = os.path.join(path, ".gitattributes")
-    eol = os.path.isfile(ga) and "eol=lf" in open(ga, encoding="utf-8", errors="replace").read()
+    eol = os.path.isfile(ga) and "eol=lf" in Path(ga).read_text(encoding="utf-8", errors="replace")
     add("OK" if eol else "WARN", "gitattributes-eol", "eol=lf" if eol else "falta .gitattributes con eol=lf")
     hk = os.path.join(path, ".husky")
     if os.path.isdir(hk):

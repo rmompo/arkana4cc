@@ -14,6 +14,7 @@
 a `local.json`, no al manifiesto exportable. `--git-email-domain` (repetible) fija los dominios de correo que debe tener el autor de los commits del
 componente (`git.email_domains`); sin ella no hay regla. Cada cambio deja copia .bak del manifiesto y valida el resultado. Nunca se aceptan secretos en argumentos: `--token-ref` es solo el NOMBRE de la clave.
 """
+from pathlib import Path
 import argparse
 import json
 import os
@@ -28,7 +29,7 @@ from arkana_core import datafiles, locate, manifest, output  # noqa: E402
 
 def _load(home):
     path = os.path.join(locate.state_dir(home), manifest.WORKSPACE_JSON)
-    return path, json.load(open(path, encoding="utf-8"))
+    return path, json.loads(Path(path).read_text(encoding="utf-8"))
 
 
 def _rel(ws_root, p):
@@ -91,7 +92,7 @@ def apply_options(block, a, root):
 
 def _local(home):
     try:
-        return json.load(open(os.path.join(locate.state_dir(home), manifest.LOCAL_JSON), encoding="utf-8"))
+        return json.loads(Path(os.path.join(locate.state_dir(home), manifest.LOCAL_JSON)).read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
 

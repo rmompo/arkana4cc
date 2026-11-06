@@ -12,6 +12,7 @@ Reglas de rutas: `//ruta/absoluta`, `/relativa-a-la-raíz-del-fichero-de-ajustes
 Uso:  permissions.py <expected|effective|matrix|diff|status|apply> [--component <alias>] [--home <dir>] [--json]
                      [--format text|md] [--expected|--effective] [--dry-run] [--prune]
 """
+from pathlib import Path
 import argparse
 import json
 import os
@@ -158,7 +159,7 @@ def effective(ws, actor):
     """Reglas de `.claude/settings.local.json` del actor ({} vacío si no existe) y su modo de fichero."""
     f = settings_file(ws, actor)
     try:
-        d = json.load(open(f, encoding="utf-8")).get("permissions", {})
+        d = json.loads(Path(f).read_text(encoding="utf-8")).get("permissions", {})
     except (OSError, ValueError):
         return {"allow": [], "ask": [], "deny": []}, None
     mode = os.stat(f).st_mode & 0o777
@@ -298,7 +299,7 @@ def apply(ws, actor, dry=False, prune=False):
         return changes + ([("modo", "", "600")] if mode not in (None, 0o600) else []), f
     d = {}
     try:
-        d = json.load(open(f, encoding="utf-8"))
+        d = json.loads(Path(f).read_text(encoding="utf-8"))
     except OSError:
         pass
     if os.path.isfile(f):
