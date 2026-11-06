@@ -73,7 +73,7 @@ def checks(profundo, necesita_red=False):
     if w:
         r("WARN", "worker-huerfano", f"hay un worker vivo ({w['plan']}/{w['tarea']}, pid {w['pid']})")
     elif os.path.exists(ruta_w):
-        r("WARN", "worker-huerfano", "worker.json apunta a un proceso que ya no existe: ejecuta 'recover'")
+        r("WARN", "worker-huerfano", "worker.json apunta a un proceso que ya no existe: ejecuta /arkana-agentic:fix")
     else:
         r("OK", "worker-huerfano", "ninguno")
     sh = repos.repo_path("arkana")

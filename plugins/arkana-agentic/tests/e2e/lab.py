@@ -19,7 +19,7 @@ SCRIPTS = os.path.join(PLUGIN, "scripts")
 FAKE = os.path.join(PLUGIN, "tests", "fake-claude.py")
 FAKE_MESSAGING = os.path.join(PLUGIN, "tests", "fake-messaging.py")
 CLAVES = ("HOME", "ARKANA_HOME", "ARKANA_AGENTIC_DIR", "ARKANA_AGENTIC_CLAUDE_BIN", "ARKANA_AGENTIC_WATCH_INTERVAL",
-          "ARKANA_AGENTIC_KILL_GRACE", "ARKANA_AGENTIC_OWNER_PID", "FAKE_CLAUDE_LOG", "ARKANA_PLUGINS_DIR", "ARKANA_MESSAGING_CMD", "FAKE_MESSAGING_LOG", "FAKE_MESSAGING_RC", "GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM")
+          "ARKANA_AGENTIC_KILL_GRACE", "ARKANA_AGENTIC_OWNER_PID", "FAKE_CLAUDE_LOG", "FAKE_EDIT", "ARKANA_PLUGINS_DIR", "ARKANA_MESSAGING_CMD", "FAKE_MESSAGING_LOG", "FAKE_MESSAGING_RC", "GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM")
 
 
 def sh(cmd, cwd=None, env=None):
@@ -125,7 +125,8 @@ class Lab:
     # ----- ejecucion -----
     def ejecutar(self, script, *args, env=None, timeout=90):
         e = dict(self.env, **(env or {}))
-        return subprocess.run(["bash", os.path.join(SCRIPTS, script), *args], capture_output=True, text=True, env=e, timeout=timeout)
+        return subprocess.run(["bash", os.path.join(SCRIPTS, script), *args], capture_output=True, text=True, env=e, timeout=timeout,
+                              cwd=self.root)                       # nunca desde el directorio de las pruebas: el claude falso edita en su cwd
 
     def lanzar(self, pid, tid="T001", env=None, timeout=90):
         return self.ejecutar("launch-worker.sh", pid, tid, env=env, timeout=timeout)

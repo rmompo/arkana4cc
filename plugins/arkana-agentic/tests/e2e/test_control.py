@@ -539,8 +539,9 @@ class TestRedCaida(unittest.TestCase):
 
     def test_check_red_vpn_es_warn_y_con_need_network_es_fail(self):
         import doctor
-        with L.Lab():
-            os.environ["ARKANA_AGENTIC_CLAUDE_BIN"] = "claude"                                   # el simulado edita src/a.ts en su cwd ante cualquier llamada (--version incluida)
+        with L.Lab() as lab:
+            os.environ["ARKANA_AGENTIC_CLAUDE_BIN"] = "claude"                                   # el simulado edita un fichero en su cwd ante cualquier llamada (--version incluida)
+            os.environ["FAKE_EDIT"] = os.path.join(lab.root, "descarte.txt")                     # que no sea src/a.ts del propio repo de pruebas (lo restaura Lab al salir)
             restaurar = self.con_red_caida()
             try:
                 est = {i: (e, d) for e, i, d in doctor.checks(False)}
