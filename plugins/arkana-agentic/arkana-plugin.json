@@ -1,0 +1,48 @@
+{
+  "plugin": "arkana-agentic",
+  "contract": 1,
+  "provides": [
+    "install",
+    "check",
+    "fix",
+    "plan",
+    "run",
+    "status",
+    "control",
+    "stop",
+    "archive",
+    "costs"
+  ],
+  "requires": [
+    {
+      "plugin": "arkana-workspace"
+    }
+  ],
+  "check": "bash scripts/agentic.sh check",
+  "data": [
+    {
+      "path": "arkana-agentic/config/",
+      "class": "config",
+      "description": "política y comandos permitidos locales"
+    },
+    {
+      "path": "arkana-agentic/state/",
+      "class": "local",
+      "description": "planes en curso, estado de ejecución, sesiones y plan actual"
+    },
+    {
+      "path": "arkana-agentic/data/",
+      "class": "data",
+      "description": "libro de planes y sesiones (ledger) y planes archivados"
+    },
+    {
+      "path": "arkana-agentic/bak/",
+      "class": "local",
+      "description": "copias de seguridad de lo que install y fix modifican"
+    }
+  ],
+  "hooks": [
+    "SessionStart",
+    "SessionEnd"
+  ]
+}

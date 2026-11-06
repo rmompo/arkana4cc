@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "tipo": "generic",
+  "descripcion": "Cualquier otro componente (y ARKANA): solo se puede comprobar el diff.",
+  "herramientas": [],
+  "comandos": [],
+  "rutas_protegidas": [],
+  "package_json_campos": []
+}

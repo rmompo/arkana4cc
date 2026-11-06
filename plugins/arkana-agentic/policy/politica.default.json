@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "limites": {
+    "max_turns": 40,
+    "timeout_s": 1200,
+    "budget_usd": 0.75,
+    "max_attempts_per_task": 2,
+    "max_tasks": 12,
+    "max_plan_changes": 3,
+    "total_budget_usd": 5.0,
+    "max_duration_min": 180,
+    "checkpoint_every": 3,
+    "ledger_retention_days": 90
+  },
+  "techos": {
+    "max_turns": 80,
+    "timeout_s": 3600,
+    "budget_usd": 3.0,
+    "max_attempts_per_task": 3,
+    "max_tasks": 30,
+    "max_plan_changes": 8,
+    "total_budget_usd": 25.0,
+    "max_duration_min": 480,
+    "checkpoint_every": 10,
+    "ledger_retention_days": 3650
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "descripcion": "Lo común a todos los tipos de componente: comandos de verificación permitidos (argv exacto, sin shell) y rutas que un worker no puede tocar sin abrir el gate 'ruta_protegida'. Un patrón sin '/' se aplica a cualquier profundidad.",
+  "comandos": [["git", "diff", "--stat"]],
+  "rutas_protegidas": [".git/**", ".husky/**", ".claude/**", "CLAUDE.md", "CLAUDE.local.md", ".gitignore", ".gitattributes", ".env*", ".github/**", ".gitlab-ci.yml"]
+}

@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "tipo": "docs",
+  "descripcion": "Componentes de documentación: solo se puede comprobar el diff.",
+  "herramientas": [],
+  "comandos": [],
+  "rutas_protegidas": [],
+  "package_json_campos": []
+}

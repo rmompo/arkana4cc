@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["estado", "resumen", "criterios", "cambios", "hallazgos", "necesita", "siguiente_sugerido"],
+  "properties": {
+    "estado": {"type": "string", "enum": ["hecha", "parcial", "fallida", "bloqueada"]},
+    "resumen": {"type": "string", "maxLength": 600},
+    "criterios": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["id", "cumplido", "evidencia"],
+      "properties": {"id": {"type": "string"}, "cumplido": {"type": "boolean"}, "evidencia": {"type": "string"}}}},
+    "cambios": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["ruta", "tipo", "nota"],
+      "properties": {"ruta": {"type": "string"}, "tipo": {"type": "string", "enum": ["creado", "modificado", "borrado"]}, "nota": {"type": "string"}}}},
+    "hallazgos": {"type": "array", "items": {"type": "string"}},
+    "necesita": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["tipo", "detalle"],
+      "properties": {"tipo": {"type": "string", "enum": ["permiso", "herramienta", "dato", "decision", "otro"]}, "detalle": {"type": "string"}, "comando_sugerido": {"type": "string"}}}},
+    "siguiente_sugerido": {"type": "string"}
+  }
+}

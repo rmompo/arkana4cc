@@ -1,0 +1,175 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "version",
+    "asunto",
+    "peticion",
+    "estado",
+    "tareas",
+    "politica"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^P[0-9]{10}-[a-z]{4}$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "asunto": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80
+    },
+    "peticion": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "borrador",
+        "aprobado",
+        "en_ejecucion",
+        "pausado",
+        "esperando_usuario",
+        "completado",
+        "detenido",
+        "fallido"
+      ]
+    },
+    "autoriza": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commits_locales": {
+          "type": "boolean"
+        },
+        "rama": {
+          "type": "string"
+        },
+        "investigate_without_gate": {
+          "type": "boolean"
+        }
+      }
+    },
+    "politica": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "tareas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^T[0-9]{3}$"
+      }
+    },
+    "contadores": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "ramas": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "original": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "decision": {
+            "enum": [
+              "merge",
+              "keep",
+              "discard"
+            ]
+          },
+          "integrado_hasta": {
+            "type": "string",
+            "pattern": "^T[0-9]{3}$"
+          }
+        }
+      }
+    },
+    "gate": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "gate",
+            "motivo"
+          ],
+          "properties": {
+            "gate": {
+              "type": "string"
+            },
+            "motivo": {
+              "type": "string",
+              "enum": [
+                "permiso",
+                "herramienta",
+                "dato",
+                "decision",
+                "ruta_protegida",
+                "violacion",
+                "limite",
+                "checkpoint",
+                "plan_modificado",
+                "push",
+                "error"
+              ]
+            },
+            "detalle": {
+              "type": "string"
+            },
+            "opciones": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "desde": {
+              "type": "string"
+            },
+            "rutas": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "creado": {
+      "type": "string"
+    },
+    "aprobado": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "historial": {
+      "type": "array"
+    }
+  }
+}

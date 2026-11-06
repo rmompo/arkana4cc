@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "tipo": "node",
+  "descripcion": "Componentes Node: npm y ng (Node del workspace, tools.json).",
+  "herramientas": ["node", "npm"],
+  "comandos": [["npm", "test"], ["npm", "run", "lint"], ["npm", "run", "build"], ["ng", "build"], ["ng", "test", "--watch=false"]],
+  "rutas_protegidas": ["package-lock.json", "angular.json", "tsconfig*.json", "webpack*.js", "*.config.{js,cjs,mjs,ts}"],
+  "package_json_campos": ["scripts", "dependencies", "devDependencies", "peerDependencies", "optionalDependencies", "overrides", "bin"]
+}

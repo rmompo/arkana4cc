@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "tipo": "maven",
+  "descripcion": "Componentes Java/Maven: JDK y Maven del workspace (tools.json).",
+  "herramientas": ["jdk", "maven"],
+  "comandos": [["mvn", "-B", "-q", "compile"], ["mvn", "-B", "test"], ["mvn", "-B", "verify"]],
+  "rutas_protegidas": ["pom.xml", "**/pom.xml", ".mvn/**", "mvnw", "mvnw.cmd", "**/settings*.xml", "**/*.credentials"],
+  "package_json_campos": []
+}

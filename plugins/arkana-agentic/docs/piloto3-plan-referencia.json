@@ -1,0 +1,44 @@
+{
+  "asunto": "Piloto 3: dos líneas en el README y una viñeta en CLAUDE.md de api",
+  "peticion": "Añade al final del README de api «Piloto de orquestación: prueba C» y «prueba D», y una viñeta en las Notas de su CLAUDE.md. Sin push.",
+  "autoriza": {"commits_locales": true},
+  "politica": {"total_budget_usd": 0.5},
+  "tareas": [
+    {
+      "asunto": "Añadir la línea de prueba C al README de api",
+      "repo": "api", "tipo": "tarea", "perfil": "edicion",
+      "objetivo": "Añadir al final de README.md la línea «Piloto de orquestación: prueba C»",
+      "instrucciones": [
+        "1. Abre `README.md` y no modifiques ninguna línea existente.",
+        "2. Añade al final una línea en blanco y la línea «Piloto de orquestación: prueba C»."
+      ],
+      "criterios_aceptacion": [{"id": "C1", "descripcion": "README.md termina con la línea «Piloto de orquestación: prueba C» y no se ha tocado nada anterior"}],
+      "contexto": {"ficheros": ["README.md"]},
+      "rutas_permitidas": ["README.md"], "verificaciones": []
+    },
+    {
+      "asunto": "Añadir la línea de prueba D al README de api",
+      "repo": "api", "tipo": "tarea", "perfil": "edicion", "depende_de": ["T001"],
+      "objetivo": "Añadir al final de README.md la línea «Piloto de orquestación: prueba D», detrás de la de la prueba C",
+      "instrucciones": [
+        "1. Abre `README.md` y no modifiques ninguna línea existente.",
+        "2. Añade al final una línea en blanco y la línea «Piloto de orquestación: prueba D»."
+      ],
+      "criterios_aceptacion": [{"id": "C1", "descripcion": "README.md termina con «prueba C», una línea en blanco y «Piloto de orquestación: prueba D», sin tocar nada más"}],
+      "contexto": {"ficheros": ["README.md"]},
+      "rutas_permitidas": ["README.md"], "verificaciones": []
+    },
+    {
+      "asunto": "Añadir una viñeta a las Notas del CLAUDE.md de api",
+      "repo": "api", "tipo": "tarea", "perfil": "edicion", "depende_de": ["T002"],
+      "objetivo": "Añadir a la sección «Notas» de CLAUDE.md la viñeta «- Piloto 3: prueba del gate de rutas protegidas.»",
+      "instrucciones": [
+        "1. Abre `CLAUDE.md` y no modifiques ninguna línea existente.",
+        "2. Añade la viñeta «- Piloto 3: prueba del gate de rutas protegidas.» como última viñeta de la sección «Notas», justo antes de la línea en blanco que precede a `<!-- arkana:messaging:start -->`."
+      ],
+      "criterios_aceptacion": [{"id": "C1", "descripcion": "CLAUDE.md tiene la viñeta nueva en «Notas» y no se ha tocado nada más"}],
+      "contexto": {"ficheros": ["CLAUDE.md"]},
+      "rutas_permitidas": ["CLAUDE.md"], "verificaciones": []
+    }
+  ]
+}

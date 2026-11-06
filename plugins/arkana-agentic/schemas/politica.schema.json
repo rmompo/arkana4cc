@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["limites", "techos"],
+  "properties": {
+    "version": {"type": "integer"},
+    "limites": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0}},
+    "techos": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0}}
+  }
+}

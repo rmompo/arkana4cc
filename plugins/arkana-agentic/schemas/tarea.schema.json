@@ -1,0 +1,256 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "plan",
+    "version",
+    "asunto",
+    "repo",
+    "tipo",
+    "perfil",
+    "objetivo",
+    "instrucciones",
+    "criterios_aceptacion",
+    "estado",
+    "intentos"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^T[0-9]{3}$"
+    },
+    "plan": {
+      "type": "string",
+      "pattern": "^P[0-9]{10}-[a-z]{4}$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "asunto": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 80
+    },
+    "repo": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "tarea",
+        "revision",
+        "investigacion"
+      ]
+    },
+    "perfil": {
+      "type": "string",
+      "enum": [
+        "lectura",
+        "edicion"
+      ]
+    },
+    "objetivo": {
+      "type": "string",
+      "minLength": 3
+    },
+    "instrucciones": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "criterios_aceptacion": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "descripcion"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "verificacion": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "contexto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ficheros": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "repos_lectura": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          }
+        },
+        "extractos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "origen",
+              "texto"
+            ],
+            "properties": {
+              "origen": {
+                "type": "string"
+              },
+              "lineas": {
+                "type": "string"
+              },
+              "texto": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "rutas_permitidas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verificaciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "comando"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "comando": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "timeout_s": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "depende_de": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^T[0-9]{3}$"
+      }
+    },
+    "limites": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_turns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "budget_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_attempts_per_task": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "lista",
+        "en_curso",
+        "verificando",
+        "completada",
+        "rechazada",
+        "parcial",
+        "fallida",
+        "bloqueada",
+        "esperando_usuario",
+        "interrumpida",
+        "cancelada",
+        "omitida",
+        "fallida_definitiva"
+      ]
+    },
+    "intentos": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "feedback": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "historial": {
+      "type": "array"
+    },
+    "commit": {
+      "type": "string"
+    },
+    "mensajes_marcados": {
+      "type": "boolean"
+    },
+    "mensajes_extra": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "autorizado": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rutas_protegidas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verificaciones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

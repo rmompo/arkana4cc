@@ -1,0 +1,43 @@
+{
+  "asunto": "Requisitos de entorno de api a partir de app",
+  "peticion": "Lee app con un worker, añade a api la sección «Requisitos de entorno» en su README y menciónala en su CLAUDE.md. Sin push.",
+  "autoriza": {"commits_locales": true},
+  "politica": {"total_budget_usd": 1},
+  "tareas": [
+    {
+      "asunto": "Leer los requisitos de entorno de app",
+      "repo": "app", "tipo": "investigacion", "perfil": "lectura",
+      "objetivo": "Resumir qué versión de Node y qué pasos de entorno exige app",
+      "instrucciones": [
+        "1. Lee `.nvmrc`, `README.md` y `CLAUDE.md` de la raíz del repo.",
+        "2. En `hallazgos`, una línea por requisito: versión de Node, gestor de versiones y cualquier paso previo que se mencione.",
+        "3. No modifiques nada."
+      ],
+      "criterios_aceptacion": [{"id": "C1", "descripcion": "Se indica la versión de Node y de dónde sale"}],
+      "rutas_permitidas": [], "verificaciones": []
+    },
+    {
+      "asunto": "Añadir «Requisitos de entorno» al README de api",
+      "repo": "api", "tipo": "tarea", "perfil": "edicion", "depende_de": ["T001"],
+      "objetivo": "Añadir al final de README.md una sección «## Requisitos de entorno» con los requisitos de T001",
+      "instrucciones": [
+        "1. Abre `README.md` y no modifiques ninguna línea existente.",
+        "2. Añade al final una línea en blanco y la sección «## Requisitos de entorno» con el texto del extracto, tal cual."
+      ],
+      "criterios_aceptacion": [{"id": "C1", "descripcion": "README.md termina con la sección «## Requisitos de entorno» y no se ha tocado nada anterior"}],
+      "contexto": {"ficheros": ["README.md"], "extractos": [{"origen": "app:.nvmrc + README.md (resultado de T001, copiado por el orquestador)", "texto": "(el orquestador pega aquí el resumen verificado de T001)"}]},
+      "rutas_permitidas": ["README.md"], "verificaciones": []
+    },
+    {
+      "asunto": "Mencionar la sección en el CLAUDE.md de api",
+      "repo": "api", "tipo": "tarea", "perfil": "edicion", "depende_de": ["T002"],
+      "objetivo": "Añadir a CLAUDE.md una línea que remita a la sección «Requisitos de entorno» del README",
+      "instrucciones": [
+        "1. Abre `CLAUDE.md` y no modifiques ninguna línea existente.",
+        "2. Añade al final de la sección «Notas» una viñeta: «- Requisitos de entorno: ver la sección «Requisitos de entorno» del README.»"
+      ],
+      "criterios_aceptacion": [{"id": "C1", "descripcion": "CLAUDE.md remite a la sección y no se ha tocado nada más"}],
+      "rutas_permitidas": ["CLAUDE.md"], "verificaciones": []
+    }
+  ]
+}
