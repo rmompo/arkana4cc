@@ -1,0 +1,41 @@
+{
+  "name": "arkana",
+  "owner": {
+    "name": "R. Mompó Pavesi"
+  },
+  "metadata": {
+    "description": "Arkana: gobierno, mensajería, statusline, orquestación, conocimiento y tareas de un workspace multi-repo (seis plugins)"
+  },
+  "plugins": [
+    {
+      "name": "arkana-workspace",
+      "source": "./arkana-workspace",
+      "description": "Gobierno del workspace: componentes, permisos R/E/W (rew-grants), credenciales, herramientas, red/VPN, convención de commits, comprobaciones (check/fix), export/import y handover"
+    },
+    {
+      "name": "arkana-messaging",
+      "source": "./arkana-messaging",
+      "description": "Mensajes entre los componentes de un workspace: put, get, delete (lógico), sync y reconcile; almacén local, hooks y semilla"
+    },
+    {
+      "name": "arkana-statusline",
+      "source": "./arkana-statusline",
+      "description": "Statusline en dos líneas: ARKANA y los componentes con su rama y estado git, plan activo, coste y uso; se adapta al ancho y escribe el coste real de la sesión"
+    },
+    {
+      "name": "arkana-agentic",
+      "source": "./arkana-agentic",
+      "description": "Orquestación multi-repo: plan aprobado por el usuario, un worker a la vez sin shell, adaptadores por tipo de componente, verificación por scripts, límites, libro de planes y sesiones y costes"
+    },
+    {
+      "name": "arkana-knowledge",
+      "source": "./arkana-knowledge",
+      "description": "Conocimiento común versionado con catálogo, por topic y componente, con Changelog en cada nota y borrado lógico"
+    },
+    {
+      "name": "arkana-todo",
+      "source": "./arkana-todo",
+      "description": "Lista de tareas pendientes de la persona usuaria: local, con prioridad, vencimiento y componente, cierre reversible y borrado lógico"
+    }
+  ]
+}
