@@ -1,4 +1,5 @@
 """Entrega de mensajes a los workers: qué se entrega, lista congelada al arrancar, registro de la entrega y marca de ejecutado al aceptar."""
+from pathlib import Path
 import json
 import os
 import unittest
@@ -42,7 +43,7 @@ class TestEntrega(unittest.TestCase):
             llamadas = lab.llamadas_mensajeria()
             self.assertEqual(sorted(c[2] for c in llamadas if c[1] == "--delivered"), [R1, ONCE])
             self.assertEqual(llamadas[0][3:], ["--for", "api", "--plan", pid, "--task", "T001"])
-            ev = [json.loads(x) for x in open(os.path.join(state.plan_dir(pid), "registro.jsonl"), encoding="utf-8").read().splitlines()]
+            ev = [json.loads(x) for x in Path(os.path.join(state.plan_dir(pid), "registro.jsonl")).read_text(encoding="utf-8").splitlines()]
             self.assertEqual(sorted(next(e for e in ev if e["accion"] == "mensajes_entregados")["ids"]), [R1, ONCE])
 
     def test_la_lista_se_congela_al_arrancar_el_plan(self):
@@ -126,7 +127,7 @@ class TestDesdeMensaje(unittest.TestCase):
         return lab.ejecutar("agentic.sh", *args, env={"FAKE_MODE": "hecha"})
 
     def eventos(self, pid):
-        return [json.loads(x) for x in open(os.path.join(state.plan_dir(pid), "registro.jsonl"), encoding="utf-8").read().splitlines()]
+        return [json.loads(x) for x in Path(os.path.join(state.plan_dir(pid), "registro.jsonl")).read_text(encoding="utf-8").splitlines()]
 
     def test_launch_entrega_el_mensaje_indicado_aunque_no_estuviera_en_la_lista_congelada(self):
         with L.Lab() as lab:
@@ -181,13 +182,13 @@ class TestDesdeMensaje(unittest.TestCase):
             pid = lab.plan()
             lab.correr(pid, modo="hecha_sin_cumplir")
             antes = lab.tarea(pid)
-            sucio = open(os.path.join(lab.rutas["api"], "src", "a.ts")).read()
+            sucio = Path(os.path.join(lab.rutas["api"], "src", "a.ts")).read_text()
             r = ag(lab, "act", "retry", "T001", "--from-message", PARA_OTRO, plan=pid)
             self.assertEqual(r.returncode, 3, r.stdout)
             despues = lab.tarea(pid)
             self.assertEqual((despues["estado"], despues.get("feedback")), (antes["estado"], antes.get("feedback")))
             self.assertNotIn("mensajes_extra", despues)
-            self.assertEqual(open(os.path.join(lab.rutas["api"], "src", "a.ts")).read(), sucio)   # y no se descartaron los cambios
+            self.assertEqual(Path(os.path.join(lab.rutas["api"], "src", "a.ts")).read_text(), sucio)   # y no se descartaron los cambios
 
     def test_otras_acciones_no_admiten_from_message(self):
         with L.Lab() as lab:
@@ -218,7 +219,7 @@ class TestDesdeMensaje(unittest.TestCase):
             spec["tareas"][1]["repo"] = "app"
             r = ag(lab, "plan", "new", escribir(lab, "p.json", spec), "--from-message", AV)
             self.assertEqual(r.returncode, 0, r.stdout)
-            pid = state.read_actual() if hasattr(state, "read_actual") else open(state.actual_file()).read().strip()
+            pid = state.read_actual() if hasattr(state, "read_actual") else Path(state.actual_file()).read_text().strip()
             self.assertEqual(lab.tarea(pid, "T001")["mensajes_extra"], [AV])                      # api es destinatario
             self.assertNotIn("mensajes_extra", lab.tarea(pid, "T002"))                           # app no
             self.assertIn(AV, ag(lab, "plan", "show", plan=pid).stdout)                          # `plan show` lo enseña antes de aprobar
@@ -233,7 +234,7 @@ class TestDesdeMensaje(unittest.TestCase):
             self.assertEqual(r.returncode, 2, r.stdout); self.assertIn("--paths", r.stdout)       # sin rutas no hay plan editable
             r = ag(lab, "plan", "new", "--from-message", AV, "--paths", "src/**")
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
-            pid = open(state.actual_file()).read().strip()
+            pid = Path(state.actual_file()).read_text().strip()
             t = lab.tarea(pid)
             self.assertEqual((t["repo"], t["tipo"], t["instrucciones"], t["rutas_permitidas"], t["mensajes_extra"]), ("api", "tarea", ["1. añade el remote"], ["src/**"], [AV]))
             self.assertEqual(t["criterios_aceptacion"], [{"id": "C1", "descripcion": "Queda el remote"}])
@@ -244,7 +245,7 @@ class TestDesdeMensaje(unittest.TestCase):
             self.assertEqual(r.returncode, 2, r.stdout); self.assertIn("indica --repo", r.stdout)  # va a varios componentes: hay que elegir
             r = ag(lab, "plan", "new", "--from-message", "N261103-0013-kkkk", "--repo", "app", "--paths", "src/**")
             self.assertEqual(r.returncode, 0, r.stdout)
-            self.assertEqual(lab.tarea(open(state.actual_file()).read().strip())["repo"], "app")
+            self.assertEqual(lab.tarea(Path(state.actual_file()).read_text().strip())["repo"], "app")
 
 
 if __name__ == "__main__":

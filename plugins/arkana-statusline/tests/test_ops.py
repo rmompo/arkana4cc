@@ -1,4 +1,5 @@
 """install / check / fix de la statusline con HOME falso: la statusLine ajena solo se sustituye con --replace."""
+from pathlib import Path
 import json
 import os
 import subprocess
@@ -76,10 +77,10 @@ class TestOps(unittest.TestCase):
                 f.write("\n# alterado\n")
             self.assertIn("WARN|copia", ops(lab, "check").stdout)
             self.assertEqual(ops(lab, "fix", "--dry-run").returncode, 0)
-            self.assertIn("# alterado", open(py).read())
+            self.assertIn("# alterado", Path(py).read_text())
             r = ops(lab, "fix")
             self.assertEqual(r.returncode, 0, r.stdout)
-            self.assertNotIn("# alterado", open(py).read())
+            self.assertNotIn("# alterado", Path(py).read_text())
             self.assertIn("OK|copia", ops(lab, "check").stdout)
 
 

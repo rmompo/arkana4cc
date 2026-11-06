@@ -1,4 +1,5 @@
 """export / import (ZIP con manifiesto y hashes) y handover: sin secretos, sin rutas absolutas, validación total antes de escribir."""
+from pathlib import Path
 import hashlib
 import json
 import os
@@ -69,7 +70,7 @@ class TestExport(unittest.TestCase):
     def test_exporta_config_sin_credenciales_ni_rutas_locales(self):
         with TC.CLab() as lab, tempfile.TemporaryDirectory() as t:
             from_cred = os.path.join(lab.arkana, ".arkana", ".credentials")
-            open(from_cred, "w").write(f"GIT_TOKEN_BE={SECRETO}\n"); os.chmod(from_cred, 0o600)
+            Path(from_cred).write_text(f"GIT_TOKEN_BE={SECRETO}\n"); os.chmod(from_cred, 0o600)
             put(lab, "arkana-workspace/tools.json", json.dumps({"schema_version": 1, "tools": [{"tool": "node", "version": "20.1.0", "path": "/home/yo/.nvm/node"}]}))
             put(lab, "arkana-workspace/local.json", '{"git": {"x": {"email": "yo@x.com"}}}')
             out = os.path.join(t, "ws.zip")
@@ -207,7 +208,7 @@ class TestHandover(unittest.TestCase):
     def test_sin_secretos_ni_rutas_absolutas(self):
         with TC.CLab() as lab, tempfile.TemporaryDirectory() as t:
             cred = os.path.join(lab.arkana, ".arkana", ".credentials")
-            open(cred, "w").write(f"GIT_TOKEN_BE={SECRETO}\n"); os.chmod(cred, 0o600)
+            Path(cred).write_text(f"GIT_TOKEN_BE={SECRETO}\n"); os.chmod(cred, 0o600)
             for fmt in ("md", "json"):
                 r = cli(lab, "handover.py", "--format", fmt, "--home", lab.arkana)
                 self.assertEqual(r.returncode, 0, r.stderr)

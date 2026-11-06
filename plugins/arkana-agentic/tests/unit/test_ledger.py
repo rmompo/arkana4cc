@@ -1,4 +1,5 @@
 """Libro de planes y sesiones: hooks que leen el coste real de la statusline, tokens del transcript, retención y `costs`."""
+from pathlib import Path
 import datetime
 import json
 import os
@@ -141,9 +142,9 @@ class TestPlanesYRetencion(Base):
         wj(ledger.session_file("nuevo"), {"schema_version": 1, "session_id": "nuevo", "started": ago(1), "ended": ago(1), "component": "app",
            "tokens": {"input": 1, "output": 2, "cache_creation": 3, "cache_read": 4}, "cost_usd": 1.0, "cost_source": "statusline"})
         self.assertEqual(ledger.purge(90, dry=True), {"planes": 1, "sesiones": 1})
-        self.assertNotIn("detalle_purgado", json.load(open(os.path.join(ledger.plans_dir(), "P1.json"))))
+        self.assertNotIn("detalle_purgado", json.loads(Path(os.path.join(ledger.plans_dir(), "P1.json")).read_text()))
         self.assertEqual(ledger.purge(90), {"planes": 1, "sesiones": 1})
-        p1 = json.load(open(os.path.join(ledger.plans_dir(), "P1.json")))
+        p1 = json.loads(Path(os.path.join(ledger.plans_dir(), "P1.json")).read_text())
         self.assertTrue(p1["detalle_purgado"])
         self.assertEqual((p1["gasto_usd"], p1["tareas"]), (0.35, [{"id": "T001", "repo": "api", "gasto_usd": 0.35}]))
         s = ledger.all_sessions()

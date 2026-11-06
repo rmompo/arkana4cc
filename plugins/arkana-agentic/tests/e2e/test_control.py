@@ -1,3 +1,4 @@
+from pathlib import Path
 import json
 import os
 import unittest
@@ -203,10 +204,10 @@ class TestAct(unittest.TestCase):
             pid = lab.plan([{}], plan_extra={"politica": {"max_attempts_per_task": 3}})
             a_txt = os.path.join(lab.rutas["api"], "src", "a.ts")
             lab.correr(pid, modo="hecha_sin_cumplir")
-            sucio = open(a_txt).read()
+            sucio = Path(a_txt).read_text()
             r = ag(lab, "act", "retry", "T001", "--feedback-file", escribir(lab, "fb.txt", "arregla el criterio C1"), plan=pid)
             self.assertEqual(r.returncode, 0, r.stdout)
-            self.assertNotEqual(open(a_txt).read(), sucio)                      # cambios descartados
+            self.assertNotEqual(Path(a_txt).read_text(), sucio)                      # cambios descartados
             self.assertEqual(L.sh(["git", "-C", lab.rutas["api"], "status", "--porcelain"]).stdout.strip(), "")
             t = lab.tarea(pid)
             self.assertEqual((t["estado"], t["feedback"]), ("lista", ["arregla el criterio C1"]))
@@ -360,7 +361,7 @@ class TestParada(unittest.TestCase):
             self.assertEqual(r.returncode, 0, r.stdout)
             p.communicate(timeout=30)
             self.assertEqual(lab.tarea(pid)["estado"], "cancelada"); self.assertEqual(lab.plan_json(pid)["estado"], "detenido")
-            pids = [int(x) for x in open(pf).read().split()]
+            pids = [int(x) for x in Path(pf).read_text().split()]
             self.assertTrue(lab.esperar(lambda: not any(lab.vivo(x) for x in pids), 10))
 
     def test_stop_force_con_el_lanzador_muerto(self):
@@ -371,12 +372,12 @@ class TestParada(unittest.TestCase):
             run = os.path.join(lab.cambios["ARKANA_AGENTIC_DIR"], "state", "run")
             self.assertTrue(lab.esperar(lambda: os.path.exists(os.path.join(run, "worker.json")) and os.path.exists(pf), 20))
             w = state.load_json(os.path.join(run, "worker.json"))
-            pids = [int(x) for x in open(pf).read().split()]
+            pids = [int(x) for x in Path(pf).read_text().split()]
             wd = os.path.join(run, "watchdog.pid")
             import signal
             if os.path.exists(wd):
                 try:
-                    os.kill(int(open(wd).read().strip()), signal.SIGKILL)
+                    os.kill(int(Path(wd).read_text().strip()), signal.SIGKILL)
                 except (ProcessLookupError, ValueError):
                     pass
             p.kill(); p.communicate(timeout=30)                                 # cae el lanzador; el worker sigue
@@ -521,7 +522,7 @@ class TestAdaptadoresComoLoVeElVerificador(unittest.TestCase):
             os.makedirs(os.path.join(node, "bin"))
             tj = os.path.join(os.environ["ARKANA_PLUGINS_DIR"], "arkana-workspace", "tools.json")
             os.makedirs(os.path.dirname(tj))
-            json.dump({"schema_version": 1, "tools": [{"tool": "node", "version": "18", "path": node}]}, open(tj, "w"))
+            Path(tj).write_text(json.dumps({"schema_version": 1, "tools": [{"tool": "node", "version": "18", "path": node}]}))
             self.assertEqual(self.estados(lab)["adaptadores"][0], "OK")                                          # declarada con ruta (npm va con node)
 
 
@@ -723,7 +724,7 @@ class TestRamaPorPlan(unittest.TestCase):
                 self.assertIn(texto, r.stdout)
             self.assertEqual({r: lab.head(r) for r in ("api", "app")}, h)
             self.assertEqual((lab.rama("api"), lab.rama("app")), (f"arkana-worker/{pid}", f"arkana-worker/{pid}"))
-            regs = [json.loads(l) for l in open(os.path.join(state.plan_dir(pid), "registro.jsonl"), encoding="utf-8")]
+            regs = [json.loads(l) for l in Path(os.path.join(state.plan_dir(pid), "registro.jsonl")).read_text(encoding="utf-8").splitlines()]
             self.assertEqual([x["quien"] for x in regs if x["accion"] == "review"], ["orchestrator"])                 # la revision deja traza
 
     def test_review_avisa_de_dependencias_entre_repos(self):
@@ -744,7 +745,7 @@ class TestRamaPorPlan(unittest.TestCase):
             self.assertEqual(L.sh(["git", "-C", lab.rutas["api"], "log", "-1", "--format=%s"], env=lab.env).stdout.strip(), f"chore(api) merge arkana-worker/{pid}")
             self.assertEqual(lab.rama("app"), f"arkana-worker/{pid}")                                           # el otro repo sigue como estaba
             self.assertEqual(lab.plan_json(pid)["ramas"]["api"]["decision"], "merge")
-            regs = [json.loads(l) for l in open(os.path.join(state.plan_dir(pid), "registro.jsonl"), encoding="utf-8")]
+            regs = [json.loads(l) for l in Path(os.path.join(state.plan_dir(pid), "registro.jsonl")).read_text(encoding="utf-8").splitlines()]
             fusion = [r for r in regs if r["accion"] == "integrate" and "api: merge" in r["motivo"]]
             self.assertEqual(len(fusion), 1); self.assertEqual(fusion[0]["sha"], lab.head("api", "develop"))        # el registro lleva el sha del merge
             r = ag(lab, "integrate", "keep", plan=pid)                                                # sin --repo: solo los que aun no tienen decision
@@ -1081,7 +1082,7 @@ class TestLeccionesDelPiloto(unittest.TestCase):
                 f.write("trabajo del usuario sin commitear\n")
             r = ag(lab, "integrate", "discard", plan=pid)
             self.assertEqual(r.returncode, 3, r.stdout)                              # el trabajo del usuario en develop no se descarta
-            self.assertIn("trabajo del usuario", open(os.path.join(lab.rutas["api"], "README.md")).read())
+            self.assertIn("trabajo del usuario", Path(os.path.join(lab.rutas["api"], "README.md")).read_text())
 
 
 if __name__ == "__main__":

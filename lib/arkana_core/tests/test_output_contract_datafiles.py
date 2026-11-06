@@ -1,3 +1,4 @@
+from pathlib import Path
 import json
 import os
 import stat
@@ -42,10 +43,10 @@ class TestDatafiles(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             p = os.path.join(d, "sub", ".credentials")
             datafiles.atomic_write(p, "A=1\n", mode=0o600)
-            self.assertEqual(open(p).read(), "A=1\n")
+            self.assertEqual(Path(p).read_text(), "A=1\n")
             self.assertEqual(stat.S_IMODE(os.stat(p).st_mode), 0o600)
             datafiles.atomic_write(p, "A=2\n", mode=0o600)
-            self.assertEqual(open(p).read(), "A=2\n")
+            self.assertEqual(Path(p).read_text(), "A=2\n")
             self.assertEqual(os.listdir(os.path.dirname(p)), [".credentials"])      # sin temporales
 
     def test_json_atomico(self):

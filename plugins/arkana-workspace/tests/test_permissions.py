@@ -1,4 +1,5 @@
 """Generador y evaluador semántico de permisos (permissions.py) sobre un workspace de laboratorio."""
+from pathlib import Path
 import json
 import os
 import stat
@@ -25,7 +26,7 @@ class PLab(TL.Lab):
     def put(self, alias, perm, mode=0o600):
         f = P.settings_file(self.w, alias)
         os.makedirs(os.path.dirname(f), exist_ok=True)
-        json.dump({"permissions": perm}, open(f, "w"))
+        Path(f).write_text(json.dumps({"permissions": perm}))
         os.chmod(f, mode)
 
 
@@ -105,9 +106,9 @@ class TestDiffYApply(unittest.TestCase):
         with PLab() as lab:
             lab.put("api", {"allow": ["Bash(ls *)"], "ask": ["Bash(rm *)"]})
             f = P.settings_file(lab.w, "api")
-            d = json.load(open(f)); d["otra"] = 1; json.dump(d, open(f, "w"))
+            d = json.loads(Path(f).read_text()); d["otra"] = 1; Path(f).write_text(json.dumps(d))
             P.apply(lab.w, "api")
-            d = json.load(open(f))
+            d = json.loads(Path(f).read_text())
             self.assertIn("Bash(ls *)", d["permissions"]["allow"]); self.assertIn("Bash(rm *)", d["permissions"]["ask"]); self.assertEqual(d["otra"], 1)
             self.assertTrue(os.listdir(os.path.join(lab.w.state, "arkana-workspace", "bak")))
 
@@ -120,12 +121,12 @@ class TestDiffYApply(unittest.TestCase):
         with PLab() as lab:
             P.apply(lab.w, "api")
             f = P.settings_file(lab.w, "api")
-            d = json.load(open(f)); perm = d["permissions"]
+            d = json.loads(Path(f).read_text()); perm = d["permissions"]
             perm["allow"] = [r for r in perm["allow"] if not r.startswith("Write(") or "backend" not in r]
             perm["deny"] = [r for r in perm["deny"] if "docs" not in r]
             perm["allow"] += perm["allow"][:1] + [P.fmt("Edit", lab.w.path("docs"))]          # duplicada y de más
             perm["deny"].append("Write(//x/**)")
-            json.dump(d, open(f, "w")); os.chmod(f, 0o644)
+            Path(f).write_text(json.dumps(d)); os.chmod(f, 0o644)
             kinds = {k for k, _ in P.diff(lab.w, "api")}
             self.assertTrue({"duplicate", "obsolete", "mode", "stronger"} <= kinds, kinds)
 
@@ -141,8 +142,8 @@ class TestDiffYApply(unittest.TestCase):
         with PLab() as lab:
             P.apply(lab.w, "api")
             f = P.settings_file(lab.w, "api")
-            d = json.load(open(f)); d["permissions"]["deny"] = [r for r in d["permissions"]["deny"] if "docs" not in r]
-            d["permissions"]["allow"].append(P.fmt("Edit", lab.w.path("docs"))); json.dump(d, open(f, "w"))
+            d = json.loads(Path(f).read_text()); d["permissions"]["deny"] = [r for r in d["permissions"]["deny"] if "docs" not in r]
+            d["permissions"]["allow"].append(P.fmt("Edit", lab.w.path("docs"))); Path(f).write_text(json.dumps(d))
             self.assertIn("stronger", {k for k, _ in P.diff(lab.w, "api")})
             P.apply(lab.w, "api", prune=True)
             self.assertEqual(P.diff(lab.w, "api"), [])

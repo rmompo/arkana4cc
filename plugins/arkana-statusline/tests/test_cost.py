@@ -1,4 +1,5 @@
 """La statusline es la ÚNICA escritora del coste real de la sesión; funciona dentro y fuera de un workspace y en menos de 300 ms."""
+from pathlib import Path
 import json
 import os
 import stat
@@ -21,7 +22,7 @@ class TestCoste(unittest.TestCase):
             self.assertFalse(os.path.exists(self.fichero(lab)))                                  # coste 0: nada
             lab.run("app", {"cost": {"total_cost_usd": 2.5}})
             f = self.fichero(lab)
-            d = json.load(open(f))
+            d = json.loads(Path(f).read_text())
             self.assertEqual((d["session_id"], d["cost_usd"]), ("sess-1", 2.5))
             self.assertEqual(stat.S_IMODE(os.stat(f).st_mode), 0o600)
             self.assertEqual(stat.S_IMODE(os.stat(os.path.dirname(f)).st_mode), 0o700)
@@ -29,7 +30,7 @@ class TestCoste(unittest.TestCase):
             lab.run("app", {"cost": {"total_cost_usd": 2.5}})
             self.assertEqual(os.path.getmtime(f), 1)                                             # mismo valor: no se reescribe
             lab.run("app", {"cost": {"total_cost_usd": 7.25}})
-            self.assertEqual(json.load(open(f))["cost_usd"], 7.25)                               # se reescribe con el último
+            self.assertEqual(json.loads(Path(f).read_text())["cost_usd"], 7.25)                               # se reescribe con el último
             lab.run("app", {"cost": {"total_cost_usd": 1.0}, "session_id": "sess-2"})
             lab.run("app", {"cost": {"total_cost_usd": 3.0}, "session_id": "../mala"})
             self.assertEqual(sorted(os.listdir(os.path.dirname(f))), ["sess-1.json", "sess-2.json"])      # ids con caracteres raros, nunca

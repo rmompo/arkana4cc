@@ -1,4 +1,5 @@
 """paths.py: ubicación de los metadatos (.arkana de la carpeta de ARKANA) y compatibilidad con ~/.claude."""
+from pathlib import Path
 import os
 import tempfile
 import unittest
@@ -29,7 +30,7 @@ class TestNombreDeCarpeta(Base):
     def _crear(self, nombre):
         d = os.path.join(self.tmp.name, nombre)
         os.makedirs(os.path.join(d, "plugins")); os.makedirs(os.path.join(d, ".arkana"))
-        open(os.path.join(d, ".arkana", "arkana.json"), "w").write("{}")
+        Path(os.path.join(d, ".arkana", "arkana.json")).write_text("{}")
         return os.path.realpath(d)
 
     def _aislado(self, cwd):
@@ -77,10 +78,9 @@ class TestManifiesto(Base):
         import json
         st = os.path.join(self.shared, ".arkana")
         os.makedirs(os.path.join(st, "core"))
-        json.dump({"schema_version": 1, "root": ".."}, open(os.path.join(st, "arkana.json"), "w"))
-        json.dump({"schema": 1, "arkana": {"alias": "ARKANA", "path": "shared"},
-                   "components": [{"alias": "api", "type": "maven", "path": "back"}, {"alias": "docs", "type": "docs", "path": "d"}]},
-                  open(os.path.join(st, "core", "workspace.json"), "w"))
+        Path(os.path.join(st, "arkana.json")).write_text(json.dumps({"schema_version": 1, "root": ".."}))
+        Path(os.path.join(st, "core", "workspace.json")).write_text(json.dumps({"schema": 1, "arkana": {"alias": "ARKANA", "path": "shared"},
+                   "components": [{"alias": "api", "type": "maven", "path": "back"}, {"alias": "docs", "type": "docs", "path": "d"}]}))
 
     def test_arkana_home_manda_sobre_arkana_shared(self):
         otra = os.path.join(self.tmp.name, "otra"); os.makedirs(otra)

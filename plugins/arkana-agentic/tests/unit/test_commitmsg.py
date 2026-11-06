@@ -1,3 +1,4 @@
+from pathlib import Path
 import os
 import tempfile
 import unittest
@@ -57,9 +58,9 @@ class TestCommitMsg(unittest.TestCase):
     def test_arkana_tiene_su_propio_formato_y_dominios_igual_que_un_componente(self):
         import json
         p = os.path.join(self.tmp.name, "shared", ".arkana", "core", "workspace.json")
-        d = json.load(open(p))
+        d = json.loads(Path(p).read_text())
         d["arkana"].update(commit_format="conventional", git={"email_domains": ["example.org"]})
-        json.dump(d, open(p, "w"))
+        Path(p).write_text(json.dumps(d))
         for alias in ("arkana", "shared"):                                                    # `shared` es el id histórico de ARKANA
             self.assertEqual(commitmsg.format_of(alias), "conv", alias)
             self.assertEqual(commitmsg.check_message(alias, "docs(arkana): x", "u@example.org"), [], alias)

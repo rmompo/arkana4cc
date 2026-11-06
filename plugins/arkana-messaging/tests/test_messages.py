@@ -1,4 +1,5 @@
 """arkana-messaging: put/get/delete/sync/reconcile/adopt sobre el almacén local. Quién actúa lo decide el cwd; ARKANA lo ve todo."""
+from pathlib import Path
 import json
 import os
 import unittest
@@ -134,7 +135,7 @@ def snapshot(root):
     for d, _, fs in os.walk(root):
         for f in fs:
             p = os.path.join(d, f)
-            res[os.path.relpath(p, root)] = open(p, "rb").read()
+            res[os.path.relpath(p, root)] = Path(p).read_bytes()
     return res
 
 

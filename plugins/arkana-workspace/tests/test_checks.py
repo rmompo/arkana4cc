@@ -1,4 +1,5 @@
 """checks/tools.py y checks/vpn.py (antes arkana-env y arkana-vpn) y component.py: sin red real ni DNS."""
+from pathlib import Path
 import json
 import os
 import subprocess
@@ -40,7 +41,7 @@ class TestTools(unittest.TestCase):
     def declarar(self, lab, tools=None, **extra):
         p = lab.arkana + "/.arkana/arkana-workspace/tools.json"
         os.makedirs(os.path.dirname(p), exist_ok=True)
-        json.dump(dict({"schema_version": 1, "tools": tools or []}, **extra), open(p, "w"))
+        Path(p).write_text(json.dumps(dict({"schema_version": 1, "tools": tools or []}, **extra)))
 
     def herramienta_falsa(self, lab, nombre="faketool", version="4.5.6"):
         d = os.path.join(lab.root, nombre)
@@ -52,9 +53,9 @@ class TestTools(unittest.TestCase):
 
     def configurar_jira(self, lab):
         f = os.path.join(lab.arkana, ".arkana", "core", "workspace.json")
-        d = json.load(open(f))
+        d = json.loads(Path(f).read_text())
         d["jira"] = {"url": "https://jira.example", "token_ref": "JIRA_TOKEN"}
-        json.dump(d, open(f, "w"))
+        Path(f).write_text(json.dumps(d))
 
     def test_sin_bloque_jira_no_hay_checks_de_jira(self):
         with TC.CLab() as lab:
@@ -65,7 +66,7 @@ class TestTools(unittest.TestCase):
         with TC.CLab() as lab:
             self.configurar_jira(lab)
             os.makedirs(os.path.join(lab.home_dir, ".ia4d"))
-            open(os.path.join(lab.home_dir, ".ia4d", ".env"), "w").write("JIRA_HOST=h\nJIRA_API_TOKEN=TOK-S3CRETO\n")
+            Path(os.path.join(lab.home_dir, ".ia4d", ".env")).write_text("JIRA_HOST=h\nJIRA_API_TOKEN=TOK-S3CRETO\n")
             TC.C.set_key(lab.arkana, "GIT_TOKEN_BE", TC.SECRETO)
             r = run(lab, "tools.py", "--no-network")
             e = estados(r)
@@ -119,7 +120,7 @@ class TestTools(unittest.TestCase):
         with TC.CLab() as lab:
             self.configurar_jira(lab)
             os.makedirs(os.path.join(lab.home_dir, ".ia4d"))
-            open(os.path.join(lab.home_dir, ".ia4d", ".env"), "w").write("JIRA_HOST=<tu-host>\nJIRA_API_TOKEN=x\n")
+            Path(os.path.join(lab.home_dir, ".ia4d", ".env")).write_text("JIRA_HOST=<tu-host>\nJIRA_API_TOKEN=x\n")
             j = json.loads(run(lab, "tools.py", "--no-network", "--json").stdout)
             self.assertEqual(j["skill"], "check-tools")
             self.assertEqual({i["id"]: i["status"] for i in j["items"]}["jira-env"], "WARN")

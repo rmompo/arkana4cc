@@ -1,4 +1,5 @@
 """components.py (add/edit/remove/list), config.py (jira/tools), status.py/gitstate.py y checks/all.py."""
+from pathlib import Path
 import json
 import os
 import subprocess
@@ -33,9 +34,9 @@ class TestComponents(unittest.TestCase):
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
             b = ws(lab).get("nuevo")
             self.assertEqual((b["path"], b["remote_host"], b["git"]["token_ref"], b["tools"]), ("nuevo", "git.example", "GIT_TOKEN_N", [{"tool": "node", "version": "20.1.0"}]))
-            loc = json.load(open(lab.arkana + "/.arkana/arkana-workspace/local.json"))
+            loc = json.loads(Path(lab.arkana + "/.arkana/arkana-workspace/local.json").read_text())
             self.assertEqual(loc["git"]["nuevo"]["email"], "yo@x.com")                 # la identidad va a local.json
-            self.assertNotIn("yo@x.com", open(lab.arkana + "/.arkana/core/workspace.json").read())
+            self.assertNotIn("yo@x.com", Path(lab.arkana + "/.arkana/core/workspace.json").read_text())
 
     def test_rechaza_duplicados_reservados_urls_con_credenciales_y_rutas_repetidas(self):
         with TC.CLab() as lab:
@@ -108,7 +109,7 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(ws(lab).data["jira"], {"url": "https://jira.example", "token_ref": "JIRA_TOKEN"})
             self.assertEqual(cli(lab, "config.py", "tools", "--tool", "jdk", "--version", "1.8", "--path", "/opt/jdk").returncode, 0)
             cli(lab, "config.py", "tools", "--tool", "jdk", "--version", "1.8.1")                 # reemplaza, no duplica
-            t = json.load(open(lab.arkana + "/.arkana/arkana-workspace/tools.json"))["tools"]
+            t = json.loads(Path(lab.arkana + "/.arkana/arkana-workspace/tools.json").read_text())["tools"]
             self.assertEqual([x["version"] for x in t if x["tool"] == "jdk"], ["1.8.1"])
             self.assertEqual(cli(lab, "config.py", "tools", "--tool", "x").returncode, 1)         # sin versión
 
@@ -118,7 +119,7 @@ class TestConfig(unittest.TestCase):
                     "--registry", "@acme=https://reg.example/npm/", "--check-url", "https://api.example", "--port", "8080", "--port", "3000")
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
             cli(lab, "config.py", "tools", "--tool", "node", "--version", "20.2.0", "--package", "otro")           # cambia la versión, conserva el resto y suma el paquete
-            d = json.load(open(lab.arkana + "/.arkana/arkana-workspace/tools.json"))
+            d = json.loads(Path(lab.arkana + "/.arkana/arkana-workspace/tools.json").read_text())
             n = next(x for x in d["tools"] if x["tool"] == "node")
             self.assertEqual((n["version"], n["path"], n["packages"], n["registries"]), ("20.2.0", "/opt/node", ["@acme/cli@1.2.3", "otro"], {"@acme": "https://reg.example/npm/"}))
             self.assertEqual((d["urls"], d["ports"]), (["https://api.example"], [3000, 8080]))
@@ -143,8 +144,8 @@ class TestGitState(unittest.TestCase):
     def test_contadores_locales(self):
         with TC.CLab() as lab:
             d, g = self.mk(lab)
-            open(d + "/a", "w").write("1"); open(d + "/b", "w").write("1"); g("add", "a"); g("add", "b"); g("commit", "-q", "-m", "x")
-            open(d + "/a", "w").write("2"); open(d + "/c", "w").write("1"); open(d + "/b", "w").write("2"); g("add", "b")
+            Path(d + "/a").write_text("1"); Path(d + "/b").write_text("1"); g("add", "a"); g("add", "b"); g("commit", "-q", "-m", "x")
+            Path(d + "/a").write_text("2"); Path(d + "/c").write_text("1"); Path(d + "/b").write_text("2"); g("add", "b")
             s = gitstate.state(d)
             self.assertEqual((s["untracked"], s["staged"], s["modified"]), (1, 1, 1))
             self.assertEqual(gitstate.badge(s), " develop ◌1 ✚1 ●1 ")
@@ -177,7 +178,7 @@ class TestAll(unittest.TestCase):
     def test_agrega_componentes_herramientas_credenciales_y_plugins(self):
         with TC.CLab() as lab:
             plug = lab.root + "/plugins/arkana-demo"; os.makedirs(plug)
-            json.dump({"plugin": "arkana-demo", "contract": 1, "provides": ["check"], "check": "echo 'FAIL|algo|roto'; echo 'OK|otro|bien'"}, open(plug + "/arkana-plugin.json", "w"))
+            Path(plug + "/arkana-plugin.json").write_text(json.dumps({"plugin": "arkana-demo", "contract": 1, "provides": ["check"], "check": "echo 'FAIL|algo|roto'; echo 'OK|otro|bien'"}))
             r = subprocess.run([sys.executable, "-I", os.path.join(E.SCRIPTS, "checks", "all.py"), "--home", lab.arkana, "--plugins-dir", lab.root + "/plugins", "--component", "docs"],
                                capture_output=True, text=True, env={k: v for k, v in lab.env.items() if k != "NVM_DIR"}, stdin=subprocess.DEVNULL, timeout=90)
             self.assertIn("docs:permisos", r.stdout); self.assertNotIn("tools:jira", r.stdout)               # Jira es opcional: sin bloque `jira` no se comprueba

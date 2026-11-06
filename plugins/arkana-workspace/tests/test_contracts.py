@@ -1,4 +1,5 @@
 """Cada plugin de Arkana lleva un arkana-plugin.json válido y el marketplace no lista plugins que ya no existen."""
+from pathlib import Path
 import json
 import os
 import sys
@@ -20,7 +21,7 @@ class TestContratos(unittest.TestCase):
             self.assertEqual(contract.load(os.path.join(PLUGINS, d))["plugin"], d)
 
     def test_el_marketplace_solo_lista_plugins_que_existen(self):
-        mk = json.load(open(os.path.join(PLUGINS, ".claude-plugin", "marketplace.json")))
+        mk = json.loads(Path(os.path.join(PLUGINS, ".claude-plugin", "marketplace.json")).read_text())
         for p in mk["plugins"]:
             self.assertTrue(os.path.isdir(os.path.join(PLUGINS, p["source"])), p["name"])
         self.assertNotIn("arkana-env", [p["name"] for p in mk["plugins"]])

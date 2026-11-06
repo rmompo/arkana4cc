@@ -1,4 +1,5 @@
 """Credenciales (.arkana/.credentials), asistente de git y arkana-exec: modo 600, redacción, sin valores en ninguna salida."""
+from pathlib import Path
 import json
 import os
 import stat
@@ -25,14 +26,14 @@ class CLab(TL.Lab):
         super().__enter__()
         E.seed(self.arkana, self.ws)
         f = os.path.join(self.arkana, ".arkana", "core", "workspace.json")
-        d = json.load(open(f))
+        d = json.loads(Path(f).read_text())
         for c in d["components"]:
             if c["alias"] == "api":
                 c["git"] = {"token_ref": "GIT_TOKEN_BE", "username": "ci-user"}
                 c["remote_host"] = "host.example"
-        json.dump(d, open(f, "w"))
+        Path(f).write_text(json.dumps(d))
         subprocess.run(["git", "-C", self.arkana, "config", "core.excludesFile", "/dev/null"], check=True)
-        open(os.path.join(self.arkana, ".gitignore"), "w").write("/.arkana/\n")
+        Path(os.path.join(self.arkana, ".gitignore")).write_text("/.arkana/\n")
         self.env = dict(os.environ, HOME=self.home_dir)
         return self
 
@@ -72,13 +73,13 @@ class TestFichero(unittest.TestCase):
             self.assertEqual(lab.cli("check").returncode, 0, lab.cli("check").stdout)
             os.chmod(C.path(lab.arkana), 0o644)
             self.assertIn("FAIL|credentials-modo", lab.cli("check").stdout)
-            open(os.path.join(lab.arkana, ".gitignore"), "w").write("")
+            Path(os.path.join(lab.arkana, ".gitignore")).write_text("")
             self.assertIn("FAIL|credentials-ignorado", lab.cli("check").stdout)
 
     def test_import_maven_sin_imprimir_valores(self):
         with CLab() as lab:
             x = lab.fichero_xml = os.path.join(lab.root, "s.xml")
-            open(x, "w").write(f'<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"><servers><server><id>registry</id>'
+            Path(x).write_text(f'<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"><servers><server><id>registry</id>'
                                f'<username>u-S3CRETO</username><password>{SECRETO}</password></server></servers></settings>')
             r = lab.cli("import-maven", x)
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)

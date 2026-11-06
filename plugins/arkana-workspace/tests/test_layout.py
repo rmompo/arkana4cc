@@ -1,4 +1,5 @@
 """Disposición de `.arkana/` (layout.py init): manifiesto inicial con ARKANA, idempotencia, dry-run, precondiciones y secretos."""
+from pathlib import Path
 import json
 import os
 import subprocess
@@ -75,17 +76,17 @@ class TestInit(unittest.TestCase):
         with Lab() as lab:
             layout.init(lab.arkana, lab.ws)
             for f in ("core/workspace.json", "arkana-workspace/local.json"):
-                self.assertNotIn("S3CRETO", open(lab.estado(*f.split("/"))).read())
+                self.assertNotIn("S3CRETO", Path(lab.estado(*f.split("/"))).read_text())
             self.assertEqual(manifest.load(lab.arkana).get("arkana")["remote"], "https://host.example/g/shared.git")
 
     def test_idempotente_y_no_pisa(self):
         with Lab() as lab:
             layout.init(lab.arkana, lab.ws)
             ws = lab.estado("core", "workspace.json")
-            d = json.load(open(ws)); d["workspace"]["name"] = "editado"; json.dump(d, open(ws, "w"))
+            d = json.loads(Path(ws).read_text()); d["workspace"]["name"] = "editado"; Path(ws).write_text(json.dumps(d))
             rep = layout.init(lab.arkana, lab.ws)
             self.assertIn("ya está inicializado", rep.text())
-            self.assertEqual(json.load(open(ws))["workspace"]["name"], "editado")
+            self.assertEqual(json.loads(Path(ws).read_text())["workspace"]["name"], "editado")
             self.assertEqual(len(locate.read_registry()), 1)
 
     def test_dry_run_no_escribe_nada(self):
@@ -105,12 +106,12 @@ class TestInit(unittest.TestCase):
     def test_se_niega_con_un_plan_activo(self):
         with Lab() as lab:
             d = lab.estado("arkana-agentic"); os.makedirs(os.path.join(d, "planes", "P1"))
-            open(os.path.join(d, "actual"), "w").write("P1")
-            json.dump({"estado": "ejecutando"}, open(os.path.join(d, "planes", "P1", "plan.json"), "w"))
+            Path(os.path.join(d, "actual")).write_text("P1")
+            Path(os.path.join(d, "planes", "P1", "plan.json")).write_text(json.dumps({"estado": "ejecutando"}))
             rep = layout.init(lab.arkana, lab.ws)
             self.assertEqual(rep.exit_code(), 1); self.assertIn("plan activo", rep.text())
             self.assertFalse(os.path.exists(lab.estado("arkana.json")))
-            json.dump({"estado": "completado"}, open(os.path.join(d, "planes", "P1", "plan.json"), "w"))
+            Path(os.path.join(d, "planes", "P1", "plan.json")).write_text(json.dumps({"estado": "completado"}))
             self.assertEqual(layout.init(lab.arkana, lab.ws).exit_code(), 0)
 
     def test_se_niega_si_no_es_arkana(self):
