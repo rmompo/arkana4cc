@@ -1,0 +1,89 @@
+{
+  "type": "object",
+  "required": [
+    "plugin",
+    "contract",
+    "provides"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "plugin": {
+      "type": "string",
+      "pattern": "^arkana-[a-z]+$"
+    },
+    "contract": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "provides": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "requires": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "plugin"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "plugin": {
+            "type": "string"
+          },
+          "min": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "class"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "class": {
+            "type": "string",
+            "enum": [
+              "config",
+              "data",
+              "local",
+              "secret"
+            ]
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "hooks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "SessionStart",
+          "UserPromptSubmit",
+          "Stop",
+          "SessionEnd"
+        ]
+      }
+    },
+    "check": {
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
