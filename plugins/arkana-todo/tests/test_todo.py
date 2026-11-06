@@ -128,6 +128,7 @@ class TestValidacion(Base):
         self.assertEqual(self.td("add", "--title", "x", "--due", "2026-13-40").returncode, 2)
         self.assertEqual(self.td("add", "--title", "x", "--due", "mañana").returncode, 2)
         self.assertEqual(self.td("done", "--id", "t-999").returncode, 2)
+        self.assertEqual(self.td("list", "--priority", "urgente").returncode, 2)                  # también con el almacén vacío
         self.assertEqual(self.td("modify", "--id", "t-001").returncode, 2)
         self.assertFalse(os.path.exists(self.store))
 

@@ -131,13 +131,15 @@ def cmd_add(a, home, rep):
 
 
 def cmd_list(a, home, rep):
+    if a.priority:
+        check_priority(a.priority)                                # se valida siempre, aunque no haya tareas
     tareas = load(home)["tareas"]
     if a.state != "all":
         tareas = [t for t in tareas if t["estado"] == a.state]
     if a.component:
         tareas = [t for t in tareas if t.get("componente") == manifest.canon(a.component)]
     if a.priority:
-        tareas = [t for t in tareas if t.get("prioridad") == check_priority(a.priority)]
+        tareas = [t for t in tareas if t.get("prioridad") == a.priority]
     if a.overdue:
         tareas = [t for t in tareas if overdue(t)]
     orden = {p: i for i, p in enumerate(PRIORITIES)}
