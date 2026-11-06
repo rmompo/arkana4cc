@@ -1,6 +1,6 @@
 ---
 name: install
-description: Primera puesta en marcha (repetible) de arkana-workspace - crea o migra la disposición de .arkana (manifiesto, local.json, tools.json, registro del workspace), genera los permisos de cada componente, comprueba las credenciales e instala la statusline. Interactiva, idempotente, con copia .bak y --dry-run. No lleva --component.
+description: Primera puesta en marcha (repetible) de arkana-workspace - crea la disposición de .arkana (solo lo que falta) (manifiesto, local.json, tools.json, registro del workspace), genera los permisos de cada componente, comprueba las credenciales e instala la statusline. Interactiva, idempotente, con copia .bak y --dry-run. No lleva --component.
 ---
 
 # arkana-workspace:install

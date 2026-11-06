@@ -26,7 +26,7 @@ Aplica, **uno a uno y con confirmación**, las correcciones de los `FAIL`/`WARN`
 |---|---|
 | `arkana-presente` | No se arregla aquí: hay que clonar el repo de Arkana en la carpeta del workspace |
 | `permisos` | `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/permissions.py" apply --component <alias>` (`--dry-run` primero; deja copia en `.arkana/arkana-workspace/bak/` y el fichero en modo 0600). Solo añade lo que falta y limpia duplicados y reglas legacy; para **quitar** lo que concede de más, pregunta y usa `--prune`. **Una regla nueva se añade al modelo (`lib/permissions.py`), nunca a mano en `settings.local.json`** |
-| `commits` | `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/commits.py" apply --component <alias>` (`--dry-run` primero): pone el bloque `arkana:commits` con el formato del manifiesto (`commit_format`: `ia4d` por defecto o `conventional`); copia en `.arkana/arkana-workspace/bak/`. Si falta el `CLAUDE.md` versionado, arréglalo antes (`claude-md`) |
+| `commits` | `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/commits.py" apply --component <alias>` (`--dry-run` primero): pone el bloque `arkana:commits` con el formato del manifiesto (`commit_format`: `conventional` por defecto o `ia4d`); copia en `.arkana/arkana-workspace/bak/`. Si falta el `CLAUDE.md` versionado, arréglalo antes (`claude-md`) |
 | `claude-md` | Copiar `<arkana>/plantillas/CLAUDE.modulo.md` como `CLAUDE.md` y rellenar nombre y descripción preguntando al usuario |
 | `gitignore-env`, `gitignore-claude`, `gitignore-claude-session` | Añadir al `.gitignore` lo que falte: `.env`, `.env.*`, `!.env.example`, `.claude/`, `.claude-session/`, `node_modules/` |
 | `gitattributes-eol` | Crear o ampliar `.gitattributes` con `* text=auto eol=lf` |
@@ -34,11 +34,12 @@ Aplica, **uno a uno y con confirmación**, las correcciones de los `FAIL`/`WARN`
 | `env-versionado` | Explicar `git rm --cached <fichero>` y que hay que **rotar las credenciales**; ejecutarlo solo si el usuario lo confirma. Sin commit |
 | `env-historial` | Solo informar: rotar credenciales y limpiar el historial (manual y delicado) |
 | `git-identidad`, `anidado-<alias>` | `git config user.email <correo>` **a nivel de repo** y con confirmación; no tocar `~/.gitconfig` |
-| `jira-mcp`, `jira-mcp-deps` (solo si el manifiesto tiene el bloque `jira`) | Plugin `ia4d-project-bridge` ausente: indica que se instale y se habilite. Con confirmación, `npm install --omit=dev` dentro del `mcp/jira-connector` que indica el check |
+| `jira-mcp`, `jira-mcp-deps` (extensión opcional: solo si el manifiesto tiene el bloque `jira`; los emite `check` como `tools:<ID>`, no `component.py`) | Plugin `ia4d-project-bridge` ausente: indica que se instale y se habilite. Con confirmación, `npm install --omit=dev` dentro del `mcp/jira-connector` que indica el check |
 | `jira-mcp-duplicado` | Quita la clave `mcpServers.jira-connector` de `~/.claude/settings.json` (con copia `.bak` y parche mínimo): sobra, la definición buena es la del plugin; si tiene `${CLAUDE_PLUGIN_ROOT}` sin expandir o ruta rota, el servidor sale en rojo (`Connection closed`) |
 | `jira-env-proyecto` | Mueve las variables `JIRA_*` del `.env` del proyecto a `~/.ia4d/.env` (el conector solo lee ese); sin mostrar valores |
 | `husky-hooks` | `chmod +x` de los hooks listados |
 | `rama`, `origin-accesible` | Solo informar (dependen del usuario o de la red/VPN) |
+| `carpeta`, `git-repo`, `arkana-escribible` | Solo informar (la carpeta, el `git init`/remoto y los permisos del sistema de ficheros los decide el usuario) |
 
 ## Reglas
 

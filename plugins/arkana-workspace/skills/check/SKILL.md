@@ -1,11 +1,11 @@
 ---
 name: check
-description: Diagnóstico de solo lectura de todo el workspace - cada componente (permisos, CLAUDE.md, git, .gitignore, identidad), herramientas y entorno (Node, Angular, Java, Maven, git, y Jira solo si está configurado), credenciales, los check que declara cada plugin de Arkana y la statusline. Acepta --component, --network, --json y --dry-run (sin efecto).
+description: Diagnóstico de solo lectura de todo el workspace - cada componente (permisos, CLAUDE.md, git, .gitignore, identidad), herramientas y entorno (las declaradas con config tools, git, y Jira solo si está configurado), credenciales y los check que declara cada plugin de Arkana (statusline, mensajería, agentic…). Acepta --component, --network y --json.
 ---
 
 # arkana-workspace:check
 
-Comprueba el workspace entero. **No modifica nada** (`--dry-run` se acepta y no hace nada). Para corregir: `/arkana-workspace:fix`.
+Comprueba el workspace entero. **No modifica nada** (`all.py` no acepta `--dry-run`: no lo pases). Para corregir: `/arkana-workspace:fix`.
 
 ## Pasos
 
@@ -18,7 +18,7 @@ Comprueba el workspace entero. **No modifica nada** (`--dry-run` se acepta y no 
 
 2. Red y acceso a los remotos (solo si el usuario lo pide o hay `WARN` de red): `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/checks/vpn.py" [--component <alias>] [--no-write]`. Comprueba DNS/HTTPS por host y lectura/escritura por repo (`git push --dry-run`, no sube nada). **Si el DNS se queda colgado** (el proceso queda en estado D), no insistas: es la red del contenedor/VPN.
 
-3. Statusline y mensajería: `/arkana-statusline:check` y `/arkana-messaging:check` (cada plugin comprueba lo suyo).
+3. Los check de cada plugin (statusline, mensajería, agentic…) ya vienen en el paso 1 como `<plugin>:<ID>`. Solo si el usuario quiere el detalle de uno, lanza su skill (`/arkana-statusline:check`, `/arkana-messaging:check`…).
 
 4. Presenta una tabla con los `FAIL` primero y luego los `WARN`; agrupa las `OK` en una línea. Si hay problemas corregibles, termina con «`/arkana-workspace:fix` los corrige paso a paso; `/arkana-workspace:rew-grants` detalla los permisos».
 

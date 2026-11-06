@@ -135,7 +135,7 @@ Campos de cada bloque (ARKANA y componentes comparten los marcados «ambos»):
 | `remote` | ambos | texto | URL del remoto **sin usuario ni contraseña**. `--remote` |
 | `remote_host` | ambos | texto | Host del remoto; se deriva de `--remote`. Lo usan `sync`, `check` y el asistente de git |
 | `branches.main`, `branches.develop` | ambos | texto | Ramas principal y de integración (por defecto `main` y `develop`). `--main`, `--develop` |
-| `commit_format` | ambos | texto | `ia4d` (por defecto) o `conventional`. `--commit-format` |
+| `commit_format` | ambos | texto | `conventional` (por defecto) o `ia4d` (opcional). `--commit-format` |
 | `git.token_ref` | ambos | texto | Nombre de la clave del token en `.credentials`. `--token-ref` |
 | `git.username` | ambos | texto | Usuario con el que el asistente de git entrega el token (por defecto `oauth2`). `--git-username` |
 | `git.email_domains` | ambos | lista de texto (`^[A-Za-z0-9.-]+$`) | Dominios de correo que debe tener el autor de los commits; sin lista no hay regla. `--git-email-domain` (repetible) |
@@ -224,8 +224,8 @@ La versión efectiva de una herramienta sale de `tools[]` de los componentes y d
 
 | Formato | Plantilla | Ejemplo |
 |---|---|---|
-| `ia4d` (por defecto) | `verbo(scope) descripción`, sin dos puntos | `docs(app) link setup guides from the README` |
-| `conventional` | `tipo(scope): descripción`, con dos puntos. Tipos: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test` (es lo que exige `commitlint`) | `chore(app): ignore local Claude files` |
+| `conventional` (por defecto) | `tipo(scope): descripción`, con dos puntos. Tipos: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test` (es lo que exige `commitlint`) | `chore(app): ignore local Claude files` |
+| `ia4d` (opcional) | `verbo(scope) descripción`, sin dos puntos | `docs(app) link setup guides from the README` |
 
 Reglas comunes que lleva el bloque: inglés, ≤72 caracteres, sin punto final, un solo objetivo por commit; **nunca** `Co-Authored-By` ni otra línea de coautoría (no es configurable) y **nunca** `--no-verify`; solo se hace commit o push cuando el usuario lo pide; los commits locales de una orquestación siguen el mismo formato.
 
@@ -322,7 +322,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/layout.py" init --base /work/proyecto
 | `--home DIR` | ruta | localizada | Carpeta de Arkana |
 | `--plugins-dir DIR` | ruta | `<carpeta de Arkana>/plugins` | Dónde buscar `arkana-plugin.json` de los demás plugins |
 
-> El `SKILL.md` dice que `--dry-run` «se acepta y no hace nada»; `all.py` **no** lo define (`unrecognized arguments`, salida 2). Basta no pasarlo: el script ya es de solo lectura.
+> `all.py` **no** define `--dry-run` (`unrecognized arguments`, salida 2). Basta no pasarlo: el script ya es de solo lectura.
 
 **Códigos de salida:** 0 sin `FAIL`; 1 con algún `FAIL`; 2 uso incorrecto; 3 sin workspace o alias desconocido.
 
@@ -475,7 +475,7 @@ Sin arreglo en el skill: `arkana-escribible` (permisos del sistema de ficheros) 
 | `--git-username` | texto | — | `git.username` del manifiesto (usuario con el que el asistente de git entrega el token; por defecto `oauth2`) |
 | `--token-ref` | nombre de clave | — | `git.token_ref`: **solo el nombre** de la clave de `.credentials`, nunca el valor |
 | `--git-email-domain` | dominio (`^[A-Za-z0-9.-]+$`; se elimina un `@` inicial) | sin regla | **Repetible**. Fija `git.email_domains`: **sustituye** la lista entera por los dominios dados. `check` exige que `user.email` termine en uno de ellos. Sin la opción, no cambia lo que haya |
-| `--commit-format` | `ia4d`, `conventional` | `ia4d` (efectivo si falta) | El CLI acepta cualquier texto; un valor distinto de los dos hace fallar `commits.py` y `check` (`commits`) con «commit_format desconocido» |
+| `--commit-format` | `conventional`, `ia4d` | `conventional` (efectivo si falta) | El CLI acepta cualquier texto; un valor distinto de los dos hace fallar `commits.py` y `check` (`commits`) con «commit_format desconocido» |
 | `--vpn` / `--no-vpn` | flags | sin definir | Guarda `vpn: true/false`. Rechazado para ARKANA |
 | `--statusline` / `--no-statusline` | flags | sin definir | Guarda `statusline: true/false`: fuerza mostrar u ocultar el componente en la barra de `arkana-statusline`. Rechazado para ARKANA, que siempre se muestra |
 | `--tool-version tool=ver` | repetible | — | Añade o cambia `tools[]` del componente. Formato `nombre=valor` (si no, error). Rechazado para ARKANA |

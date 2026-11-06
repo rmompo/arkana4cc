@@ -5,7 +5,7 @@ description: Gestiona los componentes (repos) del workspace en el manifiesto cor
 
 # arkana-workspace:component
 
-Altas, cambios y bajas de componentes. Herramienta: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/components.py" <list|add|edit|remove> [opciones]`.
+Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directrices de ARKANA: commits, remoto, ramas, token, `--seed-file`; no admite `--type`, `--path`, `--vpn`, `--statusline` ni `--tool-*`). Herramienta: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/components.py" <list|add|edit|remove> [opciones]`.
 
 | Opción | Significado |
 |---|---|
@@ -16,7 +16,8 @@ Altas, cambios y bajas de componentes. Herramienta: `python3 "${CLAUDE_PLUGIN_RO
 | `--main`, `--develop` | Ramas principal y de integración |
 | `--git-user`, `--git-email` | Identidad personal (va a `local.json`, no se exporta) |
 | `--git-username`, `--token-ref` | Usuario para git y **nombre** de la clave del token en `.credentials` (nunca el valor) |
-| `--commit-format` | Convención de commits del componente |
+| `--commit-format` | Convención de commits: `conventional` (por defecto) o `ia4d` (opcional) |
+| `--git-email-domain` | Dominio de correo exigido al autor de los commits (repetible; sustituye la lista; sin él no hay regla) |
 | `--vpn` / `--no-vpn` | Si requiere VPN |
 | `--statusline` / `--no-statusline` | Si `arkana-statusline` lo muestra. Sin la marca se muestra salvo los de tipo `docs`; `--statusline` fuerza mostrarlo y `--no-statusline` lo oculta. No se aplica a ARKANA, que siempre se muestra |
 | `--tool-version tool=ver`, `--tool-path tool=ruta` | Herramientas que pide (la ruta va a `local.json`) |
