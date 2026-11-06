@@ -439,7 +439,7 @@ agentic.sh plan new --from-message <id-mensaje> --paths 'src/**' --repo api --re
 | `gate` | Hay un gate abierto (`gate`) | 5 |
 | `limite` | Presupuesto total o duración agotados; abre el gate `limite` | 6 |
 | `pausado` | Plan pausado (o marca de parada suave recién aplicada) | 7 |
-| `worker_en_curso` | Hay un worker vivo (`tarea`, `pid_worker`) | 3 |
+| `worker_en_curso` | Hay un worker vivo (`tarea`, `pid_worker`): es una espera normal | 0 |
 | `falta_finish` | Una tarea terminó sin `finish` o está `verificando`: `finish <T>` | 3 |
 | `fix` | Una tarea `en_curso` sin informe ni worker: `fix` | 3 |
 | `no_iniciado` | El plan no está en ejecución (`detalle`) | 3 |

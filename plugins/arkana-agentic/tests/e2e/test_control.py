@@ -115,6 +115,7 @@ class TestNext(unittest.TestCase):
                 wj = os.path.join(lab.cambios["ARKANA_AGENTIC_DIR"], "state", "run", "worker.json")
                 self.assertTrue(lab.esperar(lambda: os.path.exists(wj) and os.path.exists(pf), 20))
                 n = js(lab, "next", plan=pid); self.assertEqual((n["estado"], n["tarea"]), ("worker_en_curso", "T001"))
+                self.assertEqual(ag(lab, "next", plan=pid).returncode, 0)             # esperar a un worker vivo no es un fallo
                 r = ag(lab, "stop", plan=pid)                                   # suave: solo marca
                 self.assertIn("terminara su tarea", r.stdout)
                 self.assertTrue(os.path.exists(os.path.join(lab.cambios["ARKANA_AGENTIC_DIR"], "state", "run", "PAUSE")))
@@ -902,6 +903,21 @@ class TestTotals(unittest.TestCase):
         with L.Lab() as lab:
             d = js(lab, "totals")
             self.assertEqual((d["planes"]["total_usd"], d["sesiones"]["total_usd"]), (0, 0))
+
+
+class TestFixSinPlanActual(unittest.TestCase):
+    def test_fix_con_carpeta_de_planes_pero_sin_plan_actual_no_falla_y_limpia_el_worker_obsoleto(self):
+        with L.Lab() as lab:
+            base = lab.cambios["ARKANA_AGENTIC_DIR"]
+            os.makedirs(os.path.join(base, "state", "planes"), exist_ok=True)
+            wj = os.path.join(base, "state", "run", "worker.json")
+            os.makedirs(os.path.dirname(wj), exist_ok=True)
+            with open(wj, "w") as f:
+                json.dump({"plan": "P0", "tarea": "T001", "pid": 999999}, f)
+            r = ag(lab, "fix")
+            self.assertEqual(r.returncode, 0, r.stdout)
+            self.assertIn("no hay plan actual", r.stdout)
+            self.assertFalse(os.path.exists(wj))
 
 
 class TestDoctorPermisos(unittest.TestCase):

@@ -323,7 +323,7 @@ def cmd_next(a):
     def res(estado, **kw):
         d = dict({"estado": estado, "plan": pid}, **kw)
         emit(a, d, f"{estado}" + "".join(f" · {k}={v}" for k, v in kw.items() if not isinstance(v, (dict, list))))
-        return {"tarea": OK, "terminado": OK, "gate": ESPERA, "pausado": PARADO, "limite": LIM}.get(estado, PRE if estado.startswith(("worker", "fix", "falta", "no_")) else OK)
+        return {"tarea": OK, "terminado": OK, "gate": ESPERA, "pausado": PARADO, "limite": LIM, "worker_en_curso": OK}.get(estado, PRE if estado.startswith(("worker", "fix", "falta", "no_")) else OK)
 
     if plan["estado"] in state.TERMINAL_PLAN_STATES:
         return res("terminado", detalle=plan["estado"])
@@ -1041,7 +1041,10 @@ def cmd_integrate(a):
             continue
         actual = repos.current_branch(repo)
         if a.destino == "discard" and actual == rama:
-            ok, err = discard_changes(plan, next(t for t in tareas if t["repo"] == rid))   # es el propio trabajo del plan, en su rama: se descarta con ella
+            tarea_repo = next((t for t in tareas if t["repo"] == rid), None)
+            if tarea_repo is None:
+                return fail_exit(f"{rid}: el plan no tiene tareas en este repo, no hay nada que descartar", PRE)
+            ok, err = discard_changes(plan, tarea_repo)   # es el propio trabajo del plan, en su rama: se descarta con ella
             if not ok:
                 return fail_exit(f"{rid}: no se pudieron descartar los cambios de la rama {actual}: {err}", PRE)
             state.log_event(pid, "user", "discard_uncommitted", None, f"{rid}: cambios sin commitear de {actual} descartados")
@@ -1118,6 +1121,17 @@ def cmd_fix(a):
     elif getattr(a, "dry_run", False):
         print("OK|fix:layout|el layout ya es config/state/data")
     if not os.path.isdir(state.planes_dir()):
+        return OK
+    try:
+        resolve_plan(a)
+    except KeyError:                                                  # sin plan actual: solo puede haber un worker.json obsoleto
+        if not worker_info():
+            for f in ("worker.json", "killed.json"):
+                ruta = os.path.join(state.run_dir(), f)
+                if os.path.exists(ruta) and not getattr(a, "dry_run", False):
+                    os.unlink(ruta)
+                    print(f"OK|fix|se limpió {f} obsoleto (no hay plan actual)")
+        print("OK|fix|no hay plan actual: nada más que recuperar")
         return OK
     return cmd_recover(a)
 
