@@ -1,0 +1,8 @@
+{
+  "name": "arkana-statusline",
+  "version": "1.0.0",
+  "description": "Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión",
+  "author": {
+    "name": "R. Mompó Pavesi"
+  }
+}

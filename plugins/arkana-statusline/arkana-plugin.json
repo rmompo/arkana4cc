@@ -1,0 +1,9 @@
+{
+  "plugin": "arkana-statusline",
+  "contract": 1,
+  "provides": ["install", "check", "fix", "refresh"],
+  "check": "python3 scripts/lib/ops.py check",
+  "data": [
+    {"path": "arkana-statusline/state/sessions/", "class": "local", "description": "coste real de cada sesión de Claude, <sid>.json; la statusline es su ÚNICA escritora y los hooks de arkana-agentic lo leen para el libro de sesiones"}
+  ]
+}
