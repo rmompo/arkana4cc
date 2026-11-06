@@ -30,6 +30,12 @@ class TestContratos(unittest.TestCase):
         r = subprocess.run(["bash", os.path.join(PLUGINS, "..", "scripts", "vendor-core.sh"), "--check"], capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stdout)
 
+    def test_la_plantilla_de_claude_md_existe_y_tiene_sus_marcas(self):
+        ruta = os.path.join(PLUGINS, "arkana-workspace", "templates", "CLAUDE.modulo.md")
+        with open(ruta, encoding="utf-8") as f:
+            t = f.read()
+        self.assertIn("{{NOMBRE}}", t); self.assertIn("{{DESCRIPCION}}", t)
+
 
 if __name__ == "__main__":
     unittest.main()

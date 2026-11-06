@@ -420,7 +420,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/checks/all.py" --component app --componen
 | `arkana-presente` | No se arregla aquí: hay que clonar el repo de Arkana en la carpeta del workspace |
 | `permisos` | `permissions.py apply --component <alias>` (con `--dry-run` primero). Solo **añade** lo que falta y limpia duplicados, reglas `legacy` y `deny Write` redundantes; deja copia en `.arkana/arkana-workspace/bak/` y el fichero en modo 0600. Para **quitar** lo que concede de más, preguntar y usar `--prune`. Una regla nueva se añade al modelo (`lib/permissions.py`), nunca a mano en `settings.local.json` |
 | `commits` | `commits.py apply --component <alias>` (`--dry-run` primero). Si falta el `CLAUDE.md` versionado, arreglar antes `claude-md` |
-| `claude-md` | Copiar `<carpeta de Arkana>/plantillas/CLAUDE.modulo.md` como `CLAUDE.md` y rellenar nombre y descripción preguntando |
+| `claude-md` | Copiar la plantilla como `CLAUDE.md` (`<carpeta de Arkana>/plantillas/CLAUDE.modulo.md` si el proyecto tiene la suya; si no, la del plugin, `templates/CLAUDE.modulo.md`) y sustituir `{{NOMBRE}}` y `{{DESCRIPCION}}` preguntando |
 | `gitignore-env`, `gitignore-claude`, `gitignore-claude-session` | Añadir al `.gitignore` lo que falte: `.env`, `.env.*`, `!.env.example`, `.claude/`, `.claude-session/`, `node_modules/` |
 | `gitattributes-eol` | Crear o ampliar `.gitattributes` con `* text=auto eol=lf` |
 | `env-example` | Crear `.env.example` con los **nombres** de las variables del `.env` real (nunca los valores) |
