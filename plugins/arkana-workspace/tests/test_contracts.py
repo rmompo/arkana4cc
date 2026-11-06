@@ -17,8 +17,6 @@ class TestContratos(unittest.TestCase):
         nombres = [d for d in sorted(os.listdir(PLUGINS)) if os.path.isfile(os.path.join(PLUGINS, d, ".claude-plugin", "plugin.json"))]
         self.assertIn("arkana-workspace", nombres)
         for d in nombres:
-            if d in ("arkana-shared",):          # pasa a arkana-knowledge en su fase
-                continue
             self.assertEqual(contract.load(os.path.join(PLUGINS, d))["plugin"], d)
 
     def test_el_marketplace_solo_lista_plugins_que_existen(self):

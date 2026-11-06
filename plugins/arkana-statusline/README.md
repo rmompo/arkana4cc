@@ -27,6 +27,7 @@ Visión de conjunto de los seis plugins de Arkana: [`../README.md`](../README.md
 | `arkana-agentic` | **Lee** el plan: la statusline pinta `run/linea.json`, que el motor reescribe en cada transición (aquí no se calcula nada del plan). A la inversa, la statusline es la **única escritora del coste real de la sesión**, que los hooks de `arkana-agentic` leen para su libro de sesiones (`/arkana-agentic:costs`). Ver [Coste real de la sesión](#coste-real-de-la-sesión). |
 | `arkana-messaging` | **Sin relación directa**: ni la statusline lee ni escribe nada de la mensajería, ni la mensajería de la statusline (no hay referencias en su código ni en sus hooks). |
 | `arkana-knowledge` | Sin relación. |
+| `arkana-todo` | Sin relación. |
 
 `arkana-plugin.json` no declara dependencias: el plugin es autónomo y lleva su propia copia del núcleo `arkana_core` (necesaria porque la statusline la ejecuta Claude Code como comando de usuario, sin raíz de plugin).
 

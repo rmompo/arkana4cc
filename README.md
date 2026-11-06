@@ -24,7 +24,7 @@ El núcleo se copia dentro de cada plugin porque un plugin instalado no puede le
 
 ```bash
 claude plugin marketplace add <ruta-a-este-repo>/plugins
-claude plugin install arkana-workspace@arkana      # y los que quieras: arkana-messaging, arkana-agentic, arkana-statusline, arkana-knowledge
+claude plugin install arkana-workspace@arkana      # y los que quieras: arkana-messaging, arkana-agentic, arkana-statusline, arkana-knowledge, arkana-todo
 ```
 
 La secuencia de instalación en un workspace está en [`plugins/README.md`](plugins/README.md#puesta-en-marcha).

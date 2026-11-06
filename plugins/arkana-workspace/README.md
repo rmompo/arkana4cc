@@ -62,6 +62,7 @@ Reglas transversales: ningún comando escribe fuera de `.arkana/` y de los fiche
 | `arkana-agentic` | `arkana-agentic/state/actual` y `state/planes/<id>/plan.json` | El hook (plan activo y gasto) y `handover` (lista de planes); permisos (`agentic-state`, `agentic.sh`) |
 | `arkana-statusline` | `statusLine` de `~/.claude/settings.json` | El BRIEF sugiere `/arkana-statusline:install` si no apunta a `arkana-statusline` |
 | `arkana-knowledge` | nada directo | Solo participa como plugin con `check` y datos exportables |
+| `arkana-todo` | `arkana-todo/todos.json` (clase `data`) | Solo participa como plugin con `check` y datos exportables (`export --include-data`) |
 
 Los contratos de los demás plugins declaran `check` (messaging: `scripts/messaging.sh check --all`; agentic: `scripts/agentic.sh check`; statusline: `scripts/lib/ops.py check`; knowledge: `scripts/lib/knowledge.py validate`) y `requires` (messaging y agentic requieren `arkana-workspace`). `arkana-workspace` no declara `check` propio en el contrato: sus comprobaciones son las que `all.py` ejecuta directamente.
 

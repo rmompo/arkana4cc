@@ -23,7 +23,8 @@ Arkana es una herramienta general para gobernar proyectos de varias piezas en re
 │   │   ├── state/                   planes/, run/ (worker, linea.json, marcas), sesiones/, actual
 │   │   ├── data/                    ledger/{plans,sessions}/ (libro, solo metadatos) y archive/ (planes archivados)
 │   │   └── bak/
-│   └── arkana-statusline/state/sessions/<sid>.json   coste real de cada sesión (la statusline es su única escritora)
+│   ├── arkana-statusline/state/sessions/<sid>.json   coste real de cada sesión (la statusline es su única escritora)
+│   └── arkana-todo/todos.json       lista de tareas de la persona usuaria (clase data)
 ├── arkana-knowledge/                notas versionadas en git (<topic>/<slug>.md) y catalog.json
 └── plugins/                         los seis plugins y el marketplace `arkana`; los contratos comunes están en `plugins/docs/`
 ```
