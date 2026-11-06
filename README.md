@@ -11,7 +11,7 @@ Licencia: [MIT](LICENSE). Autor: R. Mompó Pavesi.
 ├── plugins/             el marketplace `arkana` y sus seis plugins (empieza por plugins/README.md)
 │   ├── .claude-plugin/marketplace.json
 │   ├── docs/            contratos comunes: plugin, salida, disposición de datos
-│   └── arkana-{workspace,messaging,statusline,agentic,knowledge}/
+│   └── arkana-{workspace,messaging,statusline,agentic,knowledge,todo}/
 ├── lib/arkana_core/     fuente canónica del núcleo común (con sus tests)
 └── scripts/
     ├── vendor-core.sh   copia el núcleo en cada plugin (scripts/_core/) y lo vigila con --check
@@ -39,7 +39,7 @@ bash scripts/run-all-tests.sh --only workspace
 claude plugin validate plugins               # y plugins/arkana-<nombre> para cada uno
 ```
 
-Las pruebas no usan red ni API real y no tocan `~/.claude`. La batería de contención (`--containment`) usa `claude` real y cuesta dinero (≈0,1 USD).
+Las pruebas no usan red ni API real y no tocan `~/.claude`. La batería de contención (`--containment`) usa `claude` real y cuesta dinero (≈0,3–0,6 USD).
 
 ## Principios
 
