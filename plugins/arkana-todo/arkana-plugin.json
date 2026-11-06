@@ -1,0 +1,13 @@
+{
+  "plugin": "arkana-todo",
+  "contract": 1,
+  "provides": ["install", "check", "fix", "add", "list", "done", "modify", "delete"],
+  "check": "python3 scripts/lib/todo.py validate",
+  "data": [
+    {
+      "path": "arkana-todo/todos.json",
+      "class": "data",
+      "description": "la lista de tareas (id, título, estado open|done|deleted, prioridad, vencimiento, componente, notas); el borrado es lógico y viaja en export/import con --include-data"
+    }
+  ]
+}
