@@ -146,6 +146,11 @@ def do(cmd, a):
                 rep.add("WARN", i, f"falta {os.path.relpath(p, ws.root)}: créalo con /arkana-workspace:fix y repite")
             elif act != "igual":
                 rep.add("DRY" if dry else "OK", i, f"semilla {act} en {os.path.relpath(p, ws.root)}")
+    if cmd == "fix":                                        # lo que `check` marca y `fix` no sabe arreglar se sigue avisando
+        hechos = {it["id"] for it in rep.items}
+        for i, st, d, _ in todo:
+            if st != "OK" and i not in hechos:
+                rep.add(st, i, f"{d} (sin arreglo automático)")
     if not rep.items:
         rep.add("OK", cmd, "nada que hacer: todo está al día")
     return rep

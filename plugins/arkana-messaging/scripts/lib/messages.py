@@ -668,7 +668,7 @@ def cmd_reconcile(a, rep=None):
             raise MessageError("reconcile", "los mensajes deben tener el mismo destinatario")
         a.para_list = [p for p in recipients_of(orig[0]) if p != who]
         if not a.para_list:
-            raise MessageError("reconcile", "el resumen se quedaría sin destinatarios (el actor es el destinatario)")
+            raise MessageError("reconcile", f"el resumen se quedaría sin destinatarios: {who} es el único destinatario de estos mensajes y el resumen lo firma quien ejecuta; ejecútalo desde la carpeta de otro componente (el actor sale del directorio actual)")
         a.refs = a.commits = None
         if any(m.get("prioridad") == "high" for m in orig):
             a.prioridad = "high"

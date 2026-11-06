@@ -51,7 +51,10 @@ class TestOps(unittest.TestCase):
             self.assertNotIn("WARN|semilla", r.stdout)
             self.assertNotIn("WARN|plugin", r.stdout)
             self.assertIn("WARN|latido", r.stdout)                                                             # aún no han corrido hooks
-            self.assertIn("nada que hacer", ops(lab, "app", "fix").stdout)
+            r = ops(lab, "app", "fix").stdout
+            self.assertIn("WARN|latido", r)                                                                    # fix no arregla el latido, pero lo sigue avisando
+            self.assertIn("sin arreglo automático", r)
+            self.assertNotIn("nada que hacer", r)
 
     def test_latido_de_esta_sesion_y_respaldo(self):
         with Lab() as lab:
