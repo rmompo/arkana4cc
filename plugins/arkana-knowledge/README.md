@@ -439,7 +439,7 @@ Todo el conjunto de plugins: `bash scripts/run-all-tests.sh` desde la carpeta de
 **Instalación**
 
 ```bash
-claude plugin marketplace add <ruta>/plugins
+claude plugin marketplace add <ruta>
 claude plugin install arkana-knowledge@arkana
 ```
 

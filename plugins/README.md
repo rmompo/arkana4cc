@@ -29,7 +29,7 @@ Todos ofrecen los verbos `install`, `check` y `fix`.
 ## Puesta en marcha
 
 ```bash
-claude plugin marketplace add <ruta>/plugins
+claude plugin marketplace add <ruta>
 claude plugin install arkana-workspace@arkana     # y el resto que quieras: arkana-messaging, arkana-agentic, arkana-statusline, arkana-knowledge, arkana-todo
 ```
 

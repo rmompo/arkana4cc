@@ -911,7 +911,7 @@ Un secreto nunca aparece en una salida: los informes sustituyen los valores de `
 Desde el marketplace local `arkana` (carpeta `plugins`):
 
 ```bash
-claude plugin marketplace add <ruta>/plugins
+claude plugin marketplace add <ruta>
 claude plugin install arkana-workspace@arkana
 ```
 

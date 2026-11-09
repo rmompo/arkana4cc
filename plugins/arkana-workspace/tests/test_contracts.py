@@ -21,9 +21,9 @@ class TestContratos(unittest.TestCase):
             self.assertEqual(contract.load(os.path.join(PLUGINS, d))["plugin"], d)
 
     def test_el_marketplace_solo_lista_plugins_que_existen(self):
-        mk = json.loads(Path(os.path.join(PLUGINS, ".claude-plugin", "marketplace.json")).read_text())
+        mk = json.loads(Path(os.path.join(PLUGINS, "..", ".claude-plugin", "marketplace.json")).read_text())
         for p in mk["plugins"]:
-            self.assertTrue(os.path.isdir(os.path.join(PLUGINS, p["source"])), p["name"])
+            self.assertTrue(os.path.isdir(os.path.join(PLUGINS, "..", p["source"])), p["name"])
         self.assertNotIn("arkana-env", [p["name"] for p in mk["plugins"]])
 
     def test_el_codigo_copiado_del_nucleo_esta_al_dia(self):

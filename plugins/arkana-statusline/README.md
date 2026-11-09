@@ -358,7 +358,7 @@ Las únicas que lee el código del plugin y el núcleo que usa:
 ## Instalación
 
 ```bash
-claude plugin marketplace add <ruta>/plugins      # una vez, si no está ya
+claude plugin marketplace add <ruta>      # una vez, si no está ya
 claude plugin install arkana-statusline@arkana
 ```
 

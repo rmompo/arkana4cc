@@ -496,7 +496,7 @@ Contenido: **repo del worker** (el id de la línea 2: `app`, `api`…), **tarea*
 |---|---|---|
 | `arkana/scripts/setup-permissions.sh` | Reglas del orquestador solo para `arkana` (§12) | `arkana-module` 1.2.0 |
 | `plugins/arkana-module/{README,skills/fix}` | Documentar las reglas nuevas | — |
-| `plugins/.claude-plugin/marketplace.json` | Añadir `arkana-agentic` | — |
+| `.claude-plugin/marketplace.json` | Añadir `arkana-agentic` | — |
 | `CLAUDE.md` | Importar `@orquestacion/ORQUESTADOR.md` | — |
 | `orquestacion/{LEEME,ORQUESTADOR}.md` | Nuevos | — |
 | `arkana/README.md`, `organizacion-proyecto.md` | Árbol, plugin nuevo, sección «Orquestación», modelo de permisos | catálogo |

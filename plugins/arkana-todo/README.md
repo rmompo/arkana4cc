@@ -7,7 +7,7 @@ Es uno de los seis plugins del marketplace `arkana` (visión de conjunto en [`..
 ## Instalación
 
 ```
-/plugin marketplace add <ruta o repo de este marketplace>
+/plugin marketplace add <ruta a este repo, o owner/repo de GitHub>
 /plugin install arkana-todo@arkana
 /arkana-todo:install
 ```

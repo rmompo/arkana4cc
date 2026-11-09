@@ -6,7 +6,7 @@ Todo es **local y sin red**: un fichero JSON por mensaje en `.arkana/arkana-mess
 
 Visión de conjunto de los seis plugins de Arkana: [`../README.md`](../README.md).
 
-Instalación: `/plugin install arkana-messaging --marketplace <owner>/<repo>` (o `claude plugin marketplace add <ruta>/plugins` y después `claude plugin install arkana-messaging@arkana`).
+Instalación: `/plugin install arkana-messaging --marketplace <owner>/<repo>` (o `claude plugin marketplace add <ruta>` y después `claude plugin install arkana-messaging@arkana`).
 
 ## Índice
 

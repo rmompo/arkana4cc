@@ -682,7 +682,7 @@ La que **establece** el plugin: `ARKANA_WORKER=1` en el entorno del worker (los 
 ## 8. Instalación y requisitos
 
 ```bash
-claude plugin marketplace add <ruta>/plugins
+claude plugin marketplace add <ruta>
 claude plugin install arkana-agentic@arkana
 ```
 
