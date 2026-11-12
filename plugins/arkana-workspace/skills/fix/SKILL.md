@@ -1,7 +1,7 @@
 ---
 name: fix
 description: Corrige, de forma interactiva y paso a paso, lo que marcan los check de arkana-workspace en un componente - permisos (generador único), exclusiones locales de git, .gitignore, .gitattributes, .env.example e identidad git. Pide confirmación en cada cambio y deja copia .bak.
-version: 0
+version: 5
 ---
 
 # arkana-workspace:fix

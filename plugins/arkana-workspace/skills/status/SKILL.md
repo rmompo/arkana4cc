@@ -1,7 +1,7 @@
 ---
 name: status
 description: Estado git local de ARKANA y de cada componente - rama, sin seguimiento (◌), preparados (✚), modificados (●), sin subir (⇡) y por bajar (⇣, o ⇣? si no se sabe). Todo local, sin red. Acepta --component y --json.
-version: 0
+version: 10
 ---
 
 # arkana-workspace:status

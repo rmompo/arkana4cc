@@ -1,7 +1,7 @@
 ---
 name: export
 description: Exporta la configuración del workspace (y con --include-data los datos de los plugins) a un ZIP con manifiesto y hashes sha256. Nunca incluye .credentials, identidad git personal ni rutas absolutas. Acepta --dry-run y --json.
-version: 0
+version: 4
 ---
 
 # arkana-workspace:export

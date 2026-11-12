@@ -1,7 +1,7 @@
 ---
 name: config
 description: Configura el workspace - jira (extensión opcional: URL y nombre de la clave del token), tools (herramientas, versiones y rutas locales) y policy (políticas compartidas del proyecto). Los componentes se gestionan con component. Valida, hace copia .bak y acepta --dry-run y --json.
-version: 0
+version: 3
 ---
 
 # arkana-workspace:config
