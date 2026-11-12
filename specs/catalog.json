@@ -1,0 +1,639 @@
+{
+  "name": "arkana",
+  "description": "Arkana: gobierno, mensajería, statusline, orquestación, conocimiento, tareas y evolución de un workspace multi-repo",
+  "owner": {
+    "name": "R. Mompó Pavesi"
+  },
+  "docs_language": "es",
+  "plugins": [
+    {
+      "name": "arkana-agentic",
+      "description": "Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verificación por scripts, límites y control (estado, parada, recuperación).",
+      "category": "other",
+      "status": "beta",
+      "version": "0.10.0",
+      "spec": "specs/arkana-agentic.md",
+      "path": "plugins/arkana-agentic",
+      "changelog": [
+        {
+          "version": "0.10.0",
+          "changes": "Bootstrap: plugin registered in catalog.json"
+        }
+      ],
+      "skills": [
+        {
+          "name": "archive",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "check",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "control",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "costs",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "fix",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "install",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "plan",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "run",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "stop",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "arkana-evolve",
+      "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra (apply, check)",
+      "category": "other",
+      "status": "beta",
+      "version": "0.5.0",
+      "spec": "specs/arkana-evolve.md",
+      "path": "plugins/arkana-evolve",
+      "changelog": [
+        {
+          "version": "0.5.0",
+          "changes": "Bootstrap: plugin registered in catalog.json"
+        }
+      ],
+      "skills": [
+        {
+          "name": "apply",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "check",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "arkana-knowledge",
+      "description": "Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y documentos de origen con su versión en Markdown, ingesta desde arkana-incoming y consulta (add, query, modify, delete, ingest)",
+      "category": "other",
+      "status": "beta",
+      "version": "2.0.1",
+      "spec": "specs/arkana-knowledge.md",
+      "path": "plugins/arkana-knowledge",
+      "changelog": [
+        {
+          "version": "2.0.1",
+          "changes": "Bootstrap: plugin registered in catalog.json"
+        }
+      ],
+      "skills": [
+        {
+          "name": "add",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "check",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "fix",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "ingest",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "install",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "modify",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "query",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "arkana-messaging",
+      "description": "Mensajes entre los componentes de un workspace de Arkana: put, get, delete (lógico), sync y reconcile; almacén local, sin git ni red",
+      "category": "other",
+      "status": "beta",
+      "version": "2.1.0",
+      "spec": "specs/arkana-messaging.md",
+      "path": "plugins/arkana-messaging",
+      "changelog": [
+        {
+          "version": "2.1.0",
+          "changes": "Bootstrap: plugin registered in catalog.json"
+        }
+      ],
+      "skills": [
+        {
+          "name": "check",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "fix",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "get",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "install",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "put",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "query",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "sync",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "arkana-statusline",
+      "description": "Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión",
+      "category": "other",
+      "status": "beta",
+      "version": "1.1.0",
+      "spec": "specs/arkana-statusline.md",
+      "path": "plugins/arkana-statusline",
+      "changelog": [
+        {
+          "version": "1.1.0",
+          "changes": "Bootstrap: plugin registered in catalog.json"
+        }
+      ],
+      "skills": [
+        {
+          "name": "check",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "fix",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "install",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "refresh",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "arkana-todo",
+      "description": "Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: local, sin red, con prioridad, vencimiento y componente, cierre reversible y borrado lógico (add, list, done, modify, delete)",
+      "category": "other",
+      "status": "beta",
+      "version": "1.1.0",
+      "spec": "specs/arkana-todo.md",
+      "path": "plugins/arkana-todo",
+      "changelog": [
+        {
+          "version": "1.1.0",
+          "changes": "Bootstrap: plugin registered in catalog.json"
+        }
+      ],
+      "skills": [
+        {
+          "name": "add",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "check",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "done",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "fix",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "install",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "modify",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "arkana-workspace",
+      "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
+      "category": "other",
+      "status": "beta",
+      "version": "6.2.0",
+      "spec": "specs/arkana-workspace.md",
+      "path": "plugins/arkana-workspace",
+      "changelog": [
+        {
+          "version": "6.2.0",
+          "changes": "Bootstrap: plugin registered in catalog.json"
+        }
+      ],
+      "skills": [
+        {
+          "name": "check",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "component",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "config",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "export",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "fix",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "handover",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "import",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "install",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "rew-grants",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "sync",
+          "version": 0,
+          "changelog": [
+            {
+              "version": 0,
+              "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
