@@ -1,10 +1,10 @@
 # arkana-knowledge
 
-Conocimiento común de un workspace de Arkana (ARKANA más el proyecto y sus componentes), guardado en el repositorio de ARKANA, que es también el repositorio de conocimiento del proyecto. Son las personas usuarias quienes lo gestionan (lo administran con `add`, `modify` y `delete`, y lo consultan con `query`): **notas Markdown versionadas en git**, que el equipo comparte, con un **catálogo** que se lee primero y un **changelog dentro de cada nota**. Sustituye al antiguo plugin `arkana-shared`.
+Conocimiento común de un workspace de Arkana (ARKANA más el proyecto y sus componentes), guardado en el repositorio de ARKANA, que es también el repositorio de conocimiento del proyecto. Son las personas usuarias quienes lo gestionan (lo administran con `add`, `modify` y `delete`, y lo consultan con `query`): **notas Markdown versionadas en git**, que el equipo comparte, con un **catálogo** que se lee primero y un **changelog dentro de cada nota**.
 
 **Funciona como un pseudo-RAG.** El plugin mantiene un **catálogo** (`catalog.json`) y los documentos que indexa, y los organiza para que las personas usuarias los consulten y exploten su contenido de la forma más eficiente: el catálogo se lee primero, `query` recupera las notas más relevantes por palabras clave (puntúa título, etiquetas, resumen, id y cuerpo, y filtra por `topic` y componente) y el modelo trabaja solo con lo recuperado en lugar de cargar todo el conocimiento. No usa embeddings ni servicios externos: la recuperación es léxica, local y determinista.
 
-Es uno de los seis plugins del marketplace `arkana` (visión de conjunto en [`../README.md`](../README.md)). Solo usa la biblioteca estándar de Python 3; no necesita red.
+Es uno de los plugins del marketplace `arkana` (visión de conjunto en [`../README.md`](../README.md)). Solo usa la biblioteca estándar de Python 3; no necesita red.
 
 ## Contenido
 
@@ -13,8 +13,7 @@ Es uno de los seis plugins del marketplace `arkana` (visión de conjunto en [`..
 3. [Modelo de datos](#3-modelo-de-datos)
 4. [Herramienta `knowledge.py`](#4-herramienta-knowledgepy)
 5. [Referencia de skills](#5-referencia-de-skills)
-6. [Migración del formato antiguo](#6-migración-del-formato-antiguo)
-7. [Pruebas, desarrollo e instalación](#7-pruebas-desarrollo-e-instalación)
+6. [Pruebas, desarrollo e instalación](#6-pruebas-desarrollo-e-instalación)
 
 ---
 
@@ -37,7 +36,7 @@ Regla práctica: si es algo **a hacer** o **a contestar**, es un mensaje; si es 
 
 | Plugin | Relación |
 |---|---|
-| `arkana-workspace` | Aporta el **manifiesto**: los alias válidos de `components` salen de él. Además de los alias de los componentes valen `arkana` (el propio repo de Arkana) y `all` (todos). El alias histórico `shared` se normaliza a `arkana`. Si el manifiesto no se puede cargar, no se validan los componentes (no se bloquea el trabajo). Localiza el repo de Arkana con la misma lógica de siempre (`ARKANA_HOME`, subida de carpetas con `.arkana/arkana.json`, registro de workspaces). |
+| `arkana-workspace` | Aporta el **manifiesto**: los alias válidos de `components` salen de él. Además de los alias de los componentes valen `arkana` (el propio repo de Arkana) y `all` (todos). Si el manifiesto no se puede cargar, no se validan los componentes (no se bloquea el trabajo). Localiza el repo de Arkana con la misma lógica de siempre (`ARKANA_HOME`, subida de carpetas con `.arkana/arkana.json`, registro de workspaces). |
 | `arkana-messaging` | **Complementarios.** Un mensaje avisa («hay una nota nueva sobre X», «revisa la decisión Y») y la nota es la que queda; un mensaje no sustituye a la nota ni al revés. |
 | `arkana-agentic` | **Los workers no leen el conocimiento** (no ven otros ficheros que los de su tarea ni este plugin). Por eso las notas **no son el sitio de las directrices** que un worker deba cumplir: para eso están los mensajes `repeat`, que `launch` copia en el prompt del worker. Lo que un worker necesite de una nota lo lee el orquestador y lo pasa como contexto del plan. |
 | `arkana-statusline` | **Sin relación**: la barra de estado no lee ni muestra notas, y `arkana-knowledge` no depende de ella ni al revés. |
@@ -60,7 +59,7 @@ Regla práctica: si es algo **a hacer** o **a contestar**, es un mensaje; si es 
 └── <cualquier-otra-ruta>/nota.md    # también cuentan las notas con frontmatter fuera de arkana-knowledge/
 ```
 
-Las notas nuevas se crean siempre en `arkana-knowledge/<topic>/<slug>.md`. Pero **cualquier `.md` con frontmatter e `id`** bajo el repo se considera nota (por ejemplo, las notas de referencia que viven en la raíz de ARKANA); `reindex` las recoge en el catálogo con su ruta real. Se ignoran estas carpetas: `.git`, `node_modules`, `archivo`, `plantillas`, `plugins`, `scripts`, `.claude`, `.claude-session`, `.arkana`, `lib`, `.historial` y `conocimiento` (esta última es el formato antiguo; ver [sección 6](#6-migración-del-formato-antiguo)).
+Las notas nuevas se crean siempre en `arkana-knowledge/<topic>/<slug>.md`. Pero **cualquier `.md` con frontmatter e `id`** bajo el repo se considera nota (por ejemplo, las notas de referencia que viven en la raíz de ARKANA); `reindex` las recoge en el catálogo con su ruta real. Se ignoran estas carpetas: `.git`, `node_modules`, `archivo`, `plantillas`, `plugins`, `scripts`, `.claude`, `.claude-session`, `.arkana` y `lib`.
 
 ### 3.2 Frontmatter
 
@@ -92,7 +91,7 @@ state: active
 |---|---|---|
 | `id` | Identificador **estable**: `<topic>-<slug>`, solo `a-z`, `0-9` y `-` (debe empezar por letra o dígito). No cambia nunca: ni al modificar ni al migrar. | `add` |
 | `titulo` | Título legible (entre comillas en el fichero) | `add`, `modify --title` |
-| `topic` | Uno de los cinco topics (tabla siguiente) | `add` (no se cambia después) |
+| `topic` | Uno de los topics (tabla siguiente) | `add` (no se cambia después) |
 | `version` | Formato `N.N` (`1.0`, `1.1`, `2.0`…) | La herramienta (versionado automático) |
 | `fecha` | Fecha ISO (`AAAA-MM-DD`) de la **última** versión | La herramienta |
 | `autor` | Autor de la última versión | `--author`; si falta, `git config user.name` del repo de Arkana, luego `$USER`, luego `desconocido` |
@@ -123,7 +122,7 @@ Al final de cada nota, bajo `## Changelog`, **una línea por versión** con el f
 
 ### 3.6 Catálogo
 
-`arkana-knowledge/catalog.json` es un índice que se **genera** (no se edita a mano) y se reescribe tras cada `add`, `modify`, `delete`, `reindex` y `migrate`:
+`arkana-knowledge/catalog.json` es un índice que se **genera** (no se edita a mano) y se reescribe tras cada `add`, `modify`, `delete` y `reindex`:
 
 ```json
 { "version": 2, "actualizado": "2026-11-04",
@@ -132,7 +131,7 @@ Al final de cada nota, bajo `## Changelog`, **una línea por versión** con el f
                "ruta": "arkana-knowledge/decision/<slug>.md" } ] }
 ```
 
-Las entradas van ordenadas por `id`. Incluye las notas borradas (con `state: deleted`) y solo las que tienen `topic` (las del formato antiguo no entran hasta migrar). `validate` avisa si está desincronizado (nota que falta, sobra o con otra ruta); `reindex` lo reconstruye.
+Las entradas van ordenadas por `id`. Incluye las notas borradas (con `state: deleted`) y solo las que tienen `topic`. `validate` avisa si está desincronizado (nota que falta, sobra o con otra ruta); `reindex` lo reconstruye.
 
 ### 3.7 Reglas de seguridad y qué se versiona
 
@@ -147,7 +146,7 @@ Las entradas van ordenadas por `id`. Incluye las notas borradas (con `state: del
 Todo lo hacen los skills llamando a `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/knowledge.py" <subcomando> [opciones]`. Ejecutada a mano, desde `scripts/lib/knowledge.py` del plugin.
 
 ```text
-knowledge.py [--home DIR] {add|modify|delete|query|validate|reindex|install|migrate} [opciones]
+knowledge.py [--home DIR] {add|modify|delete|query|validate|reindex|install} [opciones]
 ```
 
 ### 4.1 Opciones comunes
@@ -156,7 +155,7 @@ knowledge.py [--home DIR] {add|modify|delete|query|validate|reindex|install|migr
 |---|---|---|
 | `--home DIR` | **Antes** del subcomando | Carpeta del repo de Arkana. Por defecto se localiza (variable `ARKANA_HOME`, o subiendo desde el directorio actual hasta una carpeta con `.arkana/arkana.json`, o el registro de workspaces). Sin workspace ni `--home`: error y salida 3. |
 | `--json` | Después del subcomando; todos | Salida JSON en vez de líneas de texto. En `query` imprime una lista de resultados (ver `query`); con `query --id` se ignora y se imprime la nota. |
-| `--dry-run` | Después del subcomando; solo `add`, `modify`, `delete`, `reindex`, `install`, `migrate` | No escribe nada ni mueve ni borra; informa con estado `DRY` de lo que haría. **No existe** en `query` ni en `validate` (que ya son de solo lectura): usarlo ahí es un error de uso (salida 2). |
+| `--dry-run` | Después del subcomando; solo `add`, `modify`, `delete`, `reindex`, `install` | No escribe nada ni mueve ni borra; informa con estado `DRY` de lo que haría. **No existe** en `query` ni en `validate` (que ya son de solo lectura): usarlo ahí es un error de uso (salida 2). |
 
 ### 4.2 Formato de salida y códigos de salida
 
@@ -180,15 +179,14 @@ Salvo `query` (que tiene salida propia), cada comando imprime una línea por com
 | `validate` | notas, catálogo, manifiesto | nada | `check` |
 | `reindex` | notas | `catalog.json` | `fix` (parcial) |
 | `install` | carpeta y catálogo | `arkana-knowledge/` y `catalog.json` si faltan | `install` |
-| `migrate` | formato antiguo | notas, borra restos antiguos, `catalog.json`; usa `git mv` / `git rm` | `fix` |
 
-Escrituras atómicas (fichero temporal y renombrado). **Git**: la herramienta solo ejecuta `git config user.name` (autor por defecto) y, en `migrate`, `git ls-files`, `git mv` y `git rm`; nunca `add`, `commit` ni `push`.
+Escrituras atómicas (fichero temporal y renombrado). **Git**: la herramienta solo ejecuta `git config user.name` (autor por defecto); nunca `add`, `commit` ni `push`.
 
 ---
 
 ## 5. Referencia de skills
 
-Los 7 skills están en `skills/<nombre>/SKILL.md`. Cada uno invoca la herramienta con `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/knowledge.py" …`.
+Los skills están en `skills/<nombre>/SKILL.md`. Cada uno invoca la herramienta con `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/knowledge.py" …`.
 
 | Skill | Subcomando(s) | Escribe |
 |---|---|---|
@@ -198,7 +196,7 @@ Los 7 skills están en `skills/<nombre>/SKILL.md`. Cada uno invoca la herramient
 | [`delete`](#54-arkana-knowledgedelete) | `delete` | sí |
 | [`install`](#55-arkana-knowledgeinstall) | `install` | sí |
 | [`check`](#56-arkana-knowledgecheck) | `validate` | no |
-| [`fix`](#57-arkana-knowledgefix) | `validate` + `migrate` / `reindex` + `validate` | sí |
+| [`fix`](#57-arkana-knowledgefix) | `validate` + `reindex` + `validate` | sí |
 
 ### 5.1 `/arkana-knowledge:add`
 
@@ -220,7 +218,7 @@ Los 7 skills están en `skills/<nombre>/SKILL.md`. Cada uno invoca la herramient
 | `--title` | sí | texto | Va en `titulo`. Si no hay `--slug`, de él sale el slug. |
 | `--summary` | sí | una frase | Va en `resumen`. |
 | `--slug` | no | por defecto, el título pasado a minúsculas, sin tildes ni `ñ`, con guiones y recortado a 60 caracteres (`nota` si queda vacío) | El `id` será `<topic>-<slug>` y el fichero `arkana-knowledge/<topic>/<slug>.md`. Si el id resultante no cumple `a-z0-9-` (empezando por letra o dígito): error, salida 2. |
-| `--components` | no | lista separada por comas de alias, `arkana` o `all`; por defecto `all` | Los alias se pasan a minúsculas (`shared` → `arkana`). Un alias que no esté en el manifiesto: error con la lista de válidos, salida 2. Vacío equivale a `all`. |
+| `--components` | no | lista separada por comas de alias, `arkana` o `all`; por defecto `all` | Los alias se pasan a minúsculas. Un alias que no esté en el manifiesto: error con la lista de válidos, salida 2. Vacío equivale a `all`. |
 | `--tags` | no | lista separada por comas; por defecto vacía | Va en `etiquetas`. |
 | `--author` | no | por defecto `git config user.name`, luego `$USER`, luego `desconocido` | Va en `autor` y en el Changelog. |
 | `--body-file` | no | ruta de un fichero Markdown | Cuerpo de la nota. Si no se puede leer: `FAIL` «error de ficheros», salida 1. |
@@ -258,13 +256,13 @@ python3 scripts/lib/knowledge.py validate
 |---|---|---|
 | `--q` | palabras | Se parte en palabras (`\w+`, minúsculas) y se descartan las de un solo carácter. Cada palabra puntúa: título ×5, etiquetas ×4, resumen ×3, id ×2, cuerpo (incluido el Changelog) ×1, contando como máximo 5 apariciones por campo. Solo salen notas con puntuación > 0. Sin palabras útiles (y sin `--id`): `FAIL «consulta vacía (usa --q o --id)»`, salida 2. |
 | `--id` | id de nota | Imprime la nota completa (frontmatter, cuerpo y Changelog), **sin importar su `state`**, y sale con 0. Ignora `--q`, filtros y `--json`. Id inexistente: `FAIL`, salida 1. La ruta se resuelve con el catálogo (si falta, se calcula al vuelo sin escribirlo). |
-| `--topic` | uno de los cinco topics | Deja solo las notas de ese topic. No se valida el valor: uno desconocido simplemente no devuelve nada. |
-| `--component` | alias, `arkana` o `all` | Con un alias (o `arkana`) salen las notas que lo incluyen **y las de `all`**. Con `all` no filtra. El alias se pasa a minúsculas (`shared` → `arkana`) y no se valida contra el manifiesto. |
+| `--topic` | uno de los topics | Deja solo las notas de ese topic. No se valida el valor: uno desconocido simplemente no devuelve nada. |
+| `--component` | alias, `arkana` o `all` | Con un alias (o `arkana`) salen las notas que lo incluyen **y las de `all`**. Con `all` no filtra. El alias se pasa a minúsculas y no se valida contra el manifiesto. |
 | `--limit` | entero, por defecto `8` | Máximo de resultados tras ordenar por puntuación descendente y, a igualdad, por id. |
 | `--include-deleted` | marca | Incluye las notas con `state: deleted` (por defecto se ocultan). |
 | `--json` | marca | Lista JSON de objetos `{score, id, version, topic, state, components, titulo, ruta, resumen}`. Sin resultados, `[]`. |
 
-`query` no admite `--dry-run`. Busca recorriendo las notas (no depende del catálogo) e ignora las del formato antiguo hasta migrarlas.
+`query` no admite `--dry-run`. Busca recorriendo las notas (no depende del catálogo).
 
 **Salida de texto**: una línea por resultado `puntuación|id|vX.Y|topic|ruta|título`, o `sin resultados`. Salida 0 salvo los errores indicados.
 
@@ -351,7 +349,7 @@ python3 scripts/lib/knowledge.py delete --id pending-migrar-registro --reason "r
 
 **Para qué**: primera puesta en marcha. **Cuándo**: al activar el plugin en un workspace; es **repetible** (no toca lo que ya existe).
 
-**Orden exacta**: `install [--dry-run] [--json]`. Si avisa de formato antiguo, `/arkana-knowledge:fix`.
+**Orden exacta**: `install [--dry-run] [--json]`.
 
 **Parámetros de `install`**
 
@@ -360,7 +358,7 @@ python3 scripts/lib/knowledge.py delete --id pending-migrar-registro --reason "r
 | `--dry-run` | No crea nada; informa `DRY` de lo que haría. |
 | `--json` | Salida JSON. |
 
-**Efecto**: crea `arkana-knowledge/` si falta y `arkana-knowledge/catalog.json` si falta (se genera a partir de las notas que ya haya, también fuera de la carpeta). Si hay **formato antiguo** (carpeta `conocimiento/`, `catalogo.json` o notas con `tipo`/`modulos`), añade `WARN|formato-antiguo|…: ejecuta /arkana-knowledge:fix`. No migra nada por sí mismo.
+**Efecto**: crea `arkana-knowledge/` si falta y `arkana-knowledge/catalog.json` si falta (se genera a partir de las notas que ya haya, también fuera de la carpeta).
 
 **Salida**: `OK|carpeta|arkana-knowledge/ creada` (o `presente`), `OK|catalogo|catálogo generado` (o `presente`), y el posible `WARN`. Salida 0; 3 si no hay workspace.
 
@@ -377,52 +375,30 @@ python3 scripts/lib/knowledge.py delete --id pending-migrar-registro --reason "r
 | Resultado | Condición |
 |---|---|
 | `FAIL\|nota:<id>` (una línea por nota, con todos sus problemas) | Falta alguno de `id`, `titulo`, `topic`, `version`, `fecha`, `autor`, `resumen`, `state`; `id` inválido; `topic` fuera de los cinco; `state` distinto de `active`/`deleted`; `version` que no sea `N.N`; componentes que no sean alias del manifiesto, `arkana` ni `all` (solo si el manifiesto carga); id duplicado; sin `## Changelog` (sin líneas `- `); última entrada del Changelog distinta de la versión actual |
-| `WARN\|nota:<id>` | Nota con frontmatter del formato antiguo (`tipo`/`modulos`, sin `topic`): se salta |
 | `WARN\|catalogo` | Falta `catalog.json`, o está desincronizado (nota ausente, sobrante o con otra ruta) |
 | `OK\|catalogo` | `catálogo al día (N notas)` |
-| `WARN\|formato-antiguo` | Quedan `conocimiento/`, `catalogo.json` o notas `tipo`/`modulos` |
 | `OK\|notas` | `N notas válidas` (solo si no hay ningún `FAIL`) |
 
 **Salida y códigos**: `0` sin `FAIL` (los `WARN` no fallan); `1` con algún `FAIL`.
 
 ### 5.7 `/arkana-knowledge:fix`
 
-**Para qué**: dejar el conocimiento en el formato actual: migrar el formato antiguo y reconstruir el catálogo. **Cuándo**: cuando `check` o `install` avisan de `formato-antiguo` o de catálogo desincronizado. **Pide confirmación antes de migrar** (porque se borran restos antiguos).
+**Para qué**: reconstruir el catálogo. **Cuándo**: cuando `check` avisa de que falta o está desincronizado.
 
 **Orden exacta**
 
-1. `validate` y, si hay `WARN` de `formato-antiguo`, `migrate --dry-run`: enseñar qué se movería, qué Changelog se genera y qué se borra (`conocimiento/.historial/` y `catalogo.json`; los ficheros antiguos siguen en el historial de git).
-2. Pedir confirmación (`AskUserQuestion`) y aplicar `migrate`.
-3. Si solo está desincronizado el catálogo: `reindex`.
-4. `validate` otra vez; recordar que **queda sin commitear**.
+1. `validate` y, si el catálogo falta o está desincronizado, `reindex` (con `--dry-run` primero si hay duda).
+2. `validate` otra vez; recordar que **queda sin commitear**.
 
-**Parámetros de `migrate`**: `--dry-run`, `--json` (y `--home` antes). **Parámetros de `reindex`**: `--dry-run` (calcula el catálogo sin escribirlo e informa `DRY|reindex|catálogo (no escrito) reconstruido: N notas`), `--json`. Detalle de la migración en la [sección 6](#6-migración-del-formato-antiguo).
+**Parámetros de `reindex`**: `--dry-run` (calcula el catálogo sin escribirlo e informa `DRY|reindex|catálogo (no escrito) reconstruido: N notas`), `--json`.
 
-**Salida**: líneas `OK|migrar:<id>|<origen> → <destino> (N entradas de Changelog; componentes …)`, `OK|borrar:<ruta>|…` y `OK|migrate|N notas migradas` (o `no hay notas del formato antiguo`); `OK|reindex|catálogo reconstruido: N notas`.
+**Salida**: `OK|reindex|catálogo reconstruido: N notas`.
 
 ---
 
-## 6. Migración del formato antiguo
+## 6. Pruebas, desarrollo e instalación
 
-El formato antiguo es: carpeta `conocimiento/<tipo>/`, `catalogo.json` en la raíz, historial en `conocimiento/.historial/<id>/v*.md` y frontmatter con `tipo` y `modulos` (sin `topic` ni `components`). `migrate` (lo que ejecuta `fix`) lo convierte **sin cambiar ningún id**:
-
-| Antes | Después |
-|---|---|
-| `conocimiento/<tipo>/x.md` | `arkana-knowledge/<tipo>/x.md`, movida con **`git mv`** si estaba versionada (si no, con un movimiento normal). Las notas que viven **fuera** de `conocimiento/` (p. ej. las de referencia de la raíz) **se quedan donde están** y solo se reescriben en su sitio. |
-| `tipo` | `topic`; un tipo fuera de los cinco se convierte en `reference` |
-| `modulos` | `components`, **copiados tal cual**; vacío → `[all]` |
-| Historial `.historial/<id>/v*.md` | Líneas de `## Changelog`: una por versión archivada (con el `resumen` de esa versión) más la de la versión actual. Si la nota ya tenía Changelog, se respeta |
-| Campos ausentes | `version` `1.0`, `fecha` hoy, `autor` `desconocido`, `etiquetas` vacías, `state: active` |
-| `conocimiento/.historial/` y `catalogo.json` | Se borran (con `git rm` si estaban versionados). Sus ficheros siguen en el historial de git. Si `conocimiento/` queda sin ficheros, se elimina |
-| (nada) | `arkana-knowledge/catalog.json` reconstruido |
-
-Es **idempotente**: sin notas antiguas informa `no hay notas del formato antiguo`. `--dry-run` muestra cada nota con origen, destino y nº de entradas de Changelog sin tocar nada. Tras migrar, la herramienta no hace commit: revisa `git status` y commitea.
-
----
-
-## 7. Pruebas, desarrollo e instalación
-
-**Pruebas** (sin red ni API real; unittest de la biblioteca estándar, 8 casos que cubren add/modify/query/validate con Changelog intacto, `all` y `--dry-run`, banderas y topics inválidos, componentes contra el manifiesto, borrado lógico y restauración, detección de problemas, migración con `git mv` e idempotencia, e `install`):
+**Pruebas** (sin red ni API real; unittest de la biblioteca estándar, 7 casos que cubren add/modify/query/validate con Changelog intacto, `all` y `--dry-run`, banderas y topics inválidos, componentes contra el manifiesto, borrado lógico y restauración, detección de problemas e `install`):
 
 ```bash
 bash tests/run-tests.sh            # añade argumentos de unittest si hace falta (por defecto -v)
@@ -443,4 +419,4 @@ claude plugin marketplace add <ruta>
 claude plugin install arkana-knowledge@arkana
 ```
 
-Después, desde el repo de Arkana: `/arkana-knowledge:install` (crea `arkana-knowledge/` y el catálogo) y `/arkana-knowledge:check`. Si el conocimiento venía del formato antiguo o de `arkana-shared`, `/arkana-knowledge:fix`. Requiere Python 3 y, para la migración con `git mv`, `git`; el manifiesto de `arkana-workspace` solo hace falta para validar los alias de `components`.
+Después, desde el repo de Arkana: `/arkana-knowledge:install` (crea `arkana-knowledge/` y el catálogo) y `/arkana-knowledge:check`. Requiere Python 3 y `git` (solo para el autor por defecto); el manifiesto de `arkana-workspace` solo hace falta para validar los alias de `components`.

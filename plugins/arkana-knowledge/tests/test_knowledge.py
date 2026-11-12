@@ -1,4 +1,4 @@
-"""arkana-knowledge: add/modify/delete/query/validate/migrate con Changelog, topic, components y borrado lógico. Sin red."""
+"""arkana-knowledge: add/modify/delete/query/validate con Changelog, topic, components y borrado lógico. Sin red."""
 import json
 import os
 import subprocess
@@ -146,63 +146,12 @@ class TestValidate(Base):
         self.assertEqual(kn(self.h, "validate").returncode, 0)
 
 
-class TestMigracion(Base):
-    def legacy(self):
-        h = self.h
-        subprocess.run(["git", "init", "-q", "-b", "main", h], check=True, env=GENV)
-        meta = lambda ver, fecha, res: f'---\nid: decision-orquestar\ntitulo: "Orquestar"\ntipo: decision\nversion: {ver}\nfecha: {fecha}\nautor: Ana\nmodulos: [app, api]\netiquetas: [a, b]\nresumen: "{res}"\n---\n'
-        write(os.path.join(h, "conocimiento", "decision", "orquestar.md"), meta("1.2", "2026-11-03", "Resumen v1.2") + "\n# Orquestar\n\nCuerpo.\n")
-        write(os.path.join(h, "conocimiento", ".historial", "decision-orquestar", "v1.0.md"), meta("1.0", "2026-10-30", "Resumen v1.0") + "\nviejo\n")
-        write(os.path.join(h, "conocimiento", ".historial", "decision-orquestar", "v1.1.md"), meta("1.1", "2026-10-31", "Resumen v1.1") + "\nviejo\n")
-        write(os.path.join(h, "estado-proyecto.md"), '---\nid: reference-estado-proyecto\ntitulo: "Estado"\ntipo: reference\nversion: 1.4\nfecha: 2026-11-03\nautor: Ana\nmodulos: []\netiquetas: [x]\nresumen: "Estado"\n---\n\n# Estado\n')
-        write(os.path.join(h, "catalogo.json"), json.dumps({"version": 1, "notas": []}))
-        subprocess.run(["git", "-C", h, "add", "-A"], check=True, env=GENV)
-        subprocess.run(["git", "-C", h, "commit", "-q", "-m", "legacy"], check=True, env=GENV)
-
-    def test_migra_historial_a_changelog_mueve_con_git_y_es_idempotente(self):
-        self.legacy()
-        h = self.h
-        self.assertIn("WARN|formato-antiguo", kn(h, "validate").stdout)
-        r = kn(h, "migrate", "--dry-run")
-        self.assertEqual(r.returncode, 0, r.stdout)
-        self.assertTrue(os.path.isdir(os.path.join(h, "conocimiento", ".historial")))                      # dry-run no toca nada
-        r = kn(h, "migrate")
-        self.assertEqual(r.returncode, 0, r.stdout)
-        nueva = os.path.join(h, "arkana-knowledge", "decision", "orquestar.md")
-        t = read(nueva)
-        for x in ("topic: decision", "components: [app, api]", "state: active", "id: decision-orquestar", "version: 1.2", "# Orquestar", "Cuerpo."):
-            self.assertIn(x, t)
-        self.assertNotIn("tipo:", t)
-        self.assertNotIn("modulos:", t)
-        ch = t.split("## Changelog")[1]
-        self.assertEqual([l.split(" · ")[0] for l in ch.strip().splitlines()], ["- v1.0", "- v1.1", "- v1.2"])
-        self.assertIn("Resumen v1.0", ch)
-        self.assertFalse(os.path.exists(os.path.join(h, "conocimiento")))                                  # carpeta, historial y catálogo antiguo fuera
-        self.assertFalse(os.path.exists(os.path.join(h, "catalogo.json")))
-        st = subprocess.run(["git", "-C", h, "status", "--short"], capture_output=True, text=True, env=GENV).stdout
-        self.assertRegex(st, r"(?m)^R.? +conocimiento/decision/orquestar.md -> arkana-knowledge/decision/orquestar.md")   # git mv: el historial de git sigue la nota
-        ref = read(os.path.join(h, "estado-proyecto.md"))
-        self.assertIn("topic: reference", ref)
-        self.assertIn("components: [all]", ref)                                                            # modulos vacío = todos; la nota raíz no se mueve
-        self.assertIn("Estado", read(os.path.join(h, "estado-proyecto.md")))
-        ids = {e["id"]: e["ruta"] for e in cat(h)}
-        self.assertEqual(ids, {"decision-orquestar": "arkana-knowledge/decision/orquestar.md", "reference-estado-proyecto": "estado-proyecto.md"})
-        v = kn(h, "validate")
-        self.assertEqual(v.returncode, 0, v.stdout)
-        self.assertNotIn("formato-antiguo", v.stdout)
-        antes = read(nueva)
-        self.assertIn("no hay notas del formato antiguo", kn(h, "migrate").stdout)
-        self.assertEqual(read(nueva), antes)
-
-
 class TestInstall(Base):
-    def test_install_crea_estructura_y_avisa_del_formato_antiguo(self):
+    def test_install_crea_estructura(self):
         r = kn(self.h, "install")
         self.assertEqual(r.returncode, 0, r.stdout)
         self.assertTrue(os.path.isfile(os.path.join(self.h, "arkana-knowledge", "catalog.json")))
         self.assertIn("presente", kn(self.h, "install").stdout)
-        os.makedirs(os.path.join(self.h, "conocimiento"))
-        self.assertIn("WARN|formato-antiguo", kn(self.h, "install").stdout)
         self.assertEqual(kn(os.path.join(self.h, "no-existe"), "validate").returncode, 3)
 
 

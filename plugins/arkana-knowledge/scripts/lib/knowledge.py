@@ -8,20 +8,18 @@
   validate                                                  solo lectura (lo usa `check`)
   reindex                                                   reconstruye el catálogo
   install                                                   crea arkana-knowledge/ y el catálogo si faltan
-  migrate                                                   pasa el formato antiguo (conocimiento/, catalogo.json, .historial, tipo/modulos) al actual (lo usa `fix`)
-  Opciones comunes: --home DIR (carpeta del repo de Arkana; por defecto se localiza)  --dry-run (add, modify, delete, install, migrate)  --json
+  Opciones comunes: --home DIR (carpeta del repo de Arkana; por defecto se localiza)  --dry-run (add, modify, delete, reindex, install)  --json
 
 Una nota es un `.md` con frontmatter (`id`, `titulo`, `topic`, `version`, `fecha`, `autor`, `components`, `etiquetas`, `resumen`, `state`) y, al final, una sección
 `## Changelog` con una línea por versión (la mantiene la herramienta; `modify` nunca la pisa). Las notas nuevas van en `arkana-knowledge/<topic>/<slug>.md`;
 el catálogo es `arkana-knowledge/catalog.json` (índice que se lee primero). `components` son alias del manifiesto, `arkana` o `all`. Topics: decision, lesson,
-pending, contract, reference. `state`: active | deleted. Los ids no cambian al migrar.
+pending, contract, reference. `state`: active | deleted.
 """
 import argparse
 import datetime
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 
@@ -35,7 +33,7 @@ FIELDS = ["id", "titulo", "topic", "version", "fecha", "autor", "components", "e
 LIST_FIELDS = ("components", "etiquetas")
 ROOT = "arkana-knowledge"
 CATALOG = os.path.join(ROOT, "catalog.json")
-EXCLUDED = {".git", "node_modules", "archivo", "plantillas", "plugins", "scripts", ".claude", ".claude-session", ".arkana", "lib", ".historial", "conocimiento"}
+EXCLUDED = {".git", "node_modules", "archivo", "plantillas", "plugins", "scripts", ".claude", ".claude-session", ".arkana", "lib"}
 VERSION_RE = re.compile(r"^\d+\.\d+$")
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 CHANGELOG = "## Changelog"
@@ -313,123 +311,12 @@ def cmd_install(a, home, rep):
         rep.add("DRY" if a.dry_run else "OK", "catalogo", "catálogo " + ("se generaría" if a.dry_run else "generado"))
     else:
         rep.add("OK", "catalogo", "catálogo presente")
-    if legacy(home):
-        rep.add("WARN", "formato-antiguo", "hay conocimiento en el formato antiguo: ejecuta /arkana-knowledge:fix")
-
-
-def legacy(home):
-    """Qué queda del formato antiguo: carpeta conocimiento/, catalogo.json y notas con tipo/modulos."""
-    res = []
-    if os.path.isdir(os.path.join(home, "conocimiento")):
-        res.append("conocimiento/")
-    if os.path.isfile(os.path.join(home, "catalogo.json")):
-        res.append("catalogo.json")
-    n = sum(1 for r, m, _ in iter_notes_legacy(home) if "topic" not in m)
-    if n:
-        res.append(f"{n} notas con tipo/modulos")
-    return res
-
-
-def iter_notes_legacy(home):
-    ex = EXCLUDED - {"conocimiento", ".historial"}
-    for root, dirs, files in os.walk(home):
-        dirs[:] = sorted(d for d in dirs if d not in ex and d != ".historial")
-        for f in sorted(files):
-            if f.endswith(".md"):
-                p = os.path.join(root, f)
-                try:
-                    with open(p, encoding="utf-8") as fh:
-                        meta, body = split_note(fh.read())
-                except (OSError, UnicodeDecodeError):
-                    continue
-                if meta and meta.get("id"):
-                    yield os.path.relpath(p, home), meta, body
-
-
-def history_entries(home, nid):
-    """Líneas de Changelog de las versiones archivadas en conocimiento/.historial/<id>/v*.md."""
-    d = os.path.join(home, "conocimiento", ".historial", nid)
-    res = []
-    for f in sorted(os.listdir(d), key=lambda x: [int(p) for p in re.findall(r"\d+", x)]) if os.path.isdir(d) else []:
-        try:
-            with open(os.path.join(d, f), encoding="utf-8") as fh:
-                m, _ = split_note(fh.read())
-        except OSError:
-            continue
-        if m and m.get("version"):
-            res.append(entry(m["version"], m.get("fecha", "?"), m.get("autor", "?"), m.get("resumen", "versión archivada")))
-    return res
-
-
-def git_tracked(home, rel):
-    return subprocess.run(["git", "-C", home, "ls-files", "--error-unmatch", rel], capture_output=True, text=True).returncode == 0
-
-
-def move(home, src, dst, dry):
-    if dry:
-        return
-    os.makedirs(os.path.dirname(os.path.join(home, dst)), exist_ok=True)
-    if git_tracked(home, src):
-        r = subprocess.run(["git", "-C", home, "mv", src, dst], capture_output=True, text=True)
-        if r.returncode == 0:
-            return
-    shutil.move(os.path.join(home, src), os.path.join(home, dst))
-
-
-def cmd_migrate(a, home, rep):
-    """Formato antiguo → actual. Las notas de conocimiento/<tipo>/ pasan a arkana-knowledge/<tipo>/ (git mv); las que viven en otra parte (p. ej. las de
-    referencia en la raíz) se quedan donde están. El historial pasa al Changelog de cada nota y las carpetas .historial y el catalogo.json antiguo se borran."""
-    n = 0
-    hist_ids = set()
-    for ruta, meta, body in list(iter_notes_legacy(home)):
-        if "topic" in meta:
-            continue
-        nid = meta["id"]
-        tipo = meta.get("tipo") or "reference"
-        comps = list(meta.get("modulos", [])) or ["all"]
-        new = {"id": nid, "titulo": meta.get("titulo", nid), "topic": tipo if tipo in TOPICS else "reference", "version": meta.get("version", "1.0"),
-               "fecha": meta.get("fecha", today()), "autor": meta.get("autor", "desconocido"), "components": comps, "etiquetas": meta.get("etiquetas", []),
-               "resumen": meta.get("resumen", ""), "state": "active"}
-        main, entries = split_changelog(body)
-        if not entries:
-            entries = history_entries(home, nid) + [entry(new["version"], new["fecha"], new["autor"], new["resumen"] or "versión actual")]
-        hist_ids.add(nid)
-        dest = ruta
-        if ruta.startswith("conocimiento" + os.sep):
-            dest = os.path.join(ROOT, new["topic"], os.path.basename(ruta))
-        text = join_note(new, main, entries)
-        if not a.dry_run:
-            if dest != ruta:
-                move(home, ruta, dest, False)
-            datafiles.atomic_write(os.path.join(home, dest), text)
-        rep.add("DRY" if a.dry_run else "OK", f"migrar:{nid}", f"{ruta} → {dest} ({len(entries)} entradas de Changelog; componentes {', '.join(comps)})")
-        n += 1
-    for d in ("conocimiento/.historial", "catalogo.json"):
-        full = os.path.join(home, d)
-        if os.path.exists(full):
-            if not a.dry_run:
-                if git_tracked(home, d) or subprocess.run(["git", "-C", home, "ls-files", d], capture_output=True, text=True).stdout.strip():
-                    subprocess.run(["git", "-C", home, "rm", "-rq", "--", d], capture_output=True, text=True)
-                if os.path.isdir(full):
-                    shutil.rmtree(full, ignore_errors=True)
-                elif os.path.exists(full):
-                    os.remove(full)
-            rep.add("DRY" if a.dry_run else "OK", f"borrar:{d}", "el historial pasó al Changelog de cada nota (el de git conserva los ficheros antiguos)" if "historial" in d else "sustituido por arkana-knowledge/catalog.json")
-    cd = os.path.join(home, "conocimiento")
-    if not a.dry_run and os.path.isdir(cd) and not any(f for _, _, fs in os.walk(cd) for f in fs):
-        shutil.rmtree(cd, ignore_errors=True)
-    if not a.dry_run:
-        write_catalog(home)
-    rep.add("DRY" if a.dry_run else "OK", "migrate", f"{n} notas {'se migrarían' if a.dry_run else 'migradas'}" if n else "no hay notas del formato antiguo")
 
 
 def cmd_validate(a, home, rep):
     al = aliases(home)
     ids, errs = {}, 0
     for ruta, meta, body in iter_notes(home):
-        if "topic" not in meta:
-            rep.add("WARN", f"nota:{meta.get('id')}", f"{ruta}: formato antiguo (tipo/modulos): /arkana-knowledge:fix")
-            continue
         i = meta["id"]
         pro = []
         for c in ("id", "titulo", "topic", "version", "fecha", "autor", "resumen", "state"):
@@ -465,8 +352,6 @@ def cmd_validate(a, home, rep):
         ce = {e["id"]: e for e in (datafiles.read_json(cat, {}) or {}).get("notas", [])}
         desinc = [i for i, r in ids.items() if i not in ce or ce[i].get("ruta") != r] + [i for i in ce if i not in ids]
         rep.add("WARN" if desinc else "OK", "catalogo", f"catálogo desincronizado ({', '.join(sorted(set(desinc))[:3])}): /arkana-knowledge:fix" if desinc else f"catálogo al día ({len(ce)} notas)")
-    if legacy(home):
-        rep.add("WARN", "formato-antiguo", "queda formato antiguo (" + ", ".join(legacy(home)) + "): /arkana-knowledge:fix")
     if not errs:
         rep.add("OK", "notas", f"{len(ids)} notas válidas")
 
@@ -544,7 +429,6 @@ def make_parser():
     common(sub.add_parser("validate"), dry=False)
     common(sub.add_parser("reindex"))
     common(sub.add_parser("install"))
-    common(sub.add_parser("migrate"))
     return p
 
 
@@ -558,7 +442,7 @@ def main(argv=None):
         home = find_home(a.home)
         if a.cmd == "query":
             return cmd_query(a, home)
-        {"add": cmd_add, "modify": cmd_modify, "delete": cmd_delete, "reindex": cmd_reindex, "install": cmd_install, "migrate": cmd_migrate,
+        {"add": cmd_add, "modify": cmd_modify, "delete": cmd_delete, "reindex": cmd_reindex, "install": cmd_install,
          "validate": cmd_validate}[a.cmd](a, home, rep)
     except KError as e:
         rep.add("FAIL", a.cmd, str(e))
