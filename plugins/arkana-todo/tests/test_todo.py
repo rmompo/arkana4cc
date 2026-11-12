@@ -156,6 +156,16 @@ class TestValidacion(Base):
         write(self.store, "no es json")
         self.assertEqual(self.td("validate").returncode, 1)
 
+    def test_rename_reescribe_el_componente_de_las_tareas_y_respeta_dry_run(self):
+        self.ok("add", "--title", "Una", "--component", "app")
+        self.ok("add", "--title", "Otra", "--component", "api")
+        antes = read(self.store)
+        self.assertIn("DRY|rename|1 tareas pasan de app a frontend", self.ok("rename", "--from", "app", "--to", "frontend", "--dry-run"))
+        self.assertEqual(read(self.store), antes)
+        self.assertIn("OK|rename|1 tareas pasan de app a frontend", self.ok("rename", "--from", "APP", "--to", "frontend"))
+        self.assertEqual([t["componente"] for t in self.tareas()], ["frontend", "api"])
+        self.assertIn("0 tareas", self.ok("rename", "--from", "app", "--to", "frontend"))                  # idempotente
+
     def test_fix_repara_contador_y_campos_sin_perder_tareas(self):
         write(self.store, json.dumps({"version": 1, "next": 1, "tareas": [{"id": "t-005", "titulo": "Vieja"}]}))
         self.assertEqual(self.td("validate").returncode, 1)

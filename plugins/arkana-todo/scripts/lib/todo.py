@@ -9,6 +9,7 @@
   validate                                                      solo lectura (lo usa `check`)
   install                                                       crea .arkana/arkana-todo/todos.json si falta
   fix                                                           repara el contador y los campos que faltan
+  rename   --from A --to B                                      cambia el alias de un componente en las tareas (lo invoca `component edit --rename`)
   Opciones comunes: --home DIR (carpeta del repo de Arkana; por defecto se localiza)  --dry-run (add, done, modify, delete, install, fix)  --json
 
 Los datos viven en `.arkana/arkana-todo/todos.json` (local, no se versiona); `export --include-data` los lleva a otra máquina.
@@ -281,6 +282,19 @@ def cmd_fix(a, home, rep):
         rep.add("DRY" if a.dry_run else "OK", "fix", c)
 
 
+def cmd_rename(a, home, rep):
+    old, new = manifest.canon(a.frm), manifest.canon(a.to)
+    d = load(home)
+    n = 0
+    for t in d.get("tareas", []):
+        if isinstance(t, dict) and manifest.canon(t.get("componente")) == old:
+            t["componente"] = new
+            n += 1
+    if n and not a.dry_run:
+        save(home, d)
+    rep.add("DRY" if a.dry_run else "OK", "rename", f"{n} tareas pasan de {old} a {new}")
+
+
 def make_parser():
     p = argparse.ArgumentParser(prog="todo.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--home")
@@ -303,6 +317,7 @@ def make_parser():
     common(sub.add_parser("validate"), dry=False)
     common(sub.add_parser("install"))
     common(sub.add_parser("fix"))
+    s = common(sub.add_parser("rename")); s.add_argument("--from", dest="frm", required=True); s.add_argument("--to", required=True)
     return p
 
 
@@ -315,7 +330,7 @@ def main(argv=None):
     try:
         home = find_home(a.home)
         {"add": cmd_add, "list": cmd_list, "done": cmd_done, "modify": cmd_modify, "delete": cmd_delete,
-         "validate": cmd_validate, "install": cmd_install, "fix": cmd_fix}[a.cmd](a, home, rep)
+         "validate": cmd_validate, "install": cmd_install, "fix": cmd_fix, "rename": cmd_rename}[a.cmd](a, home, rep)
     except TError as e:
         rep.add("FAIL", a.cmd, str(e))
         sys.stdout.write(rep.render(getattr(a, "json", False)))

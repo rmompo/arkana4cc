@@ -3,6 +3,7 @@
   "contract": 1,
   "provides": ["install", "check", "fix", "add", "list", "done", "modify", "delete"],
   "check": "python3 scripts/lib/todo.py validate",
+  "rename": "python3 scripts/lib/todo.py rename",
   "data": [
     {
       "path": "arkana-todo/todos.json",

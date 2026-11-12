@@ -19,6 +19,7 @@ Es uno de los plugins del marketplace `arkana` (visión de conjunto en [`../READ
 | `install` | Crea el almacén si falta (repetible). |
 | `check` | Valida de solo lectura: campos, ids únicos, estados, prioridades, fechas, contador; avisa de las vencidas. |
 | `fix` | Añade los campos que faltan y recalcula el contador; no toca las tareas. |
+| `rename` | No es un skill: cambia el alias de un componente en las tareas (`--from A --to B`); lo invoca `component edit --rename` de `arkana-workspace` por el comando `rename` de su contrato. |
 | `add` | Añade una tarea (`--title`, `--priority`, `--due`, `--component`, `--notes`). |
 | `list` | Lista (por defecto las abiertas) por vencimiento y prioridad; filtra por `--state`, `--component`, `--priority`, `--overdue`. |
 | `done` | Cierra una tarea; `--reopen` la reabre. |
