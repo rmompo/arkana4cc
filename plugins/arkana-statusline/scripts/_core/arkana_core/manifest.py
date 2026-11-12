@@ -6,7 +6,6 @@ Ficheros (bajo la carpeta `.arkana/` del repo de Arkana):
   arkana-workspace/local.json       datos de esta instalación: `paths` absolutas por alias, `git` personal (no se exporta)
 
 Identificadores: el alias canónico va en minúsculas (`arkana`, `app`, `api`…); ` ARKANA ` es solo cómo se muestra.
-El id histórico `shared` se acepta como sinónimo de entrada de `arkana` (planes y mensajes anteriores a la reorganización).
 """
 import json
 import os
@@ -18,7 +17,6 @@ WORKSPACE_JSON = os.path.join("core", "workspace.json")
 LOCAL_JSON = os.path.join("arkana-workspace", "local.json")
 ALIAS_RX = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 RESERVED = ("arkana", "all")          # `all` es un destinatario de --to, no un componente
-SYNONYMS = {"shared": "arkana"}       # id histórico del repo de Arkana
 TYPES = ("node", "maven", "docs", "generic")
 SCHEMA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schemas")
 
@@ -28,9 +26,8 @@ class ManifestError(Exception):
 
 
 def canon(alias):
-    """Alias canónico: minúsculas y sin sinónimos históricos."""
-    a = (alias or "").strip().lower()
-    return SYNONYMS.get(a, a)
+    """Alias canónico: sin espacios en los extremos y en minúsculas."""
+    return (alias or "").strip().lower()
 
 
 def display(alias):
@@ -57,7 +54,7 @@ def validate(data):
             a = (b.get("alias") or "")
             if not ALIAS_RX.match(a):
                 errs.append(f"componente {a!r}: el alias debe cumplir {ALIAS_RX.pattern}")
-            elif a in RESERVED or a in SYNONYMS:
+            elif a in RESERVED:
                 errs.append(f"componente {a!r}: alias reservado")
             elif a in seen:
                 errs.append(f"componente {a!r}: alias repetido")

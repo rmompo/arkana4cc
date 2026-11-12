@@ -7,7 +7,7 @@ ARKANA@develop:◌13✚113●84⇡2⇣3 · [▶] 002/007 api@P2611030652-ysov:T0
 app@develop:✓⇣? · api@develop:◌1 · app-web@develop:✓⇣? · app-ui@develop:●2⇣5
 ```
 
-Visión de conjunto de los seis plugins de Arkana: [`../README.md`](../README.md).
+Visión de conjunto de los plugins de Arkana: [`../README.md`](../README.md).
 
 ## Contenido
 
@@ -146,7 +146,7 @@ Ante cualquier excepción inesperada la statusline imprime `arkana-statusline: <
 
 ## Skills (referencia)
 
-Los cuatro skills están en `skills/`. `install`, `check` y `fix` ejecutan `scripts/lib/ops.py <subcomando>`; `refresh`, `scripts/lib/refresh.py`.
+Los skills están en `skills/`. `install`, `check` y `fix` ejecutan `scripts/lib/ops.py <subcomando>`; `refresh`, `scripts/lib/refresh.py`.
 
 | Skill | Escribe | Red | Para qué |
 |---|---|---|---|
