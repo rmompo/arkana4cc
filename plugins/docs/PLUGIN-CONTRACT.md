@@ -23,6 +23,7 @@ Cada plugin de Arkana trae en su raíz un `arkana-plugin.json` (esquema en `lib/
 | `contract` | Versión del contrato (hoy 1) |
 | `provides` | Skills que ofrece |
 | `requires` | Plugins de los que depende (`plugin`, y opcionalmente `min`); si `dependencies` de `plugin.json` no lo aplica, `check` lo informa |
+| `rename` | (Opcional) Orden que reescribe en los datos locales del plugin el alias de un componente (`--from A --to B [--dry-run]`); la ejecuta `component edit --rename` de `arkana-workspace`. Salida en el formato común |
 | `check` | Orden de solo lectura que el `check` agregado de `arkana-workspace` ejecuta para este plugin |
 | `hooks` | Eventos de Claude Code que usa (`SessionStart`, `UserPromptSubmit`, `Stop`, `SessionEnd`) |
 | `data[]` | Rutas relativas a `.arkana/` (nunca absolutas ni con `..`) con su clase (`config`, `data`, `local`, `secret`). Lo que un plugin guarda **fuera** de `.arkana/` y ya viaja con git no se declara: es el caso de `arkana-knowledge`, cuyas notas viven en `arkana-knowledge/` en el repositorio de ARKANA y se comparten entre las personas usuarias por git (por eso su `data` es `[]`) |
