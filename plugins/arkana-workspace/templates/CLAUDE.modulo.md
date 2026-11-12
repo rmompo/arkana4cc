@@ -15,4 +15,5 @@
 ## Límites
 
 - No guardes secretos en el repositorio (`.env`, claves, tokens): usa `.env.example` con solo los nombres.
+- No instales herramientas ni paquetes por tu cuenta (nada de `sudo`, `apt`, `npm -g`…): si falta alguna, pide al usuario que la instale indicando cuál, para qué y el comando exacto.
 - Las reglas comunes del proyecto (commits, permisos, mensajería) las gestiona Arkana mediante bloques `arkana:*` que no debes editar a mano.
