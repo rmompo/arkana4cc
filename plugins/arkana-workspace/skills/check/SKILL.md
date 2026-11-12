@@ -1,7 +1,8 @@
 ---
 name: check
-description: Diagnóstico de solo lectura de todo el workspace - cada componente (permisos, commits, git, .gitignore, identidad), herramientas y entorno (las declaradas con config tools, git, y Jira solo si está configurado), credenciales y los check que declara cada plugin de Arkana (statusline, mensajería, agentic…). Acepta --component, --network y --json.
-version: 1
+description: Diagnóstico de solo lectura de todo el workspace - cada componente (permisos, commits, git, .gitignore, identidad), herramientas y entorno (las declaradas con config tools, git, y Jira solo si está configurado), credenciales y los check que declara cada plugin de Arkana (statusline, mensajería, agentic…). Acepta --component, --network y --json. Also invoked explicitly as /arkana-workspace:check
+allowed-tools: []
+version: 12
 ---
 
 # arkana-workspace:check

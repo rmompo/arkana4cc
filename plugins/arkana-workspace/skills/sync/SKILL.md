@@ -1,7 +1,8 @@
 ---
 name: sync
-description: Hace `git fetch` de los remotos de ARKANA y de los componentes (con comprobación de DNS y tope de 20 s por repo) para que ⇣ (commits por bajar) esté al día. Solo descarga referencias: no toca ficheros ni ramas locales. Acepta --component, --no-fetch y --json.
-version: 11
+description: Hace `git fetch` de los remotos de ARKANA y de los componentes (con comprobación de DNS y tope de 20 s por repo) para que ⇣ (commits por bajar) esté al día. Solo descarga referencias: no toca ficheros ni ramas locales. Acepta --component, --no-fetch y --json. Also invoked explicitly as /arkana-workspace:sync
+allowed-tools: []
+version: 22
 ---
 
 # arkana-workspace:sync

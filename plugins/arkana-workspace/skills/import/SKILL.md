@@ -1,7 +1,8 @@
 ---
 name: import
-description: Importa un ZIP creado por arkana-workspace:export. Valida todo antes de escribir (zip-slip, rutas absolutas, enlaces simbólicos, hashes, tamaños, destinos no declarados) y fusiona por fichero con --on-conflict keep|replace|ask. Acepta --dry-run y --json.
-version: 7
+description: Importa un ZIP creado por arkana-workspace:export. Valida todo antes de escribir (zip-slip, rutas absolutas, enlaces simbólicos, hashes, tamaños, destinos no declarados) y fusiona por fichero con --on-conflict keep|replace|ask. Acepta --dry-run y --json. Also invoked explicitly as /arkana-workspace:import
+allowed-tools: []
+version: 18
 ---
 
 # arkana-workspace:import

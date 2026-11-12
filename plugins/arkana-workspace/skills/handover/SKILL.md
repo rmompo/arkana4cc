@@ -1,7 +1,8 @@
 ---
 name: handover
-description: Genera un informe de traspaso del workspace (plugins y versiones, componentes con su estado git, herramientas, planes de agentic, referencias de credenciales y datos por plugin) en Markdown o JSON, sin secretos ni rutas absolutas. Solo lectura, sin red.
-version: 6
+description: Genera un informe de traspaso del workspace (plugins y versiones, componentes con su estado git, herramientas, planes de agentic, referencias de credenciales y datos por plugin) en Markdown o JSON, sin secretos ni rutas absolutas. Solo lectura, sin red. Also invoked explicitly as /arkana-workspace:handover
+allowed-tools: []
+version: 17
 ---
 
 # arkana-workspace:handover
