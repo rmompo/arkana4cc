@@ -77,7 +77,8 @@
           "SessionStart",
           "UserPromptSubmit",
           "Stop",
-          "SessionEnd"
+          "SessionEnd",
+          "FileChanged"
         ]
       }
     },

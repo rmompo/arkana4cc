@@ -58,6 +58,15 @@ class TestRegistry(unittest.TestCase):
             self.assertNotIn("app", r.aliases())
             self.assertEqual(project.add_component(lab.arkana, "app") != ID_C, True)                # un alias reutilizado es OTRA pieza
 
+    def test_politicas_de_la_instalacion(self):
+        with common.Lab() as lab:
+            self.assertIs(project.policy(lab.arkana, "versioned_env", False), False)                  # sin registro: el valor por defecto
+            registro(lab)
+            self.assertIs(project.policy(lab.arkana, "versioned_env", False), False)
+            project.set_policy(lab.arkana, "versioned_env", True)
+            self.assertIs(project.policy(lab.arkana, "versioned_env"), True)
+            self.assertEqual(project.Registry.load(lab.arkana).id_of("api"), ID_B)                     # tocar una política no altera el registro
+
     def test_guarda_de_layout(self):
         with common.Lab() as lab:
             with self.assertRaises(project.LayoutError) as cm:
@@ -94,6 +103,10 @@ class TestWorkspaceConIds(unittest.TestCase):
 
     def test_el_contrato_admite_el_comando_rename(self):
         c = {"plugin": "arkana-x", "contract": 1, "provides": ["check"], "rename": "python3 scripts/lib/x.py rename"}
+        self.assertEqual(contract.validate(c), [])
+
+    def test_el_contrato_admite_el_hook_file_changed(self):
+        c = {"plugin": "arkana-x", "contract": 1, "provides": ["check"], "hooks": ["SessionStart", "FileChanged"]}
         self.assertEqual(contract.validate(c), [])
 
 

@@ -6,9 +6,13 @@ cambia el alias en este fichero (y en el manifiesto local), sin tocar ningún do
 
   {"schema_version": 1, "layout": N, "workspace": {"id", "name"},
    "components": [{"id": "<uuid>", "alias": "arkana"}, {"id": "<uuid>", "alias": "api"}, {"id": "<uuid>", "alias": "viejo", "retired": true}],
+   "policies": {"versioned_env": true},
    "history": [{"id": "0001", "date": "…"}]}
 
 Un componente dado de baja se conserva con `retired: true` (su id sigue resolviéndose para mostrarlo; su alias queda libre).
+
+`policies` son decisiones de la instalación que comparte todo el equipo (no del código de los plugins). Hoy: `versioned_env` (bool): los `.env` van versionados por
+naturaleza del proyecto, así que `arkana-workspace:check` los trata como información y no como fallo.
 """
 import os
 import re
@@ -126,6 +130,17 @@ def _must(home):
     if d is None:
         raise ProjectError(f"no existe {FILE}: ejecuta /arkana-evolve:apply")
     return d
+
+
+def policy(home, key, default=None):
+    """Valor de una política de la instalación (compartida por git), o `default`."""
+    return ((read(home) or {}).get("policies") or {}).get(key, default)
+
+
+def set_policy(home, key, value):
+    d = _must(home)
+    d.setdefault("policies", {})[key] = value
+    _write(home, d)
 
 
 def add_component(home, alias, cid=None):
