@@ -3,7 +3,7 @@
 Barra de estado de Claude Code para Arkana. Muestra **en dos líneas** ARKANA y cada componente del proyecto (el workspace es ARKANA más el proyecto) con su estado git, el plan activo de `arkana-agentic`, el coste (del plan y de la sesión), el modelo y el uso (contexto, sesión de 5 h y semana). Funciona dentro y fuera de un workspace y se adapta al ancho del terminal.
 
 ```
-ARKANA@develop:◌13✚113●84⇡2⇣3 · [▶] 002/007 api@P2611030652-ysov:T002 Añadir el perfil · P0.40 S1.23 · Sonnet 5.5 (medium) · C61 S0 W19
+ØARKANA@develop:◌13✚113●84⇡2⇣3 · [▶] 002/007 api@P2611030652-ysov:T002 Añadir el perfil · P0.40 S1.23 · Sonnet 5.5 (medium) · C61 S0 W19
 app@develop:✓⇣? · api@develop:◌1 · app-web@develop:✓⇣? · app-ui@develop:●2⇣5
 ```
 
@@ -36,7 +36,7 @@ Visión de conjunto de los plugins de Arkana: [`../README.md`](../README.md).
 ### Estructura
 
 ```
-Línea 1:  ARKANA@rama:indicadores · [estado] descripción del plan · P S coste · modelo (esfuerzo) · C S W uso
+Línea 1:  ØARKANA@rama:indicadores · [estado] descripción del plan · P S coste · modelo (esfuerzo) · C S W uso
 Línea 2:  componente · componente · componente …
 (línea extra, solo si procede)  ⚠ workspace no cargado: …
 ```
@@ -79,7 +79,7 @@ Solo se muestran los indicadores distintos de cero y siempre en este orden: `◌
 
 ### Qué componentes se muestran
 
-ARKANA siempre, más los componentes del manifiesto con `statusline: true`; si un componente no tiene la marca, se muestra salvo que sea de tipo `docs`. Con `statusline: false` se oculta. La marca se fija con `/arkana-workspace:component edit --alias <alias> --statusline` (o `--no-statusline`). El **orden** en la barra es el de `components` en el manifiesto, con ARKANA siempre primero.
+La Ø (amarillo brillante, siempre) abre la línea 1, delante de ARKANA. ARKANA siempre, más los componentes del manifiesto con `statusline: true`; si un componente no tiene la marca, se muestra salvo que sea de tipo `docs`. Con `statusline: false` se oculta. La marca se fija con `/arkana-workspace:component edit --alias <alias> --statusline` (o `--no-statusline`). El **orden** en la barra es el de `components` en el manifiesto, con ARKANA siempre primero.
 
 ### Plan activo (`arkana-agentic`)
 

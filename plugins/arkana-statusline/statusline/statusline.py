@@ -5,7 +5,7 @@ Cada componente se muestra como `ALIAS@rama:indicadores`, sin fondos de relleno:
 rama en gris (gris brillante la del componente actual) e indicadores en inverso, pegados y sin espacios (`◌353●6⇣?`), cada uno con texto negro sobre el color de su estado: ◌ sin seguimiento (rojo), ✚ preparados,
 ● modificados, ⇡ commits sin subir y ⇣ por bajar (amarillo) y ✓ si el local está limpio (verde); todo git local salvo ⇣ y solo los distintos de cero. ⇣ es lo único que depende
 del remoto: el número si el último fetch de ese componente fue hace menos de 30 min, `⇣?` en su mismo hueco si no se sabe; sin rama remota no hay ⇡ ni ⇣.
-Línea 1: ARKANA y, separados por ` · ` (el punto en azul oscuro), `[■]` en inverso (texto negro sobre el color de su estado; gris en reposo) seguido de `sin plan activo` (con plan activo `[▶] 002/007 worker@plan:tarea descripción`), `P0.00 S0.00`
+Línea 1: la marca `Ø` (amarillo brillante, siempre), ARKANA y, separados por ` · ` (el punto en azul oscuro), `[■]` en inverso (texto negro sobre el color de su estado; gris en reposo) seguido de `sin plan activo` (con plan activo `[▶] 002/007 worker@plan:tarea descripción`), `P0.00 S0.00`
 (texto rojo oscuro, sin fondo; P plan, S sesión), `Sonnet 5.5 (medium)` (texto magenta, sin fondo) y `C61 S0 W19` (sin fondo; el color del texto según el tramo: 0–40 verde,
 41–75 amarillo, 76–100 rojo brillante). Línea 2: los demás componentes, separados también por ` · `.
 
@@ -38,6 +38,7 @@ RED, GREEN = "\033[31m", "\033[32m"
 B_RED, B_GREEN, B_YELLOW, B_BLUE, B_CYAN = "\033[91m", "\033[92m", "\033[93m", "\033[94m", "\033[96m"
 IND_BG = {B_RED: "\033[30;41m", B_YELLOW: "\033[30;43m", B_GREEN: "\033[30;42m", B_CYAN: "\033[30;46m"}   # indicadores en inverso: texto negro sobre el color de su estado
 STATE_BG = {GRAY: "\033[30;100m", B_GREEN: "\033[30;102m", B_RED: "\033[30;101m", B_CYAN: "\033[30;106m", B_YELLOW: "\033[30;103m"}   # estado del plan `[■]` en inverso: texto negro sobre el color del símbolo
+LOGO = "Ø"                                                                # marca de Arkana al inicio de la línea 1
 MAGENTA = "\033[35m"                                                          # modelo: texto magenta, sin fondo
 DARK_BLUE = "\033[34m"                                                        # separador ·: azul oscuro
 FRESH_SECONDS = 30 * 60
@@ -278,8 +279,8 @@ def render(data, width):
     room = usable
     if head:                                                             # ARKANA (o la única pieza) va entera delante del plan, el coste, el modelo y el uso
         plain, ansi = entry(head[0])
-        first = ansi + SEP_ANSI
-        room = usable - len(plain) - len(SEP_PLAIN)
+        first = c(B_YELLOW, LOGO) + ansi + SEP_ANSI                      # Ø (amarillo brillante, siempre) delante de ARKANA
+        room = usable - len(LOGO) - len(plain) - len(SEP_PLAIN)
     lines = [first + line2(data["plan"], data["session_cost"], data["model"], data["effort"], data["usage"], room)]
     if rest:                                                             # el resto de componentes, en la línea siguiente (más si no caben)
         lines += fit_line1(rest, usable)

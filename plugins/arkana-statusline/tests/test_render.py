@@ -93,7 +93,7 @@ class TestAnchoEstrecho(unittest.TestCase):
 
     def test_golden_a_cuatro_anchos(self):
         """Línea 1: ARKANA entero + plan, coste, modelo y uso. Línea 2 (y siguientes): los demás componentes."""
-        arkana = "ARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · [■]"
+        arkana = "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · [■]"
         gold = {
             200: ['app@develop:✓ · api@feature/una-rama-muy-larga:◌1⇣? · app-web@develop:✓ · app-ui@develop:●2⇣5 · docs@main:✓'],
             120: ['app@develop:✓ · api@feature/una-rama-muy-larga:◌1⇣? · app-web@develop:✓ · app-ui@develop:●2⇣5 · docs@main:✓'],
@@ -106,11 +106,17 @@ class TestAnchoEstrecho(unittest.TestCase):
             self.assertEqual(ls[1:], resto, w)
             for ln in ls[1:]:
                 self.assertLessEqual(len(ln), w - S.RESERVED, (w, ln))
-        self.assertEqual(pl(S.render(self.datos(), 200))[0], "ARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · [■] sin plan activo · P0.00 S1.50 · Sonnet 5.5 (medium) · C61 S0 W19")
+        self.assertEqual(pl(S.render(self.datos(), 200))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · [■] sin plan activo · P0.00 S1.50 · Sonnet 5.5 (medium) · C61 S0 W19")
         completa = pl(S.render(self.datos(), 200))[0]
         justa = pl(S.render(self.datos(), len(completa) + S.RESERVED - 4))[0]                   # 4 columnas menos: solo cede la descripción
         self.assertTrue(justa.endswith("… · P0.00 S1.50 · Sonnet 5.5 (medium) · C61 S0 W19"), justa)
-        self.assertEqual(pl(S.render(self.datos(), 50))[0], "ARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · [■] · P0.00 S1.50 · Sonnet 5.5 (medium) · C61 S0 W19")
+        self.assertEqual(pl(S.render(self.datos(), 50))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · [■] · P0.00 S1.50 · Sonnet 5.5 (medium) · C61 S0 W19")
+
+    def test_la_marca_es_una_o_tachada_amarilla_brillante_delante_de_arkana(self):
+        for w in (200, 50):
+            l0 = S.render(self.datos(), w)[0]
+            self.assertTrue(l0.startswith("\033[93mØ\033[0m") and "ARKANA" in l0[:40], repr(l0[:40]))      # amarillo brillante (93), siempre
+        self.assertNotIn("Ø", "".join(pl(S.render(self.datos(), 200)[1:])))                              # solo una vez, al inicio de la línea 1
 
     def test_si_el_manifiesto_no_carga_lo_dice_en_una_linea_en_vez_de_perderla(self):
         d = dict(self.datos(), items=items()[:1], aviso="workspace no cargado: manifiesto no válido")
