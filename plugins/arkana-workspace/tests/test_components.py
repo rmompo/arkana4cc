@@ -40,7 +40,7 @@ class TestComponents(unittest.TestCase):
 
     def test_rechaza_duplicados_reservados_urls_con_credenciales_y_rutas_repetidas(self):
         with TC.CLab() as lab:
-            for args in (["--alias", "app", "--path", "x"], ["--alias", "arkana", "--path", "x"], ["--alias", "shared", "--path", "x"],
+            for args in (["--alias", "app", "--path", "x"], ["--alias", "arkana", "--path", "x"],
                          ["--alias", "n1", "--path", "x", "--remote", "https://u:p@h/g.git"], ["--alias", "n2", "--path", "api"],
                          ["--alias", "Mal Nombre", "--path", "y"], ["--alias", "n3", "--path", "z", "--tool-version", "sinigual"]):
                 r = cli(lab, "components.py", "add", *args)

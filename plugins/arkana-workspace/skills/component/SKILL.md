@@ -9,7 +9,7 @@ Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directric
 
 | Opción | Significado |
 |---|---|
-| `--alias` | Identificador (`^[a-z0-9][a-z0-9-]*$`; `arkana`, `all` y `shared` están reservados) |
+| `--alias` | Identificador (`^[a-z0-9][a-z0-9-]*$`; `arkana` y `all` están reservados) |
 | `--path` | Carpeta del repo; absoluta o relativa a la raíz del workspace (se guarda relativa) |
 | `--type` | `node`, `maven`, `docs` o `generic` |
 | `--remote` | URL del remoto, **sin usuario ni contraseña** (se rechaza si los lleva) |

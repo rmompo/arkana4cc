@@ -171,7 +171,7 @@ def main(argv=None):
         elif a.cmd == "add":
             if not alias or not a.path:
                 raise ValueError("add necesita --alias y --path")
-            if any(c["alias"] == alias for c in data["components"]) or alias in manifest.RESERVED or alias in manifest.SYNONYMS:
+            if any(c["alias"] == alias for c in data["components"]) or alias in manifest.RESERVED:
                 raise ValueError(f"el alias {alias!r} ya existe o está reservado")
             block = {"alias": alias, "type": a.type or "generic", "path": ""}
             tp = apply_options(block, a, root)

@@ -2,12 +2,12 @@
 
 Plugin base de Arkana para Claude Code. Gobierna el **workspace** (ARKANA, repositorio de conciliación y gobierno del proyecto y sus componentes, más el proyecto, que se compone de uno o más componentes, cada uno un repositorio): qué componentes lo forman, quién puede leer o escribir dónde, con qué credenciales, con qué herramientas, con qué convención de commits y en qué estado está cada repo. Es el único plugin del que dependen los demás para saber «dónde está todo».
 
-Versión del plugin: 5.1.0 (`.claude-plugin/plugin.json`). Contrato `arkana-plugin.json` versión 1. Solo biblioteca estándar de Python 3 (`python3`, `git`; `jq` lo usan el núcleo bash y la statusline). Visión de conjunto de los seis plugins: [`../README.md`](../README.md).
+Versión del plugin: 5.1.0 (`.claude-plugin/plugin.json`). Contrato `arkana-plugin.json` versión 1. Solo biblioteca estándar de Python 3 (`python3`, `git`; `jq` lo usan el núcleo bash y la statusline). Visión de conjunto de los plugins: [`../README.md`](../README.md).
 
 ## Índice
 
 1. [Objetivo](#1-objetivo)
-2. [Relación con los otros cuatro plugins](#2-relación-con-los-otros-cuatro-plugins)
+2. [Relación con los otros plugins](#2-relación-con-los-otros-plugins)
 3. [Modelo de datos y conceptos](#3-modelo-de-datos-y-conceptos)
 4. [Referencia de skills](#4-referencia-de-skills) (`install`, `check`, `fix`, `component`, `config`, `status`, `sync`, `rew-grants`, `export`, `import`, `handover`)
 5. [Herramientas auxiliares sin skill](#5-herramientas-auxiliares-sin-skill) (`credentials.py`, `arkana-exec.sh`, asistente de git)
@@ -37,7 +37,7 @@ Reglas transversales: ningún comando escribe fuera de `.arkana/` y de los fiche
 
 ---
 
-## 2. Relación con los otros cuatro plugins
+## 2. Relación con los otros plugins
 
 ### Qué les aporta
 
@@ -75,7 +75,7 @@ Orden recomendado de puesta en marcha: `/arkana-workspace:install` → `componen
 ### 3.1 Piezas, alias y rutas
 
 - **ARKANA** es la pieza `arkana` (el repo con `.arkana/`). Los **componentes** son el resto. Todas se llaman *piezas*.
-- Un alias canónico va en minúsculas (`^[a-z0-9][a-z0-9-]*$`). `arkana` y `all` están reservados; `shared` es sinónimo de entrada de `arkana` (id histórico). ARKANA se muestra en mayúsculas.
+- Un alias canónico va en minúsculas (`^[a-z0-9][a-z0-9-]*$`). `arkana` y `all` están reservados. ARKANA se muestra en mayúsculas.
 - La raíz del workspace es el `root` de `.arkana/arkana.json` (relativa a la carpeta de Arkana; por defecto `..`, el directorio padre). Las rutas del manifiesto son relativas a esa raíz, no pueden salir de ella (`..`), ni ser absolutas, ni empezar por `~`, y no pueden repetirse entre piezas.
 - Un componente es **anidado** en otro cuando su carpeta cuelga de la de este (p. ej. `app-web` y `app-ui` dentro de `app`). Se usa en los permisos (no se edita lo anidado) y en `check` (identidad git de los anidados).
 
@@ -235,10 +235,10 @@ El bloque se escribe entre `<!-- arkana:commits:start -->` y `<!-- arkana:commit
 
 ## 4. Referencia de skills
 
-Los 11 skills están en `skills/<nombre>/SKILL.md` y delegan en scripts de `scripts/lib/` y `scripts/checks/` (`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/..."`). Convenciones:
+Los skills están en `skills/<nombre>/SKILL.md` y delegan en scripts de `scripts/lib/` y `scripts/checks/` (`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/..."`). Convenciones:
 
 - **`--home DIR`**: carpeta de Arkana; por defecto se localiza (sección 7). Si no se encuentra workspace, los scripts salen con 3 (los que lo detectan antes de actuar).
-- **`--component ALIAS`** (repetible donde se indica): acepta el alias en cualquier capitalización y el sinónimo `shared`; un alias desconocido sale con 3 en los comandos que lo validan.
+- **`--component ALIAS`** (repetible donde se indica): acepta el alias en cualquier capitalización; un alias desconocido sale con 3 en los comandos que lo validan.
 - **`--json`**: sustituye la salida de texto por `{"plugin","skill","status","items":[{"id","status","detail","component"}],"summary":{...}}`.
 - **`--dry-run`**: ensaya sin escribir; las líneas de efecto salen como `DRY`.
 - Salida de texto: `ESTADO|ID|detalle` y `RESUMEN|n FAIL|n WARN` (sección 8).
@@ -466,7 +466,7 @@ Sin arreglo en el skill: `arkana-escribible` (permisos del sistema de ficheros) 
 | Opción | Valores | Por defecto | Efecto y restricciones |
 |---|---|---|---|
 | `cmd` (posicional) | `list`, `add`, `edit`, `remove` | obligatorio | Operación |
-| `--alias` | `^[a-z0-9][a-z0-9-]*$` (se normaliza a minúsculas) | — | Obligatorio en `add`, `edit` y `remove`. `arkana`, `all` y `shared` están reservados para `add`; `--alias arkana` en `edit` edita ARKANA. Alias repetido → error |
+| `--alias` | `^[a-z0-9][a-z0-9-]*$` (se normaliza a minúsculas) | — | Obligatorio en `add`, `edit` y `remove`. `arkana` y `all` están reservados para `add`; `--alias arkana` en `edit` edita ARKANA. Alias repetido → error |
 | `--path` | ruta absoluta o relativa a la raíz | — | Obligatorio en `add`. Se guarda **relativa** a la raíz; debe estar dentro de ella y no repetirse. En `edit`, si `local.json` ya fija la ruta absoluta de la pieza, se actualiza también. No exige que exista la carpeta |
 | `--type` | `node`, `maven`, `docs`, `generic` | `generic` en `add` | Tipo de repo. Rechazado para ARKANA |
 | `--remote` | URL | — | Remoto **sin usuario ni contraseña** (`https://user@host/…` se rechaza). Deriva `remote_host` |
@@ -876,7 +876,7 @@ Variables que **leen** el código y los hooks de este plugin (confirmadas en el 
 | `ARKANA_NET_BREAKER_FILE` | `netguard` (`sync`, `credentials`) | Fichero del cortacircuitos de red; por defecto `<tmp>/arkana-net-breaker-<uid>.json` |
 | `CLAUDE_PLUGIN_ROOT` | Skills, hook y `all.py` (lo fija Claude Code) | Carpeta del plugin; `all.py` la fija a la del plugin comprobado al ejecutar su `check` |
 
-`ARKANA_SHARED` y `ARKANA_BASE` **no** existen en el código de este plugin (las citaba la documentación anterior). Internamente los scripts fijan `GIT_TERMINAL_PROMPT=0` y `LC_ALL=C` en cada llamada a git (más `GIT_HTTP_LOW_SPEED_*` en los de red), y `arkana-exec.sh` y las pruebas fijan `PYTHONDONTWRITEBYTECODE=1`.
+Internamente los scripts fijan `GIT_TERMINAL_PROMPT=0` y `LC_ALL=C` en cada llamada a git (más `GIT_HTTP_LOW_SPEED_*` en los de red), y `arkana-exec.sh` y las pruebas fijan `PYTHONDONTWRITEBYTECODE=1`.
 
 **Cómo se localiza el workspace** (`locate.find_home`, mismo orden en bash y en Python):
 
@@ -923,7 +923,7 @@ Sin red, sin API real y sin tocar `~/.claude`:
 
 ```bash
 bash tests/run-tests.sh [-v|-q] [-k <patrón>]      # desde plugins/arkana-workspace: unittest sobre tests/test_*.py
-bash scripts/run-all-tests.sh [--quick] [--only <texto>]   # desde arkana: el núcleo y los seis plugins
+bash scripts/run-all-tests.sh [--quick] [--only <texto>]   # desde arkana: el núcleo y todos los plugins
 claude plugin validate plugins/arkana-workspace    # validación del plugin
 ```
 
@@ -931,11 +931,11 @@ Los tests (`tests/`) cubren: `test_checks`, `test_commits`, `test_components`, `
 
 ### Desarrollo
 
-- Estructura: `skills/<nombre>/SKILL.md` (11 skills), `scripts/lib/*.py` (herramientas), `scripts/checks/*.py` (comprobaciones), `scripts/hooks.py` y `hooks/hooks.json`, `arkana-plugin.json` (contrato) y `.claude-plugin/plugin.json`.
+- Estructura: `skills/<nombre>/SKILL.md`, `scripts/lib/*.py` (herramientas), `scripts/checks/*.py` (comprobaciones), `scripts/hooks.py` y `hooks/hooks.json`, `arkana-plugin.json` (contrato) y `.claude-plugin/plugin.json`.
 - **Núcleo vendorizado.** La fuente de `arkana_core` (localizador, manifiesto, esquemas, salida, red, bloques gestionados, contrato) es `lib/arkana_core/`. Un plugin instalado no puede leer a otro, así que cada uno lleva su copia en `scripts/_core/` (con `.vendor.json`: versión del núcleo y sha256 por fichero; incluye `arkana-core.sh` para bash, que necesita `jq`). Se regenera con:
 
   ```bash
-  bash scripts/vendor-core.sh            # desde arkana: copia el núcleo en los seis plugins
+  bash scripts/vendor-core.sh            # desde arkana: copia el núcleo en todos los plugins
   bash scripts/vendor-core.sh --check    # no escribe; sale con 1 si alguna copia difiere
   bash scripts/vendor-core.sh arkana-workspace
   ```
