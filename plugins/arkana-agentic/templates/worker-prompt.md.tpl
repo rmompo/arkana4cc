@@ -26,7 +26,7 @@ Directrices permanentes (`repeat`) y peticiones pendientes (`once`) de otros com
 ## Rutas en las que puedes escribir
 {{rutas_permitidas}}
 
-## Normas del repositorio (resumen de su CLAUDE.md)
+## Normas del repositorio (notas locales de la copia de trabajo)
 {{normas}}
 
 ## Comentarios de intentos anteriores

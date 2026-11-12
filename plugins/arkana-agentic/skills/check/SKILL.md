@@ -1,6 +1,6 @@
 ---
 name: check
-description: Comprueba la salud de la orquestación de arkana-agentic - versión y flags de claude, utilidades, directorio de ejecución (700), política válida, workers huérfanos, reglas de permisos de arkana y bloque arkana:agentic. Solo lectura y sin coste (con --deep ejecuta además la batería de contención con claude real, ~0,3-0,6 USD).
+description: Comprueba la salud de la orquestación de arkana-agentic - versión y flags de claude, utilidades, directorio de ejecución (700), política válida, workers huérfanos, reglas de permisos de arkana y reglas del orquestador (hook). Solo lectura y sin coste (con --deep ejecuta además la batería de contención con claude real, ~0,3-0,6 USD).
 ---
 
 # arkana-agentic:check
@@ -37,7 +37,7 @@ Valida que el entorno puede orquestar con garantías. **No modifica nada.**
 | `adaptadores` | `WARN`: el verificador no encuentra una herramienta del tipo de componente (no hereda el `PATH` del shell): `/arkana-workspace:config tools --tool <nombre> --version <v> --path <ruta>`. |
 | `permisos-arkana` | `/arkana-workspace:fix` en `arkana` (añade las reglas del orquestador). |
 | `metadatos-ubicacion` | Informativo (dónde está `.arkana`). |
-| `instrucciones` | Falta o está desactualizado el bloque `arkana:agentic` del `CLAUDE.md` de ARKANA: `/arkana-agentic:install`. |
+| `instrucciones` | Falta `templates/orquestador.md` o el hook `orchestrator.py` (las reglas del orquestador se inyectan por hook): reinstala el plugin. |
 | `contencion` | Una aserción de contención ha fallado: **no orquestes** hasta resolverlo. |
 
 ## Reglas

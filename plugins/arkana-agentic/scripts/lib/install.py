@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""install de arkana-agentic (repetible, --dry-run): carpetas, bloque `arkana:agentic` en el CLAUDE.md de ARKANA y plugin habilitado.
+"""install de arkana-agentic (repetible, --dry-run): carpetas y plugin habilitado. No escribe nada en los repos.
 
 - Crea .arkana/arkana-agentic/{config,state,data} (700).
-- Pone en el CLAUDE.md de ARKANA el bloque `<!-- arkana:agentic:start -->…end -->` con las reglas del orquestador (plantilla del plugin,
-  templates/orquestador.md). Copia previa en `.arkana/arkana-agentic/bak/`.
-- Habilita `arkana-agentic@arkana` en ~/.claude/settings.json (copia .bak); hay que recargar los plugins después.
+- Habilita `arkana-agentic@arkana` en ~/.claude/settings.json (copia .bak en `.arkana/arkana-agentic/bak/`); hay que recargar los plugins después.
+Las reglas del orquestador (templates/orquestador.md) las inyecta el hook de sesión `orchestrator.py` en la sesión de ARKANA: no hay ningún fichero de instrucciones.
 """
 import os
 import sys
@@ -13,24 +12,10 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "_core"))
-import paths  # noqa: E402
 import state  # noqa: E402
-from arkana_core import datafiles, seedblock  # noqa: E402
+from arkana_core import datafiles  # noqa: E402
 
 PLUGIN_KEY = "arkana-agentic@arkana"
-
-
-def template():
-    with open(os.path.join(state.PLUGIN, "templates", "orquestador.md"), encoding="utf-8") as f:
-        return f.read()
-
-
-def claude_md():
-    return os.path.join(paths.arkana_dir(), "CLAUDE.md")
-
-
-def block_state():
-    return seedblock.state(claude_md(), "agentic", template())
 
 
 def user_settings():
@@ -53,16 +38,7 @@ def run(dry=False, no_settings=False):
         items.append(("DRY" if dry else "OK", "carpetas", "se crean " + ", ".join(falta) if dry else "creadas " + ", ".join(falta)))
     else:
         items.append(("OK", "carpetas", "config, state y data presentes"))
-    p = claude_md()
     bak = os.path.join(base, "bak")
-    if not os.path.isdir(os.path.dirname(p)):
-        items.append(("FAIL", "bloque", "no existe la carpeta de ARKANA"))
-    else:
-        act = seedblock.apply(p, "agentic", template(), backup_dir=bak, dry=dry, create=False)
-        if act == "falta-fichero":
-            items.append(("WARN", "bloque", "falta el CLAUDE.md de ARKANA: créalo desde la plantilla (arkana-workspace:fix) y repite"))
-        else:
-            items.append(("DRY" if dry and act != "igual" else "OK", "bloque", f"bloque arkana:agentic {act} en CLAUDE.md"))
     if not no_settings:
         en = plugin_enabled()
         if en:

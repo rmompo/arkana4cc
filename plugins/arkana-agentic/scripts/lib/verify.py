@@ -142,7 +142,7 @@ def protected_denials(raw, repo, repo_id=None):
 
 
 def _gate_ruta_denegada(pid, tid, intento, base, prot, informe):
-    """El worker intento escribir en una ruta protegida y sus ajustes se lo impidieron. Si es un fichero de instrucciones (CLAUDE.md) el usuario puede
+    """El worker intento escribir en una ruta protegida y sus ajustes se lo impidieron. Si es un fichero de instrucciones (ARKANA.local.md, CLAUDE.md) el usuario puede
     autorizarlo para esta tarea (`approve` levanta solo esa denegacion en el siguiente intento); si es .git, .husky, .claude o .env*, no se puede."""
     rutas = sorted({r for r, _ in prot})
     no_autorizables = [r for r in rutas if r not in launch.AUTHORIZABLE_DENIED]

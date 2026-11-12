@@ -7,7 +7,7 @@ description: Redacta un plan de orquestación multi-repo a partir de lo que pide
 
 > En los ejemplos, `agentic.sh <sub>` significa `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh <sub>`. Usa siempre este mismo comando: **una sola orden por llamada, con la ruta sin comillas y sin `&&`, `;`, `cd` ni redirecciones** (las reglas de permiso solo reconocen esa forma).
 
-Reglas completas: el bloque `arkana:agentic` del `CLAUDE.md` de ARKANA (sección «Cómo se redacta un plan»; plantilla en `templates/orquestador.md`). Este skill solo se usa en `arkana`.
+Reglas completas: las del orquestador que el hook de sesión inyectó en tu contexto (sección «Cómo se redacta un plan»; plantilla en `templates/orquestador.md`). Este skill solo se usa en `arkana`.
 
 ## Pasos
 

@@ -26,7 +26,6 @@ import state  # noqa: E402
 
 PLUGIN = state.PLUGIN
 # Semilla de mensajería de un repo (el worker no la ve)
-SEED_BLOCK = re.compile(r"<!-- arkana:messaging:start -->.*?<!-- arkana:messaging:end -->", re.S)
 _signal_state = {"pgid": None, "recibida": False}
 
 
@@ -88,7 +87,7 @@ def path_rule(abs_path, herramienta):
 
 # Rutas protegidas que el worker tiene denegadas en sus ajustes y que el usuario puede autorizar para UNA tarea (ficheros de instrucciones, no codigo que
 # se ejecute). El resto (.git, .husky, .claude, .env*) nunca se levanta: un gate sobre ellas solo admite omitir o detener.
-AUTHORIZABLE_DENIED = ("CLAUDE.md", "CLAUDE.local.md")
+AUTHORIZABLE_DENIED = ("ARKANA.local.md", "CLAUDE.md", "CLAUDE.local.md")
 
 
 def worker_settings(repo, perfil, lectura_extra, authorized=()):
@@ -97,8 +96,8 @@ def worker_settings(repo, perfil, lectura_extra, authorized=()):
     allow = [f"Read(/{repo}/**)"] + [f"Read(/{r}/**)" for r in lectura_extra]
     if perfil == "edicion":
         allow.append(f"Edit(/{repo}/**)")
-    deny = [f"Edit(/{repo}/.git/**)", f"Edit(/{repo}/.husky/**)", f"Edit(/{repo}/.claude/**)", f"Edit(/{repo}/CLAUDE.md)",
-            f"Edit(/{repo}/CLAUDE.local.md)", f"Edit(/{repo}/.env*)", f"Read(/{repo}/.env*)",
+    deny = [f"Edit(/{repo}/.git/**)", f"Edit(/{repo}/.husky/**)", f"Edit(/{repo}/.claude/**)", f"Edit(/{repo}/ARKANA.local.md)",
+            f"Edit(/{repo}/CLAUDE.md)", f"Edit(/{repo}/CLAUDE.local.md)", f"Edit(/{repo}/.env*)", f"Read(/{repo}/.env*)",
             f"Read(/{home}/.git-credentials)", f"Read(/{home}/.ia4d/**)", f"Read(/{home}/.claude/**)", f"Read(/{home}/.npmrc)",
             f"Read(/{meta}/**)", f"Edit(/{meta}/**)",
             f"Read(/{meta}/.credentials)", f"Edit(/{meta}/.credentials)"]       # explicitas: las credenciales no se tocan aunque cambie la regla general
@@ -117,10 +116,10 @@ def bullet_list(items, vacio="(ninguno)"):
 def build_prompt(plan, tarea, intento, repo_ruta, efectivos, rama="", mensajes=()):
     ctx = tarea.get("contexto") or {}
     try:
-        with open(os.path.join(repo_ruta, "CLAUDE.md"), encoding="utf-8") as f:
-            normas = SEED_BLOCK.sub("", f.read()).strip()[:20000] or "(sin normas)"
+        with open(os.path.join(repo_ruta, "ARKANA.local.md"), encoding="utf-8") as f:
+            normas = f.read().strip()[:20000] or "(sin normas)"
     except FileNotFoundError:
-        normas = "(el repo no tiene CLAUDE.md)"
+        normas = "(el repo no tiene notas locales ARKANA.local.md; las normas del trabajo viajan en las instrucciones y el contexto de la tarea)"
     extractos = "\n\n".join(f"[{e['origen']}{(' ' + e['lineas']) if e.get('lineas') else ''}]\n{e['texto']}"
                             for e in ctx.get("extractos", [])) or "(ninguno)"
     criterios = [f"{c['id']}: {c['descripcion']}" + (f" (se verifica automaticamente: {c['verificacion']})" if c.get("verificacion") else "")

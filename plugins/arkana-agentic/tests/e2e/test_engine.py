@@ -47,10 +47,10 @@ class TestCaminoFeliz(unittest.TestCase):
             self.assertEqual(lab.head("api", "develop"), base_develop)
             self.assertEqual(lab.plan_json(pid)["ramas"]["api"], {"original": "develop", "nombre": f"arkana-worker/{pid}"})
             self.assertNotIn("rama", lab.tarea(pid))
-            # el prompt lleva las normas del repo sin la semilla de mensajería
+            # el prompt lleva las normas locales del repo (ARKANA.local.md) y no lee ningún CLAUDE.md
             with open(os.path.join(state.plan_dir(pid), "logs", "T001.1.prompt.md"), encoding="utf-8") as fh:
                 prompt = fh.read()
-            self.assertIn("Norma del repo api", prompt); self.assertNotIn("arkana:messaging", prompt)
+            self.assertIn("Norma del repo api", prompt); self.assertNotIn("Norma propia del editor", prompt)
             self.assertIn("se verifica automaticamente: v1", prompt)
 
     def test_completada_con_verificacion_y_contadores(self):

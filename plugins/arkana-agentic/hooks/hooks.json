@@ -3,7 +3,10 @@
     "SessionStart": [
       {
         "matcher": "startup|resume|clear|compact",
-        "hooks": [{"type": "command", "command": "python3 -I \"${CLAUDE_PLUGIN_ROOT}/scripts/lib/ledger.py\" hook session-start", "timeout": 5}]
+        "hooks": [
+          {"type": "command", "command": "python3 -I \"${CLAUDE_PLUGIN_ROOT}/scripts/lib/ledger.py\" hook session-start", "timeout": 5},
+          {"type": "command", "command": "python3 -I \"${CLAUDE_PLUGIN_ROOT}/scripts/lib/orchestrator.py\" hook", "timeout": 5}
+        ]
       }
     ],
     "SessionEnd": [

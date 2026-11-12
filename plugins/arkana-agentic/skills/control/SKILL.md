@@ -10,7 +10,7 @@ description: Resuelve las paradas obligatorias (gates) del plan de orquestación
 ## Gate abierto
 
 1. `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh status`: lee el gate (`motivo`, `detalle`, `opciones`, `reanuda`) y, si hay tarea, `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh log <T>`.
-2. Explica al usuario **qué pasó y qué opciones hay**. Si el gate es `ruta_protegida` y el worker ya escribió, enséñale primero el diff (`git -C <repo> diff`); si el gate dice que el worker *quiere* editar `CLAUDE.md`, enséñale lo que quería escribir (viene en el `detalle`): `approve` lo autoriza para esa tarea. Si dice que la ruta *no se puede autorizar* (`.git`, `.husky`, `.claude`, `.env*`), solo hay `reject`. Un gate `permiso` genérico no cambia los permisos del worker: no lo presentes como «conceder un permiso».
+2. Explica al usuario **qué pasó y qué opciones hay**. Si el gate es `ruta_protegida` y el worker ya escribió, enséñale primero el diff (`git -C <repo> diff`); si el gate dice que el worker *quiere* editar un fichero de instrucciones (`ARKANA.local.md`, `CLAUDE.md`), enséñale lo que quería escribir (viene en el `detalle`): `approve` lo autoriza para esa tarea. Si dice que la ruta *no se puede autorizar* (`.git`, `.husky`, `.claude`, `.env*`), solo hay `reject`. Un gate `permiso` genérico no cambia los permisos del worker: no lo presentes como «conceder un permiso».
 3. Pregunta con `AskUserQuestion` y registra su respuesta:
 
 | Respuesta | Comando |

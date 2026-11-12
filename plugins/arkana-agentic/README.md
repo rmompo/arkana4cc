@@ -2,7 +2,7 @@
 
 Orquestación multi-repo desde ARKANA (el repositorio de conciliación y gobierno del proyecto, la carpeta `arkana`) sobre los componentes del proyecto, cada uno un repositorio; el workspace es ARKANA más el proyecto. Tú pides algo; el **orquestador** (la sesión de Claude de ARKANA) redacta un **plan**; **tú lo apruebas**; y se ejecuta **una tarea cada vez** con un **worker sin shell** en el repo que toque. El resultado de cada tarea lo **verifica un script**, no el worker, y tú decides en las paradas obligatorias. **El modelo propone; el script decide.**
 
-> Estado: **0.8.0**. Motor, plano de control y skills terminados; probados sin coste con un `claude` falso y con una batería de contención con `claude` real. Falta un piloto real supervisado para pasar a 1.0.0. Es una cola **distinta** de la manual de `arkana-messaging` (`put` / `get`).
+> Estado: **0.9.0**. Motor, plano de control y skills terminados; probados sin coste con un `claude` falso y con una batería de contención con `claude` real. Falta un piloto real supervisado para pasar a 1.0.0. Es una cola **distinta** de la manual de `arkana-messaging` (`put` / `get`).
 
 Este plugin es uno de los del marketplace `arkana`; la visión de conjunto está en [`../README.md`](../README.md). Otros documentos: [`docs/GUIA.md`](docs/GUIA.md) (guía para personas), [`docs/ESPECIFICACION.md`](docs/ESPECIFICACION.md) (especificación).
 
@@ -44,12 +44,12 @@ Repartir un trabajo que afecta a varios repos (o a varios ficheros de uno) en **
 | [`arkana-knowledge`](../arkana-knowledge/README.md) | Opcional. Es el lugar donde dejar el conocimiento común que el orquestador consulta al redactar un plan (`/arkana-knowledge:query`); no hay integración en código: el orquestador lo **lee** y copia lo relevante como `extractos` de la tarea, porque el worker no ve nada fuera de su repo. | skill `plan` |
 | [`arkana-todo`](../arkana-todo/README.md) | Sin relación: el orquestador no lee ni escribe la lista de tareas. |
 
-El orquestador solo existe en la sesión de **ARKANA** (ARKANA): `install` pone el bloque `arkana:agentic` (plantilla `templates/orquestador.md`) en su `CLAUDE.md`. Los hooks del plugin no hacen nada dentro de un worker (`ARKANA_WORKER=1`) ni fuera de un workspace.
+El orquestador solo existe en la sesión de **ARKANA** (ARKANA): el hook `orchestrator.py` (`SessionStart`) inyecta las reglas del orquestador (`templates/orquestador.md`) solo cuando el cwd está dentro de la carpeta de ARKANA: no hay ningún fichero de instrucciones que mantener. Los hooks del plugin no hacen nada dentro de un worker (`ARKANA_WORKER=1`) ni fuera de un workspace.
 
 ## 3. Cómo funciona
 
 ```
- TÚ ──pides──▶ SESIÓN DE arkana (orquestador = Claude + bloque arkana:agentic)
+ TÚ ──pides──▶ SESIÓN DE arkana (orquestador = Claude + reglas inyectadas por hook)
                  │  solo puede ejecutar:  bash <plugin>/scripts/agentic.sh <subcomando>
                  ▼
           agentic.sh  (plano de control: scripts deterministas, estado en <arkana>/.arkana/arkana-agentic/)
@@ -180,7 +180,7 @@ Un gate deja el plan en `esperando_usuario` con un identificador `G01`, `G02`…
 | `permiso` | El worker intentó algo no permitido (p. ej. leer fuera de su repo) | `retry` | **No cambia los permisos del worker**: tu nota llega como feedback, nada más. |
 | `herramienta` | El worker pide una herramienta o un comando fuera de la lista, o una verificación del plan está fuera de la lista cerrada | `retry` / `reverify` | Autorizar una verificación la permite solo a esa tarea. |
 | `dato`, `decision` | El worker necesita un dato o una decisión; o `act escalate` | `retry` | |
-| `ruta_protegida` | (a) El worker **escribió** una ruta protegida que sus ajustes no deniegan (p. ej. `package.json`, `angular.json`): enseña el diff, `approve` autoriza y se vuelve a verificar. (b) El worker **intentó** editar `CLAUDE.md` o `CLAUDE.local.md` y sus ajustes se lo impidieron: `approve` autoriza esa edición para esa tarea. (c) Intentó editar `.git`, `.husky`, `.claude` o `.env*`: **no se puede autorizar** | `reverify`, `retry` o `none` | En (c) solo `reject` (omitir) o `reject --stop`. |
+| `ruta_protegida` | (a) El worker **escribió** una ruta protegida que sus ajustes no deniegan (p. ej. `package.json`, `angular.json`): enseña el diff, `approve` autoriza y se vuelve a verificar. (b) El worker **intentó** editar un fichero de instrucciones (`ARKANA.local.md`, `CLAUDE.md` o `CLAUDE.local.md`) y sus ajustes se lo impidieron: `approve` autoriza esa edición para esa tarea. (c) Intentó editar `.git`, `.husky`, `.claude` o `.env*`: **no se puede autorizar** | `reverify`, `retry` o `none` | En (c) solo `reject` (omitir) o `reject --stop`. |
 | `violacion` | Las instantáneas no cuadran | `none` | Solo detener el plan (`reject <G> --stop`). El script no impide `reject` sin `--stop` (omitiría la tarea), pero la regla del orquestador y del skill es detener. |
 | `limite` | Presupuesto total o duración máxima del plan agotados | `continue` | Sube el límite en la política local (`policy set`, ≤ techo) y `approve`, o detén. |
 | `checkpoint` | Cada `checkpoint_every` tareas completadas | `continue` | Confirmar que se sigue. |
@@ -212,7 +212,7 @@ El **tipo** sale de `components[].type` del manifiesto (`node`, `maven`, `docs`,
 
 | Adaptador | Herramientas | Comandos de verificación | Rutas protegidas propias |
 |---|---|---|---|
-| `common` (todos) | — | `git diff --stat` | `.git/**`, `.husky/**`, `.claude/**`, `CLAUDE.md`, `CLAUDE.local.md`, `.gitignore`, `.gitattributes`, `.env*`, `.github/**`, `.gitlab-ci.yml` |
+| `common` (todos) | — | `git diff --stat` | `.git/**`, `.husky/**`, `.claude/**`, `ARKANA.local.md`, `CLAUDE.md`, `CLAUDE.local.md`, `.gitignore`, `.gitattributes`, `.env*`, `.github/**`, `.gitlab-ci.yml` |
 | `node` | `node`, `npm` | `npm test`, `npm run lint`, `npm run build`, `ng build`, `ng test --watch=false` | `package-lock.json`, `angular.json`, `tsconfig*.json`, `webpack*.js`, `*.config.{js,cjs,mjs,ts}`; en `package.json`: `scripts`, `dependencies`, `devDependencies`, `peerDependencies`, `optionalDependencies`, `overrides`, `bin` |
 | `maven` | `jdk`, `maven` | `mvn -B -q compile`, `mvn -B test`, `mvn -B verify` | `pom.xml`, `**/pom.xml`, `.mvn/**`, `mvnw`, `mvnw.cmd`, `**/settings*.xml`, `**/*.credentials` |
 | `docs`, `generic` | — | (solo los comunes) | (solo las comunes) |
@@ -226,7 +226,7 @@ El **tipo** sale de `components[].type` del manifiesto (`node`, `maven`, `docs`,
 
 Un worker no puede tocar las rutas protegidas del adaptador de su repo (tabla anterior). Se aplica de tres formas:
 
-1. **Denegación en sus ajustes** (`Edit` sobre `.git`, `.husky`, `.claude`, `CLAUDE.md`, `CLAUDE.local.md`, `.env*`; lectura de `.env*`, `~/.git-credentials`, `~/.ia4d`, `~/.claude`, `~/.npmrc` y de la carpeta de metadatos `.arkana`).
+1. **Denegación en sus ajustes** (`Edit` sobre `.git`, `.husky`, `.claude`, `ARKANA.local.md`, `CLAUDE.md`, `CLAUDE.local.md`, `.env*`; lectura de `.env*`, `~/.git-credentials`, `~/.ia4d`, `~/.claude`, `~/.npmrc` y de la carpeta de metadatos `.arkana`).
 2. **Detección posterior**: el verificador compara el inventario de ficheros (excluye `.git`, `node_modules`, `dist`, `.angular`, `coverage`, `target`) antes y después; lo protegido que cambió abre el gate `ruta_protegida` (`reverify`); en `package.json` solo cuentan los campos sensibles.
 3. **Gate con diff**: antes de autorizar enséñate el diff y la ruta exacta (`git -C <repo> diff`).
 
@@ -258,7 +258,7 @@ Revisa tú el diff de los criterios de contenido que ningún script verificó an
 
 ### 4.11 El worker
 
-`launch` ejecuta `timeout --kill-after=10 <timeout_s> claude -p <prompt> --output-format json --json-schema <informe> --restricted --permission-mode dontAsk --permission-prompts none --tools Read,Edit,Write,Glob,Grep` (perfil `lectura`: `Read,Glob,Grep`) `--disallowedTools Agent WebSearch Skill --settings <ajustes> --append-system-prompt-file templates/worker-rules.md --max-turns … --max-budget-usd … --no-session-persistence`, con `--add-dir` por cada `repos_lectura`, `--model` si hay `ARKANA_AGENTIC_MODEL` y `--effort` si hay `ARKANA_AGENTIC_EFFORT`. Corre con `ARKANA_WORKER=1`, sin stdin, en una sesión de procesos propia y en el directorio del repo; sus ajustes desactivan todos los hooks. No carga el `CLAUDE.md` del repo: las normas viajan en el prompt (`templates/worker-prompt.md.tpl`, sin el bloque de messaging), junto con la tarea, los extractos, el feedback y los mensajes. Un **vigilante** independiente (`watchdog.py`) aplica el tiempo máximo, la parada forzosa (`run/STOP-FORCE`) y el **dead-man switch**: si la sesión de Claude dueña desaparece, mata al worker. Cada intento deja `logs/<T>.<n>.{prompt.md,salida.log,error.log}`, `informes/<T>.<n>.raw.json`, `snapshots/` y `verificacion/<T>.<n>.json`.
+`launch` ejecuta `timeout --kill-after=10 <timeout_s> claude -p <prompt> --output-format json --json-schema <informe> --restricted --permission-mode dontAsk --permission-prompts none --tools Read,Edit,Write,Glob,Grep` (perfil `lectura`: `Read,Glob,Grep`) `--disallowedTools Agent WebSearch Skill --settings <ajustes> --append-system-prompt-file templates/worker-rules.md --max-turns … --max-budget-usd … --no-session-persistence`, con `--add-dir` por cada `repos_lectura`, `--model` si hay `ARKANA_AGENTIC_MODEL` y `--effort` si hay `ARKANA_AGENTIC_EFFORT`. Corre con `ARKANA_WORKER=1`, sin stdin, en una sesión de procesos propia y en el directorio del repo; sus ajustes desactivan todos los hooks. No carga ningún fichero de instrucciones del repo: sus notas locales (`ARKANA.local.md`, si existe) viajan en el prompt (`templates/worker-prompt.md.tpl`), junto con la tarea, los extractos, el feedback y los mensajes. Un **vigilante** independiente (`watchdog.py`) aplica el tiempo máximo, la parada forzosa (`run/STOP-FORCE`) y el **dead-man switch**: si la sesión de Claude dueña desaparece, mata al worker. Cada intento deja `logs/<T>.<n>.{prompt.md,salida.log,error.log}`, `informes/<T>.<n>.raw.json`, `snapshots/` y `verificacion/<T>.<n>.json`.
 
 ### 4.12 Mensajes de `arkana-messaging`
 
@@ -272,7 +272,7 @@ Solo **metadatos**. Cada plan terminado deja su apunte en `ledger/plans/<plan>.j
 
 **Se garantiza** (lo impone el script o los ajustes, no el modelo):
 
-- Los workers **no tienen shell ni git**, no salen de su repo, no cargan su `CLAUDE.md` y no tocan rutas protegidas ni credenciales.
+- Los workers **no tienen shell ni git**, no salen de su repo, no cargan ningún fichero de instrucciones del repo (reciben sus notas locales `ARKANA.local.md` en el prompt) y no tocan rutas protegidas ni credenciales.
 - **Un solo worker a la vez**, con tiempo, turnos, coste e intentos limitados; un plan solo **baja** los límites.
 - **Todo comando lo ejecuta el script**, de una lista cerrada, con argv directo y entorno reducido.
 - **Un plan aprobado no se puede alterar** (hash).
@@ -291,7 +291,7 @@ Los skills de `skills/` (`/arkana-agentic:<skill>`). Todos se usan desde `arkana
 
 | Skill | Para qué | Subcomandos que usa | Pregunta al usuario |
 |---|---|---|---|
-| `install` | Primera puesta en marcha (repetible): carpetas `config/state/data`, bloque `arkana:agentic` en el `CLAUDE.md` de ARKANA y plugin habilitado en `~/.claude/settings.json` | `install [--dry-run] [--no-settings]` | Sí, antes de aplicar (modifica `CLAUDE.md` y ajustes de usuario) |
+| `install` | Primera puesta en marcha (repetible): carpetas `config/state/data` y plugin habilitado en `~/.claude/settings.json` (no escribe nada en los repos) | `install [--dry-run] [--no-settings]` | Sí, antes de aplicar (modifica los ajustes de usuario) |
 | `check` | Salud de la orquestación; solo lectura y sin coste (`--deep` cuesta dinero) | `check [--deep] [--need-network]` | Antes de `--deep` |
 | `plan` | Redacta, valida y presenta un plan; no ejecuta nada hasta que apruebas | `check`, `plan new`, `plan show`, `plan approve`, `plan start`, `act stop` | *Aprobar y ejecutar* · *Aprobar sin ejecutar* · *Cambiar algo* · *Descartar* |
 | `run` | Ejecuta el plan, una tarea cada vez, y se detiene en los gates | `check`, `status`, `next`, `launch`, `finish`, `act`, `approve`, `reject`, `integrate review`, `resume` | En cada gate y, al final, por repo |
@@ -304,7 +304,7 @@ Los skills de `skills/` (`/arkana-agentic:<skill>`). Todos se usan desde `arkana
 
 ### `/arkana-agentic:install`
 
-Hace tres cosas: (1) crea `.arkana/arkana-agentic/{config,state,data}` con modo 700; (2) pone en el `CLAUDE.md` de ARKANA el bloque `<!-- arkana:agentic:start -->…<!-- arkana:agentic:end -->` con las reglas del orquestador (`templates/orquestador.md`); (3) habilita `arkana-agentic@arkana` en `~/.claude/settings.json` (copia previa en `.arkana/arkana-agentic/bak/`). Pasos: `--dry-run` primero, pedir confirmación, aplicar, recordar que el `CLAUDE.md` queda modificado **sin commit** y que hay que recargar los plugins. Después, `/arkana-workspace:fix` para las reglas de permisos.
+Hace dos cosas: (1) crea `.arkana/arkana-agentic/{config,state,data}` con modo 700; (2) habilita `arkana-agentic@arkana` en `~/.claude/settings.json` (copia previa en `.arkana/arkana-agentic/bak/`). Pasos: `--dry-run` primero, pedir confirmación, aplicar y recordar que hay que recargar los plugins (el hook del orquestador arranca con ellos). Después, `/arkana-workspace:fix` para las reglas de permisos.
 
 ### `/arkana-agentic:check`
 
@@ -624,7 +624,7 @@ agentic.sh policy set total_budget_usd 40 --ceiling
 
 ### `install`
 
-`agentic.sh install [--dry-run] [--no-settings]` — Ver el skill `install`. Imprime `ESTADO|install:<id>|detalle` para `carpetas`, `bloque`, `referencia` y `plugin`. `--dry-run` no cambia nada (`DRY`); `--no-settings` omite la habilitación del plugin en `~/.claude/settings.json`. Exit 1 si hay algún `FAIL` (no existe la carpeta de ARKANA); un `CLAUDE.md` ausente es un `WARN`.
+`agentic.sh install [--dry-run] [--no-settings]` — Ver el skill `install`. Imprime `ESTADO|install:<id>|detalle` para `carpetas` y `plugin`. `--dry-run` no cambia nada (`DRY`); `--no-settings` omite la habilitación del plugin en `~/.claude/settings.json`. Exit 1 si hay algún `FAIL` (no existe la carpeta de ARKANA).
 
 ### `check`
 
@@ -648,7 +648,7 @@ agentic.sh policy set total_budget_usd 40 --ceiling
 | `permisos-arkana` | En `.claude/settings.local.json`: `agentic.sh` en `allow`, `claude -p` en `deny` y `ask` en `plan approve`, `approve`, `reject`, `policy set`, `integrate merge`, `integrate discard` | `WARN`: `/arkana-workspace:fix`. |
 | `red-vpn` | DNS de los hosts de los remotos del manifiesto (si hay) | **`WARN`** (el trabajo y el commit son locales; `launch` avisa y sigue); `FAIL` con `--need-network`. |
 | `adaptadores` | Para los tipos del workspace, cada herramienta requerida está en el `PATH` del verificador (carpetas `bin` de `tools.json` con ruta + `/usr/local/bin:/usr/bin:/bin`) | `WARN` con el nombre de lo que falta y cómo declararlo: `/arkana-workspace:config tools --tool <nombre> --version <v> --path <ruta>`. |
-| `instrucciones` | Bloque `arkana:agentic` al día en el `CLAUDE.md` de ARKANA | `WARN`: `/arkana-agentic:install`. |
+| `instrucciones` | Existen `templates/orquestador.md` y el hook `orchestrator.py` en `hooks/hooks.json` (las reglas del orquestador se inyectan por hook) | `FAIL`: reinstala el plugin. |
 | `contencion` | Solo con `--deep` | `FAIL`: **no orquestes** hasta resolverlo. |
 
 ---
@@ -683,7 +683,7 @@ claude plugin marketplace add <ruta>
 claude plugin install arkana-agentic@arkana
 ```
 
-Después, en `arkana` y en este orden: `/arkana-agentic:install` (carpetas y bloque `arkana:agentic`; recarga los plugins), `/arkana-workspace:fix` (reglas de permisos del orquestador), `/arkana-agentic:check` y, para ver el plan en la barra, `/arkana-statusline:install`. Antes, el workspace debe tener su manifiesto (`/arkana-workspace:install`, `component add`) y las herramientas declaradas (`/arkana-workspace:config tools`).
+Después, en `arkana` y en este orden: `/arkana-agentic:install` (carpetas y plugin habilitado; recarga los plugins), `/arkana-workspace:fix` (reglas de permisos del orquestador), `/arkana-agentic:check` y, para ver el plan en la barra, `/arkana-statusline:install`. Antes, el workspace debe tener su manifiesto (`/arkana-workspace:install`, `component add`) y las herramientas declaradas (`/arkana-workspace:config tools`).
 
 Requiere `claude` ≥ 2.1.259 con los flags `--restricted`, `--tools`, `--json-schema`, `--permission-prompts`, `--max-budget-usd`, `--no-session-persistence` y `--settings`; `timeout`, `setsid`, `flock`, `python3`, `jq`, `git` y `sha256sum`; y la rama `develop` local en cada repo que vaya a recibir tareas de edición.
 

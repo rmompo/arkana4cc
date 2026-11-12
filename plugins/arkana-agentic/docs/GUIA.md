@@ -10,7 +10,7 @@ Una sola vez, desde `arkana` y en este orden:
 
 1. `/arkana-workspace:install` y `/arkana-workspace:component add`: el manifiesto con tus repos (alias como `app`, `api`, `app-web`, `app-ui`, `docs`, `specs`), su tipo (`node`, `maven`, `docs`, `generic`) y su formato de commit.
 2. `/arkana-workspace:config tools`: Node, JDK, Maven y registros, **con su ruta**. Las verificaciones no heredan el `PATH` de tu shell: solo ven las herramientas declaradas así (más `/usr/local/bin:/usr/bin:/bin`).
-3. `/arkana-agentic:install` (reglas del orquestador en el `CLAUDE.md` de ARKANA) y luego `/arkana-workspace:fix` (reglas de permisos: el orquestador solo puede ejecutar `agentic.sh`, y te pregunta siempre antes de aprobar, rechazar, cambiar límites o integrar).
+3. `/arkana-agentic:install` (carpetas y plugin habilitado; las reglas del orquestador las inyecta un hook en la sesión de ARKANA) y luego `/arkana-workspace:fix` (reglas de permisos: el orquestador solo puede ejecutar `agentic.sh`, y te pregunta siempre antes de aprobar, rechazar, cambiar límites o integrar).
 4. `/arkana-agentic:check`. Un `FAIL` impide orquestar; un `WARN` no. En particular, **sin VPN `red-vpn` es solo un aviso**: el trabajo y el commit son locales; usa `check --need-network` si vas a necesitar los remotos.
 
 ## Cómo se usa
@@ -40,7 +40,7 @@ Sin Claude también se puede consultar y parar: `bash plugins/arkana-agentic/scr
 
 ## Qué te garantiza
 
-- Los workers **no tienen shell ni git**, no salen de su repo y no tocan rutas protegidas (`.git`, `.husky`, `.claude`, `CLAUDE.md`, `.env*`, y según el tipo de componente `package.json`, lockfiles, `angular.json`, `pom.xml`…).
+- Los workers **no tienen shell ni git**, no salen de su repo y no tocan rutas protegidas (`.git`, `.husky`, `.claude`, `ARKANA.local.md`, `CLAUDE.md`, `.env*`, y según el tipo de componente `package.json`, lockfiles, `angular.json`, `pom.xml`…).
 - **Un solo worker a la vez.** Límites de turnos, tiempo, coste, intentos, tareas, cambios de plan y duración, con techos; los fija el script (`agentic.sh policy show`; un plan solo puede bajarlos).
 - Los comandos de verificación los ejecuta el script, de una lista cerrada por tipo de componente (`node`, `maven`, `docs`, `generic`).
 - Nada se commitea, integra ni sube sin tu autorización; `develop` no se toca hasta que decides.
@@ -53,7 +53,7 @@ Que el trabajo sea correcto (por eso verifica el script y tú revisas el diff), 
 
 ## Dónde está cada cosa
 
-- Reglas del orquestador: bloque `arkana:agentic` del `CLAUDE.md` de ARKANA (lo pone `/arkana-agentic:install`; plantilla en `plugins/arkana-agentic/templates/orquestador.md`).
+- Reglas del orquestador: las inyecta el hook de sesión en la sesión de ARKANA (plantilla en `plugins/arkana-agentic/templates/orquestador.md`); no hay ningún fichero de instrucciones que mantener.
 - Estado de ejecución (local, no se versiona): `<arkana>/.arkana/arkana-agentic/` (`state/` con los planes y el worker en marcha, `config/` con tu política, `data/` con el libro de costes y los planes archivados).
 - Límites: `agentic.sh policy show` y `policy set <clave> <valor>` (`--ceiling` para el techo).
 - Herramientas, formato de commit y repos: el manifiesto y `tools.json` de `arkana-workspace`.

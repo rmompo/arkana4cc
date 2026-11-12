@@ -12,7 +12,7 @@
   costs [--plan --session --component --since --by plan|session|component|day --purge]   costes del libro de planes y sesiones
   totals                  gasto acumulado de todos los planes y de todas las sesiones de Claude (solo consulta)
   fix [--dry-run] [--task T --action retry|discard]   limpia restos y recupera tareas interrumpidas
-  install [--dry-run]     carpetas, bloque `arkana:agentic` en el CLAUDE.md de ARKANA y plugin habilitado
+  install [--dry-run]     carpetas y plugin habilitado (sin escribir en los repos)
   archive | integrate | policy | check (antes `doctor`)
 Opciones comunes: --plan <id> (por defecto el plan actual) y --json.
 Codigos de salida: 0 ok, 1 error, 2 uso, 3 precondicion, 4 violacion, 5 esperando usuario, 6 limite, 7 detenido/pausado.

@@ -111,9 +111,10 @@ def checks(profundo, necesita_red=False):
         if tool not in declaradas and not shutil.which(cmd, path=adapters.VERIFIER_PATH):
             falt.append(tool)
     r("WARN" if falt else "OK", "adaptadores", ("tipos " + ", ".join(tipos) + "; el verificador no encuentra: " + ", ".join(falt) + " (declara su ruta: arkana-workspace:config tools --tool <nombre> --version <v> --path <ruta>)") if falt else "tipos " + ", ".join(tipos) + ": herramientas requeridas disponibles")
-    import install
-    bs = install.block_state()
-    r("OK" if bs == "OK" else "WARN", "instrucciones", "bloque arkana:agentic al día en el CLAUDE.md de ARKANA" if bs == "OK" else f"bloque arkana:agentic: {bs} (ejecuta /arkana-agentic:install)")
+    hk = state.load_json(os.path.join(state.PLUGIN, "hooks", "hooks.json")) if os.path.isfile(os.path.join(state.PLUGIN, "hooks", "hooks.json")) else {}
+    ok = os.path.isfile(os.path.join(state.PLUGIN, "templates", "orquestador.md")) and "orchestrator.py" in json.dumps(hk)
+    r("OK" if ok else "FAIL", "instrucciones", "las reglas del orquestador las inyecta el hook de sesión (templates/orquestador.md + hook orchestrator.py)" if ok
+      else "faltan templates/orquestador.md o el hook orchestrator.py en hooks/hooks.json: reinstala el plugin")
     if profundo:
         bat = os.path.join(state.PLUGIN, "tests", "containment", "run-containment.sh")
         if os.path.exists(bat):

@@ -7,7 +7,7 @@ description: Ejecuta el plan de orquestación actual, una tarea cada vez - lanza
 
 > En los ejemplos, `agentic.sh <sub>` significa `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh <sub>`. Usa siempre este mismo comando: **una sola orden por llamada, con la ruta sin comillas y sin `&&`, `;`, `cd` ni redirecciones** (las reglas de permiso solo reconocen esa forma).
 
-Reglas completas: el bloque `arkana:agentic` del `CLAUDE.md` de ARKANA (bucle, tabla de decisión y gates). Antes de empezar, **léelas**.
+Reglas completas: las del orquestador que el hook de sesión inyectó en tu contexto (bucle, tabla de decisión y gates). Antes de empezar, **repásalas**.
 
 ## Pasos
 

@@ -40,7 +40,7 @@ El plan es un JSON que se crea con `plan new <fichero>` (déjalo en el directori
 - **Tareas pequeñas** (una idea, pocos ficheros), con instrucciones **autosuficientes**: el worker no ve tu conversación ni otros repos. Lo que necesite de otro repo, **lo lees tú y lo copias** como `extracto` (verificado). Máximo 12 tareas.
 - `tipo`: `tarea` (perfil `edicion`), `revision` o `investigacion` (perfil `lectura`: no modifican nada).
 - **Cada criterio, a ser posible, con una `verificacion`** que ejecute el script. Solo valen los comandos de la lista cerrada, que es la **unión de los adaptadores por tipo de componente** de los repos del plan (`node`: `npm test`, `npm run lint`, `npm run build`, `ng build`, `ng test --watch=false`; `maven`: `mvn -B -q compile`, `mvn -B test`, `mvn -B verify`; todos: `git diff --stat`); otro comando abrirá un gate.
-- `rutas_permitidas` lo más estrechas posible. Los workers **no pueden** tocar `.git`, `.husky`, `.claude`, `CLAUDE.md`, `.env*`, `package.json` (scripts/dependencias), lockfiles ni configuración de build o CI: si la tarea lo exige, díselo al usuario antes de crear el plan.
+- `rutas_permitidas` lo más estrechas posible. Los workers **no pueden** tocar `.git`, `.husky`, `.claude`, `ARKANA.local.md`, `CLAUDE.md`, `.env*`, `package.json` (scripts/dependencias), lockfiles ni configuración de build o CI: si la tarea lo exige, díselo al usuario antes de crear el plan.
 - `plan validate` hasta que quede sin errores; **lee los avisos** y cuéntaselos al usuario. Muéstrale `plan show` y pídele que apruebe (`AskUserQuestion`) antes de `plan approve` y `plan start`.
 - Los límites (turnos, tiempo, coste, intentos, nº de tareas…) son los de `policy show`; un plan solo puede **bajarlos**.
 
@@ -89,7 +89,7 @@ Antes de autorizar una **ruta protegida**, enséñale el diff (`git -C <repo> di
 
 **Gates `ruta_protegida`** (dos orígenes):
 - *El worker escribió una ruta protegida que sus ajustes no deniegan* (p. ej. `package.json`, `angular.json`): enseña el diff; `approve` autoriza y se vuelve a verificar.
-- *El worker intentó editar `CLAUDE.md` o `CLAUDE.local.md` y sus ajustes se lo impidieron* (el gate lo dice, e incluye lo que quería escribir): `approve` **autoriza esa edición para esa tarea** y el siguiente intento puede hacerla (se levanta solo esa denegación); luego revisa el diff antes de `act continue`. Un `reject` omite la tarea.
+- *El worker intentó editar un fichero de instrucciones (`ARKANA.local.md`, `CLAUDE.md` o `CLAUDE.local.md`) y sus ajustes se lo impidieron* (el gate lo dice, e incluye lo que quería escribir): `approve` **autoriza esa edición para esa tarea** y el siguiente intento puede hacerla (se levanta solo esa denegación); luego revisa el diff antes de `act continue`. Un `reject` omite la tarea.
 - *El worker intentó editar `.git`, `.husky`, `.claude` o `.env*`*: **no se puede autorizar**. El gate solo admite omitir (`reject <G>`) o detener (`reject <G> --stop`); `approve` se rechaza. Dilo así al usuario, sin ofrecer «autorizar».
 
 Un gate `permiso` genérico (el worker intentó leer fuera de su repo, etc.) **no cambia los permisos del worker** al aprobarlo: la nota del usuario llega como feedback al reintento, nada más. No lo presentes como «conceder el permiso»; si hace falta otra cosa, cambia el plan (`act split`, `contexto.repos_lectura`, otra tarea).

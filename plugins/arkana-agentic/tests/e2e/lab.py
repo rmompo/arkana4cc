@@ -65,7 +65,8 @@ class Lab:
         os.makedirs(os.path.join(d, ".husky"), exist_ok=True)
         os.makedirs(os.path.join(d, "src"), exist_ok=True)
         ficheros = {
-            "CLAUDE.md": f"# {rid}\n\nNorma del repo {rid}: commits en ingles.\n\n<!-- arkana:messaging:start -->\n@.arkana/core/novedades.md\n<!-- arkana:messaging:end -->\n",
+            "CLAUDE.md": f"# {rid}\n\nNorma propia del editor en {rid}.\n",
+            "ARKANA.local.md": f"# {rid}\n\nNorma del repo {rid}: commits en ingles.\n",
             "package.json": json.dumps({"name": rid, "description": "d", "scripts": {"test": "echo ok"}, "dependencies": {}}),
             "src/a.ts": "export const a = 1;\n", "README.md": "# r\n", ".husky/pre-commit": "#!/bin/sh\nexit 0\n",
             ".gitignore": "/src/*\n" if rid == "app" else ".arkana/\nnode_modules\n.env\n"}
