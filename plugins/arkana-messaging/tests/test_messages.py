@@ -365,6 +365,24 @@ class TestRepeatYDestinatarios(unittest.TestCase):
             self.assertEqual(lab.run("api", "put", "--done", leg["id"], "--result", "ok").returncode, 0)
             self.assertEqual(lab.msg(leg["id"])["estado"], "done")                              # un solo destinatario: igual que antes
 
+    def test_rename_reescribe_mensajes_y_marcas_de_lectura_sin_cwd(self):
+        with Lab() as lab:
+            ins, cri = lab.file("i.txt", "Hazlo\n"), lab.file("c.txt", "Compila\n")
+            mid = lab.put("arkana", "task", "Adaptar el cliente al nuevo contrato", "app,api", ("--instructions-file", ins, "--criteria-file", cri))
+            lab.run("app", "get", "--detail", mid)                                                       # app lo lee: queda read/app.json
+            lab.run("app", "put", "--done", mid, "--result", "hecho")                                    # y lo confirma
+            r = lab.run("fuera", "rename", "--from", "app", "--to", "frontend", "--dry-run")
+            self.assertEqual(r.returncode, 0, r.stdout)
+            self.assertIn("app", lab.msg(mid)["para"])                                                   # dry-run no escribe
+            r = lab.run("fuera", "rename", "--from", "app", "--to", "frontend")
+            self.assertEqual(r.returncode, 0, r.stdout)
+            m = lab.msg(mid)
+            self.assertEqual((sorted(m["para"]), sorted(m["destinatarios"])), (["api", "frontend"], ["api", "frontend"]))
+            self.assertEqual(list(m["confirmaciones"]), ["frontend"])
+            self.assertTrue(os.path.exists(lab.store("read/frontend.json")))
+            self.assertFalse(os.path.exists(lab.store("read/app.json")))
+            self.assertIn("0 mensajes", lab.run("fuera", "rename", "--from", "app", "--to", "frontend").stdout)      # idempotente
+
     def test_repeat_a_all_tiene_alcance_vivo(self):
         import sys
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts", "lib"))

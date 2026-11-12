@@ -15,6 +15,7 @@
   query   [--unread] [--pending] [--detail [ID]] [--id ID] [--type T] [--state S] [--to C] [--from C] [--user U] [--since AAAA-MM-DD] [--n N] [--repeat]
           [--include-hidden] [--json]   (SOLO LECTURA: id, remitente, asunto y destinatarios; no marca leído ni cambia estado)
   sync    [--reconcile] [--dry-run] [--json]              reconstruye el índice, repara y, con --reconcile, lista candidatos
+  rename  --from A --to B [--dry-run] [--json]            cambia el alias de un componente en todos los mensajes (lo invoca `component edit --rename`)
   reconcile candidates [--to C] [--json]                  grupos de mensajes abiertos con el mismo destinatario
   reconcile apply --origins "ID ID.." --subject T [--type T] [--priority P] [--body-file F] [--instructions-file F]
           [--criteria-file F] [--dry-run] [--json]        UN mensaje resumen; los originales pasan a `reconciled`
@@ -631,6 +632,47 @@ def cmd_sync(a, rep):
             rep.add("INFO" if groups else "OK", "reconcile", f"{len(groups)} grupos con candidatos" + ("" if not groups else ": reconcile candidates --json"))
 
 
+def cmd_rename(a, rep):
+    """Cambia el alias de un componente en TODOS los mensajes (remitente, destinatarios y claves por destinatario) y en sus marcas de lectura. Lo invoca
+    `component edit --rename`; no depende del cwd (no hay actor)."""
+    home = locate.find_home()
+    if not home:
+        raise MessageError("workspace", "no hay workspace de Arkana (falta .arkana/arkana.json)", 3)
+    store = Store(home)
+    old, new = manifest.canon(a.frm), manifest.canon(a.to)
+    swap = lambda lst: [new if x == old else x for x in lst]
+    n = 0
+    with store.lock():
+        msgs, _ = store.all()
+        for m in msgs:
+            ch = False
+            if m.get("de") == old:
+                m["de"], ch = new, True
+            for k in ("para", "destinatarios"):
+                if isinstance(m.get(k), list) and old in m[k]:
+                    m[k], ch = swap(m[k]), True
+            for k in ("confirmaciones", "entregas", "ejecuciones"):
+                if isinstance(m.get(k), dict) and old in m[k]:
+                    m[k][new] = m[k].pop(old)
+                    ch = True
+            if ch:
+                n += 1
+                if not a.dry_run:
+                    store.save(m, touch=False)
+        rf = os.path.join(store.dir, "read", f"{old}.json")
+        if os.path.isfile(rf):
+            if not a.dry_run:
+                nf = os.path.join(store.dir, "read", f"{new}.json")
+                cur = (datafiles.read_json(nf, {}) or {}).get("ids", {})
+                cur.update((datafiles.read_json(rf, {}) or {}).get("ids", {}))
+                datafiles.atomic_write_json(nf, {"schema_version": SCHEMA, "ids": cur})
+                os.remove(rf)
+            rep.add("DRY" if a.dry_run else "OK", "rename-leidos", f"read/{old}.json → read/{new}.json")
+        if not a.dry_run:
+            store.reindex()
+    rep.add("DRY" if a.dry_run else "OK", "rename", f"{n} mensajes pasan de {old} a {new}")
+
+
 def cmd_reconcile(a, rep=None):
     home, ws, store, who = ctx()
     msgs, _ = store.all()
@@ -745,6 +787,9 @@ def make_parser():
     qy.add_argument("--detail", dest="mensaje", nargs="?", const="*", metavar="ID")       # solo: añade el texto a lo listado; con id: ese mensaje, con su texto
     qy.add_argument("--include-hidden", dest="include_hidden", action="store_true")
     qy.add_argument("--repeat", dest="repetir", action="store_true")
+    rn = common(s.add_parser("rename"))
+    rn.add_argument("--from", dest="frm", required=True)
+    rn.add_argument("--to", required=True)
     sy = common(s.add_parser("sync"))
     sy.add_argument("--reconcile", action="store_true")
     r = s.add_parser("reconcile")
@@ -771,7 +816,7 @@ def main(argv):
     try:
         if a.cmd in ("get", "query") or (a.cmd == "reconcile" and a.sub == "candidates"):
             return {"get": cmd_get, "query": cmd_query}[a.cmd](a) if a.cmd != "reconcile" else cmd_reconcile(a)
-        {"put": cmd_put, "delete": cmd_delete, "sync": cmd_sync, "reconcile": cmd_reconcile}[a.cmd](a, rep)
+        {"put": cmd_put, "delete": cmd_delete, "sync": cmd_sync, "reconcile": cmd_reconcile, "rename": cmd_rename}[a.cmd](a, rep)
     except MessageError as e:
         rep.add("FAIL", e.donde, str(e))
         sys.stdout.write(rep.render(a.json))

@@ -49,6 +49,7 @@
     }
   ],
   "check": "bash scripts/messaging.sh check --all",
+  "rename": "bash scripts/messaging.sh rename",
   "hooks": [
     "SessionStart",
     "UserPromptSubmit",

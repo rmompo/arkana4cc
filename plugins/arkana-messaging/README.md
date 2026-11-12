@@ -510,6 +510,10 @@ Bloquea (`decision: block`, con la lista de mensajes y la orden `/arkana-messagi
 
 Cada ejecución (también las que no emiten nada) escribe `state/sessions/<session_id>.json` con `ts`, `event`, `actor`, `seen` (leídos conocidos), `sig` (recuento para detectar cambios) y `reminded`. Lo usa `check` para saber si los hooks corren **en esta sesión**. El identificador sale del evento o de `CLAUDE_CODE_SESSION_ID`.
 
+## Renombrado de componentes
+
+Cuando `arkana-workspace` renombra un componente (`component edit --rename`), invoca el comando `rename` que este plugin declara en su contrato: `messaging.sh rename --from A --to B [--dry-run]`. Reescribe el alias en todos los mensajes (`de`, `para`, `destinatarios` y las claves de `confirmaciones`, `entregas` y `ejecuciones`), pasa `read/A.json` a `read/B.json` y reconstruye el índice. No depende del directorio actual (no hay actor) y es idempotente.
+
 ## Instrucciones de uso
 
 No hay ningún fichero de instrucciones en los repos de trabajo. El hook `SessionStart` (también tras `clear` y `compact`) inyecta en el contexto del modelo un texto fijo (`GUIDE` en `scripts/hooks.py`) que le dice:
