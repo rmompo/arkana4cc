@@ -28,7 +28,7 @@ Arkana es una herramienta general para gobernar proyectos de varias piezas en re
 │   └── arkana-todo/todos.json       lista de tareas de la persona usuaria (clase data)
 ├── arkana-project.json              registro del proyecto (versionado): UUID y alias de cada pieza y sello `layout`
 ├── arkana-incoming/                 entrada de documentos; solo `.gitkeep` y su `.gitignore` interno se versionan
-├── arkana-knowledge/                notas versionadas en git (<topic>/<slug>.md) y catalog.json
+├── arkana-knowledge/                notas versionadas en git (<topic>/<slug>.md); su índice es local y derivado (.arkana/arkana-knowledge/index.json)
 ├── arkana-docs/                     documentos de origen (versionado); `md/` guarda sus versiones en Markdown
 └── plugins/                         los plugins y el marketplace `arkana`; los contratos comunes están en `plugins/docs/`
 ```
@@ -46,7 +46,7 @@ Cada plugin declara en su `arkana-plugin.json` qué guarda y de qué clase es ca
 | `local` | Propio de esta instalación (rutas, estado, copias, cerrojos) | nunca | nunca |
 | `secret` | Credenciales | solo la **referencia** (el nombre de la clave) | nunca |
 
-**Fuera de `.arkana/`.** El conocimiento de `arkana-knowledge` (`arkana-knowledge/<topic>/*.md` y `catalog.json`) está en la raíz del repositorio de ARKANA y **se versiona con git**: es la forma de compartirlo entre todas las personas usuarias, por lo que no forma parte de `export`/`import`.
+**Fuera de `.arkana/`.** El conocimiento de `arkana-knowledge` (notas en `arkana-knowledge/<topic>/*.md`, documentos de origen en `arkana-docs/` y su versión en Markdown en `arkana-docs/md/`) está en la raíz del repositorio de ARKANA y **se versiona con git**: es la forma de compartirlo entre todas las personas usuarias, por lo que no forma parte de `export`/`import`.
 
 ## Manifiesto `core/workspace.json`
 
