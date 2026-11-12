@@ -2,7 +2,7 @@
 
 `arkana` gobierna a los demás repos: tú pides algo en `arkana`, el orquestador (la sesión de Claude de `arkana`) redacta un **plan**, tú lo apruebas y se ejecuta **una tarea cada vez** con un worker en el repo que toque. Cada resultado lo verifica un script (no el worker) y tú decides en las paradas obligatorias. El modelo propone; el script decide.
 
-La referencia completa (todos los skills y subcomandos con sus parámetros) está en [`../README.md`](../README.md); la visión de conjunto de los seis plugins, en [`../../README.md`](../../README.md).
+La referencia completa (todos los skills y subcomandos con sus parámetros) está en [`../README.md`](../README.md); la visión de conjunto de los plugins, en [`../../README.md`](../../README.md).
 
 ## Antes de empezar
 
@@ -34,7 +34,7 @@ Sin Claude también se puede consultar y parar: `bash plugins/arkana-agentic/scr
 ## Una sesión típica
 
 1. **Plan.** El orquestador lee el código, escribe el plan (tareas pequeñas, un repo cada una, con criterios y verificaciones) y te lo enseña con sus límites, lo que autoriza y los mensajes que recibirá cada worker. Eliges: aprobar y ejecutar, aprobar sin ejecutar, cambiar o descartar. Aprobar es tu decisión: un plan aprobado queda sellado y, si se altera, no se ejecuta.
-2. **Ejecución.** Una tarea cada vez: el worker edita ficheros en su repo (sin shell ni git), el script verifica (alcance, rutas protegidas, comandos de una lista cerrada por tipo de componente, criterios) y el orquestador acepta, reintenta, divide o te pregunta. Cada tarea aceptada es **un commit local** en la rama `arkana-worker/<plan>` de su repo, con el formato de commit del componente. (Los planes antiguos usaron `m3a/<plan>`; se reconocen.)
+2. **Ejecución.** Una tarea cada vez: el worker edita ficheros en su repo (sin shell ni git), el script verifica (alcance, rutas protegidas, comandos de una lista cerrada por tipo de componente, criterios) y el orquestador acepta, reintenta, divide o te pregunta. Cada tarea aceptada es **un commit local** en la rama `arkana-worker/<plan>` de su repo, con el formato de commit del componente.
 3. **Paradas (gates).** Se abren al faltar un permiso, herramienta, dato o decisión, al tocar una ruta protegida, ante una violación, al llegar a un límite, cada 3 tareas (checkpoint) y cuando el plan cambia. Te explican qué pasó y qué opciones hay; `approve` o `reject` (con `--stop` para detener el plan). Una violación solo admite detener. Las rutas `.git`, `.husky`, `.claude` y `.env*` no se pueden autorizar.
 4. **Final.** `integrate review` enseña, por repo, los commits y el diff; tú decides **repo a repo**: integrar (merge local), dejar la rama o descartarla. El push es siempre aparte. Después, archivar el plan si quieres conservarlo.
 

@@ -16,17 +16,17 @@ class Base(unittest.TestCase):
         self.shared = os.path.join(self.tmp.name, "shared")
         os.makedirs(os.path.join(self.home, ".claude")); os.makedirs(self.shared)
         self._env = dict(os.environ)
-        for k in ("ARKANA_HOME", "ARKANA_PLUGINS_DIR", "ARKANA_SHARED", "ARKANA_BASE", "ARKANA_AGENTIC_DIR"):
+        for k in ("ARKANA_HOME", "ARKANA_PLUGINS_DIR", "ARKANA_AGENTIC_DIR"):
             os.environ.pop(k, None)
         os.environ["HOME"] = self.home
-        os.environ["ARKANA_SHARED"] = self.shared
+        os.environ["ARKANA_HOME"] = self.shared
 
     def tearDown(self):
         os.environ.clear(); os.environ.update(self._env); self.tmp.cleanup()
 
 
 class TestNombreDeCarpeta(Base):
-    """La carpeta de ARKANA se reconoce por su contenido, no por su nombre; `arkana` y `shared` valen como hermana de un repo git."""
+    """La carpeta de ARKANA se reconoce por su contenido, no por su nombre; `arkana` vale como hermana de un repo git."""
     def _crear(self, nombre):
         d = os.path.join(self.tmp.name, nombre)
         os.makedirs(os.path.join(d, "plugins")); os.makedirs(os.path.join(d, ".arkana"))
@@ -34,7 +34,7 @@ class TestNombreDeCarpeta(Base):
         return os.path.realpath(d)
 
     def _aislado(self, cwd):
-        for k in ("ARKANA_HOME", "ARKANA_SHARED"):
+        for k in ("ARKANA_HOME",):
             os.environ.pop(k, None)
         import importlib.util
         import subprocess
@@ -48,13 +48,6 @@ class TestNombreDeCarpeta(Base):
     def test_hermana_arkana(self):
         d = self._crear("arkana"); repo = os.path.join(self.tmp.name, "api"); os.makedirs(repo)
         self.assertEqual(self._aislado(repo).arkana_dir(cwd=repo), d)
-
-    def test_hermana_shared_nombre_heredado(self):
-        d = self._crear("shared"); repo = os.path.join(self.tmp.name, "api"); os.makedirs(repo)
-        self.assertEqual(self._aislado(repo).arkana_dir(cwd=repo), d)
-
-    def test_shared_dir_sigue_existiendo_como_alias(self):
-        self.assertIs(paths.shared_dir, paths.arkana_dir)
 
 
 class TestRutas(Base):
@@ -82,11 +75,11 @@ class TestManifiesto(Base):
         Path(os.path.join(st, "core", "workspace.json")).write_text(json.dumps({"schema": 1, "arkana": {"alias": "ARKANA", "path": "shared"},
                    "components": [{"alias": "api", "type": "maven", "path": "back"}, {"alias": "docs", "type": "docs", "path": "d"}]}))
 
-    def test_arkana_home_manda_sobre_arkana_shared(self):
+    def test_arkana_home_manda(self):
         otra = os.path.join(self.tmp.name, "otra"); os.makedirs(otra)
         os.environ["ARKANA_HOME"] = otra
         # (el tearDown de Base restaura el entorno completo, incluido el ARKANA_HOME por defecto de common.py)
-        self.assertEqual(paths.shared_dir(), os.path.realpath(otra))
+        self.assertEqual(paths.arkana_dir(), os.path.realpath(otra))
 
     def test_los_repos_salen_del_manifiesto_cuando_existe(self):
         import repos
@@ -103,7 +96,7 @@ class TestManifiesto(Base):
         self.assertFalse(hasattr(repos, "DEFAULT_PATHS"))
 
     def test_sin_workspace_localizable_no_hay_ruta_por_defecto(self):
-        for k in ("ARKANA_HOME", "ARKANA_SHARED", "ARKANA_BASE"):
+        for k in ("ARKANA_HOME",):
             os.environ.pop(k, None)
         fake = os.path.join(self.tmp.name, "plugin-instalado", "scripts", "lib", "paths.py")   # un plugin instalado fuera de un repo de Arkana
         os.makedirs(os.path.dirname(fake))
@@ -113,7 +106,7 @@ class TestManifiesto(Base):
         spec.loader.exec_module(aislado)
         aislado.__file__ = fake
         with self.assertRaises(aislado.NoWorkspace):
-            aislado.shared_dir(cwd=self.tmp.name)
+            aislado.arkana_dir(cwd=self.tmp.name)
 
 
 class TestIntegracion(Base):

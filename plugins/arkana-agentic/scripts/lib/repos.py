@@ -47,7 +47,7 @@ def repo_ids():
 
 
 def repo_known(repo):
-    """¿Es `repo` un componente del manifiesto? (acepta el id histórico `shared` de ARKANA)."""
+    """¿Es `repo` un componente del manifiesto? ."""
     return _workspace().has(repo)
 
 
@@ -61,9 +61,8 @@ def all_repos():
     return {r: ws.path(r) for r in ws.aliases()}
 
 
-# Rama de trabajo de un plan: <prefijo>/<plan>. `m3a` es el prefijo que usaron los planes anteriores (siguen siendo válidos).
+# Rama de trabajo de un plan: <prefijo>/<plan>.
 BRANCH_PREFIX = "arkana-worker"
-LEGACY_BRANCH_PREFIXES = ("m3a",)
 
 
 def plan_branch(plan_id):
@@ -72,8 +71,8 @@ def plan_branch(plan_id):
 
 
 def is_plan_branch(nombre):
-    """¿Es la rama de trabajo de algún plan (de ahora o de los anteriores)?"""
-    return any((nombre or "").startswith(p + "/") for p in (BRANCH_PREFIX,) + LEGACY_BRANCH_PREFIXES)
+    """¿Es la rama de trabajo de algún plan?"""
+    return (nombre or "").startswith(BRANCH_PREFIX + "/")
 
 
 def git(repo, *args, entrada=None, net=False):

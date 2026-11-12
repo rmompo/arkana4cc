@@ -74,23 +74,12 @@ class TestSesiones(Base):
         r = ledger.all_sessions()["s2"]
         self.assertEqual((r["component"], r["cost_usd"], r["cost_source"]), ("api", None, None))
 
-    def test_acepta_la_anotacion_de_la_statusline_antigua(self):
-        os.makedirs(state.sessions_dir())
-        with open(os.path.join(state.sessions_dir(), "s3"), "w") as f:
-            f.write("1793712976 0.6973\n")
-        ledger.record_session({"session_id": "s3", "cwd": self.shared}, "end")
-        r = ledger.all_sessions()["s3"]
-        self.assertEqual((r["component"], r["cost_usd"]), ("arkana", 0.6973))
-
     def test_sesiones_que_solo_conoce_la_statusline_cuentan_con_su_coste(self):
-        os.makedirs(state.sessions_dir())
-        with open(os.path.join(state.sessions_dir(), "solo-antigua"), "w") as f:
-            f.write("1793712976 0.5\n")
         wj(os.path.join(self.st, "arkana-statusline", "state", "sessions", "solo-nueva.json"), {"session_id": "solo-nueva", "cost_usd": 1.5, "ts": 1793712976})
         ledger.record_session({"session_id": "con-apunte", "cwd": self.shared}, "end")
         ses = ledger.all_sessions()
-        self.assertEqual((ses["solo-antigua"]["cost_usd"], ses["solo-nueva"]["cost_usd"], ses["solo-nueva"]["sin_apunte"]), (0.5, 1.5, True))
-        self.assertEqual(sorted(ses), ["con-apunte", "solo-antigua", "solo-nueva"])
+        self.assertEqual((ses["solo-nueva"]["cost_usd"], ses["solo-nueva"]["sin_apunte"]), (1.5, True))
+        self.assertEqual(sorted(ses), ["con-apunte", "solo-nueva"])
 
     def test_el_plan_de_la_sesion_sale_de_linea_json(self):
         wj(os.path.join(state.run_dir(), "linea.json"), {"plan": "P1", "session_id": "s4"})

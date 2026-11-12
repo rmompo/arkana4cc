@@ -45,7 +45,7 @@ class TestAplica(unittest.TestCase):
         r = m(id="N261103-0010-yyyy", tipo="notice", estado=None, repeticion="repeat", vigencia="vigente")
         self.assertEqual([x["id"] for x in inbox.select("api", {a["id"]: a, r["id"]: r})], [r["id"], a["id"]])      # repeat primero
         pa = m(id="N261103-0011-xxxx", para=["arkana"], destinatarios=["arkana"], de="app")
-        self.assertEqual([x["id"] for x in inbox.select("shared", {pa["id"]: pa})], [pa["id"]])                          # shared == arkana
+        self.assertEqual([x["id"] for x in inbox.select("ARKANA", {pa["id"]: pa})], [pa["id"]])                          # el alias se normaliza
 
 
 class TestRender(unittest.TestCase):

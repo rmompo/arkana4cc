@@ -1,4 +1,4 @@
-"""repos: los repos salen del manifiesto, la rama de un plan es arkana-worker/<plan> y las ramas m3a/ de planes anteriores se siguen reconociendo."""
+"""repos: los repos salen del manifiesto, la rama de un plan es arkana-worker/<plan> y solo esas ramas se reconocen como de un plan."""
 import os
 import tempfile
 import unittest
@@ -25,16 +25,16 @@ class TestRepos(unittest.TestCase):
         self.assertEqual(repos.repo_ids(), ["arkana", "app", "api", "app-web", "app-ui", "docs", "specs"])
         self.assertEqual(repos.repo_path("app-web"), self.rutas["app-web"])
         self.assertEqual(repos.all_repos(), {k: v for k, v in self.rutas.items() if k != "shared"})
-        self.assertTrue(repos.repo_known("shared") and repos.repo_known("API"))               # `shared` es el id histórico de ARKANA; no distingue mayúsculas
+        self.assertTrue(repos.repo_known("arkana") and repos.repo_known("API"))             # no distingue mayúsculas
         self.assertFalse(repos.repo_known("otro"))
         with self.assertRaises(KeyError):
             repos.repo_path("otro")
 
-    def test_la_rama_de_un_plan_usa_el_prefijo_nuevo_y_reconoce_el_anterior(self):
+    def test_la_rama_de_un_plan_usa_el_prefijo_arkana_worker(self):
         self.assertEqual(repos.plan_branch("P2611041200-abcd"), "arkana-worker/P2611041200-abcd")
-        for rama in ("arkana-worker/P1", "m3a/P1"):                                          # m3a/ lo usaron los planes anteriores
+        for rama in ("arkana-worker/P1",):
             self.assertTrue(repos.is_plan_branch(rama), rama)
-        for rama in ("develop", "main", "feature/x", "arkana/P1", "m3a", "", None):
+        for rama in ("develop", "main", "feature/x", "arkana/P1", "m3a/P1", "", None):
             self.assertFalse(repos.is_plan_branch(rama), rama)
 
 

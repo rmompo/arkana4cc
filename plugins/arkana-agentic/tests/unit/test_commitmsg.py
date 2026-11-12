@@ -29,9 +29,9 @@ class TestCommitMsg(unittest.TestCase):
             self.assertTrue(commitmsg.check_message(repo, "docs(docs) add guides"), repo)
 
     def test_ia4d_cuando_el_componente_lo_pide(self):
-        for repo in ("shared", "app", "api", "app-web"):
-            self.assertEqual(commitmsg.check_message(repo, "docs(shared) add workstation setup guides"), [], repo)
-            self.assertTrue(commitmsg.check_message(repo, "docs(shared): add guides"), repo)
+        for repo in ("arkana", "app", "api", "app-web"):
+            self.assertEqual(commitmsg.check_message(repo, "docs(arkana) add workstation setup guides"), [], repo)
+            self.assertTrue(commitmsg.check_message(repo, "docs(arkana): add guides"), repo)
 
     def test_conventional_exige_dos_puntos(self):
         self.assertEqual(commitmsg.check_message("app-ui", "chore(app-ui): ignore local Claude files"), [])
@@ -39,17 +39,17 @@ class TestCommitMsg(unittest.TestCase):
         self.assertTrue(commitmsg.check_message("app-ui", "cosa(app-ui): tipo invalido"))
 
     def test_longitud_punto_y_coautor(self):
-        self.assertTrue(commitmsg.check_message("shared", "docs(shared) " + "x" * 70))
-        self.assertTrue(commitmsg.check_message("shared", "docs(shared) termina en punto."))
-        self.assertTrue(commitmsg.check_message("shared", "docs(shared) ok\n\nCo-Authored-By: X <x@y>"))
-        self.assertEqual(commitmsg.check_message("shared", "docs(shared) ok\n\ncuerpo largo sin problema"), [])
+        self.assertTrue(commitmsg.check_message("arkana", "docs(arkana) " + "x" * 70))
+        self.assertTrue(commitmsg.check_message("arkana", "docs(arkana) termina en punto."))
+        self.assertTrue(commitmsg.check_message("arkana", "docs(arkana) ok\n\nCo-Authored-By: X <x@y>"))
+        self.assertEqual(commitmsg.check_message("arkana", "docs(arkana) ok\n\ncuerpo largo sin problema"), [])
 
     def test_autor_con_dominio_exigido_solo_donde_el_componente_lo_declara(self):
         self.assertEqual(commitmsg.check_message("app-web", "chore(app-web) x", "u@example.org"), [])
         self.assertEqual(commitmsg.check_message("app-ui", "chore(app-ui): x", "u@ext.example.org"), [])
         self.assertTrue(commitmsg.check_message("app-web", "chore(app-web) x", "u@otro.com"))
         self.assertIn("@example.org", commitmsg.check_message("app-web", "chore(app-web) x", "u@otro.com")[0])
-        self.assertEqual(commitmsg.check_message("shared", "docs(shared) x", "u@otro.com"), [])           # sin email_domains: sin regla
+        self.assertEqual(commitmsg.check_message("arkana", "docs(arkana) x", "u@otro.com"), [])           # sin email_domains: sin regla
         self.assertEqual(commitmsg.check_message("api", "chore(api) x", "u@otro.com"), [])
 
     def test_formato_del_componente_segun_el_manifiesto(self):
@@ -61,11 +61,11 @@ class TestCommitMsg(unittest.TestCase):
         d = json.loads(Path(p).read_text())
         d["arkana"].update(commit_format="conventional", git={"email_domains": ["example.org"]})
         Path(p).write_text(json.dumps(d))
-        for alias in ("arkana", "shared"):                                                    # `shared` es el id histórico de ARKANA
-            self.assertEqual(commitmsg.format_of(alias), "conv", alias)
-            self.assertEqual(commitmsg.check_message(alias, "docs(arkana): x", "u@example.org"), [], alias)
-            self.assertTrue(commitmsg.check_message(alias, "docs(arkana) x"), alias)                                   # sin dos puntos: no vale
-            self.assertTrue(commitmsg.check_message(alias, "docs(arkana): x", "u@otro.com"), alias)                    # dominio no permitido
+        alias = "arkana"
+        self.assertEqual(commitmsg.format_of(alias), "conv", alias)
+        self.assertEqual(commitmsg.check_message(alias, "docs(arkana): x", "u@example.org"), [], alias)
+        self.assertTrue(commitmsg.check_message(alias, "docs(arkana) x"), alias)                                   # sin dos puntos: no vale
+        self.assertTrue(commitmsg.check_message(alias, "docs(arkana): x", "u@otro.com"), alias)                    # dominio no permitido
 
     def test_repo_desconocido(self):
         self.assertTrue(commitmsg.check_message("otro", "docs(x) y"))

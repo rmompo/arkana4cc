@@ -473,7 +473,7 @@ class TestPoliticaYEstado(unittest.TestCase):
         with L.Lab() as lab:
             d = json.loads(ag(lab, "check", "--json", env={"ARKANA_AGENTIC_CLAUDE_BIN": "claude"}).stdout)
             ids = {x["id"]: x["estado"] for x in d}
-            for i in ("claude-version", "claude-flags", "utilidades", "runtime-700", "politica-valida", "worker-huerfano", "permisos-arkana", "instrucciones", "layout"):
+            for i in ("claude-version", "claude-flags", "utilidades", "runtime-700", "politica-valida", "worker-huerfano", "permisos-arkana", "instrucciones"):
                 self.assertIn(i, ids)
             self.assertEqual(ids["utilidades"], "OK"); self.assertEqual(ids["politica-valida"], "OK")
             self.assertEqual(ids["claude-flags"], "OK")
@@ -886,12 +886,12 @@ class TestTotals(unittest.TestCase):
             for pid, gasto in ((p1, 0.25), ("P2610010101-zzzz", 0.5)):                                   # uno ya esta en planes/ (no se cuenta dos veces) y otro solo archivado
                 os.makedirs(os.path.join(arch, pid))
                 state.save_json(os.path.join(arch, pid, "plan.json"), {"id": pid, "estado": "completado", "asunto": "archivado", "contadores": {"gasto_usd": gasto}})
-            ses = os.path.join(os.environ["ARKANA_AGENTIC_DIR"], "state", "sesiones")
+            import paths
+            ses = os.path.join(paths.plugins_dir(), "arkana-statusline", "state", "sessions")
             os.makedirs(ses)
-            for sid, coste in (("s1", "1.5"), ("s2", "2.0")):
-                with open(os.path.join(ses, sid), "w") as f:
-                    f.write(f"1793444251 {coste}\n")
-            with open(os.path.join(ses, "rota"), "w") as f:
+            for sid, coste in (("s1", 1.5), ("s2", 2.0)):
+                state.save_json(os.path.join(ses, sid + ".json"), {"session_id": sid, "cost_usd": coste, "ts": 1793444251})
+            with open(os.path.join(ses, "rota.json"), "w") as f:
                 f.write("basura")                                                                       # un fichero ilegible se ignora
             d = js(lab, "totals")
             self.assertEqual((d["planes"]["cantidad"], d["planes"]["total_usd"]), (3, 1.5))

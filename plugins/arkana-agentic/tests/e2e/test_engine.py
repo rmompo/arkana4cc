@@ -47,7 +47,7 @@ class TestCaminoFeliz(unittest.TestCase):
             self.assertEqual(lab.head("api", "develop"), base_develop)
             self.assertEqual(lab.plan_json(pid)["ramas"]["api"], {"original": "develop", "nombre": f"arkana-worker/{pid}"})
             self.assertNotIn("rama", lab.tarea(pid))
-            # el prompt lleva las normas del repo sin la semilla de novedades
+            # el prompt lleva las normas del repo sin la semilla de mensajería
             with open(os.path.join(state.plan_dir(pid), "logs", "T001.1.prompt.md"), encoding="utf-8") as fh:
                 prompt = fh.read()
             self.assertIn("Norma del repo api", prompt); self.assertNotIn("arkana:messaging", prompt)

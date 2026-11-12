@@ -2,9 +2,9 @@
 
 Orquestación multi-repo desde ARKANA (el repositorio de conciliación y gobierno del proyecto, la carpeta `arkana`) sobre los componentes del proyecto, cada uno un repositorio; el workspace es ARKANA más el proyecto. Tú pides algo; el **orquestador** (la sesión de Claude de ARKANA) redacta un **plan**; **tú lo apruebas**; y se ejecuta **una tarea cada vez** con un **worker sin shell** en el repo que toque. El resultado de cada tarea lo **verifica un script**, no el worker, y tú decides en las paradas obligatorias. **El modelo propone; el script decide.**
 
-> Estado: **0.1.0**. Motor, plano de control y skills terminados; probados sin coste con un `claude` falso y con una batería de contención con `claude` real. Falta el piloto real supervisado para pasar a 1.0.0 (ver `docs/PILOTO.md`). Es una cola **distinta** de la manual de `arkana-messaging` (`put` / `get`).
+> Estado: **0.8.0**. Motor, plano de control y skills terminados; probados sin coste con un `claude` falso y con una batería de contención con `claude` real. Falta un piloto real supervisado para pasar a 1.0.0. Es una cola **distinta** de la manual de `arkana-messaging` (`put` / `get`).
 
-Este plugin es uno de los seis del marketplace `arkana`; la visión de conjunto está en [`../README.md`](../README.md). Otros documentos: [`docs/GUIA.md`](docs/GUIA.md) (guía para personas), [`docs/ESPECIFICACION.md`](docs/ESPECIFICACION.md) (especificación), [`docs/VERIFICACION.md`](docs/VERIFICACION.md) y [`docs/PILOTO.md`](docs/PILOTO.md).
+Este plugin es uno de los del marketplace `arkana`; la visión de conjunto está en [`../README.md`](../README.md). Otros documentos: [`docs/GUIA.md`](docs/GUIA.md) (guía para personas), [`docs/ESPECIFICACION.md`](docs/ESPECIFICACION.md) (especificación).
 
 ## Índice
 
@@ -233,7 +233,6 @@ Un worker no puede tocar las rutas protegidas del adaptador de su repo (tabla an
 ### 4.9 Rama del plan y commits
 
 - **Una rama por plan y repo: `arkana-worker/<plan>`.** La crea `launch` (el worker no tiene `git`) con la primera tarea de ese repo, **desde `develop`** (debe existir en local), recuerda la rama original y la activa antes de cada lanzamiento. Si el repo estaba en la rama de otro plan, la «original» se toma como `develop`. Mientras corre un plan no se trabaja en los repos implicados.
-- Los planes anteriores usaron el prefijo **`m3a/<plan>`**; se **reconocen** (el plan guarda el nombre real de su rama y `repos.is_plan_branch` acepta ambos prefijos), así que `act`, `integrate` y `archive` siguen funcionando con ellos.
 - **Un commit local por tarea aceptada** (`act continue --message`), en esa rama, con el **formato del componente** (`commit_format` del manifiesto): `conventional` (por defecto) → `tipo(scope): descripción` (con dos puntos), `ia4d` (opcional) → `verbo(scope) descripción` (sin dos puntos). Reglas comunes: en inglés, ≤ 72 caracteres, sin punto final, una línea de asunto, **sin `Co-Authored-By`**, tipos `feat|fix|docs|chore|refactor|test|style|perf|build|ci|revert`, scope en minúsculas (`[a-z0-9._-]+`; usa el id del repo, p. ej. `docs(api): add environment section` en `conventional` o `docs(api) add environment section` en `ia4d`). Si el componente declara `git.email_domains`, el correo del autor (`git config user.email` del repo) debe ser de uno de esos dominios. Solo se añaden las rutas que cambió la tarea y no están ignoradas.
 - Un reintento vuelve al último commit aceptado (`reset --hard` + `clean -fd`: se descarta lo no aceptado, nunca lo aceptado). Una tarea aceptada **no se reabre**: se corrige con una tarea nueva.
 - Al terminar, **tú decides por repo**: `integrate merge` (merge local `--no-ff` en la rama original; mensaje `chore(<repo>) merge <rama>` o `chore(<repo>): merge <rama>` según el formato), `keep` o `discard`. **No hay push.**
@@ -267,7 +266,7 @@ Un worker no ve la mensajería. `launch` copia en su prompt, **como datos y no c
 
 ### 4.13 Libro de planes y sesiones (`data/ledger/`)
 
-Solo **metadatos**. Cada plan terminado deja su apunte en `ledger/plans/<plan>.json` (fechas, componentes, ramas e integración, gasto total y por tarea e intento); cada sesión de Claude del workspace deja el suyo en `ledger/sessions/<sid>.json` (inicio, fin, componente, plan que gobierna, duración, tokens y coste), escrito por los hooks **`SessionStart`** (`startup|resume|clear|compact`) y **`SessionEnd`** (`ledger.py hook session-start|session-end`). El **coste real de una sesión lo escribe la statusline** (`.arkana/arkana-statusline/state/sessions/<sid>.json`; mientras siga la antigua, `state/sesiones/<sid>`); los hooks solo lo leen y, sin él, queda vacío: nunca se estima. Los tokens salen del transcript. Retención: `ledger_retention_days` (90 por defecto); se purga el detalle y se conservan los totales. Consulta: `/arkana-agentic:costs`.
+Solo **metadatos**. Cada plan terminado deja su apunte en `ledger/plans/<plan>.json` (fechas, componentes, ramas e integración, gasto total y por tarea e intento); cada sesión de Claude del workspace deja el suyo en `ledger/sessions/<sid>.json` (inicio, fin, componente, plan que gobierna, duración, tokens y coste), escrito por los hooks **`SessionStart`** (`startup|resume|clear|compact`) y **`SessionEnd`** (`ledger.py hook session-start|session-end`). El **coste real de una sesión lo escribe la statusline** (`.arkana/arkana-statusline/state/sessions/<sid>.json`); los hooks solo lo leen y, sin él, queda vacío: nunca se estima. Los tokens salen del transcript. Retención: `ledger_retention_days` (90 por defecto); se purga el detalle y se conservan los totales. Consulta: `/arkana-agentic:costs`.
 
 ### 4.14 Garantías y lo que no se garantiza
 
@@ -288,7 +287,7 @@ Solo **metadatos**. Cada plan terminado deja su apunte en `ledger/plans/<plan>.j
 
 ## 5. Skills
 
-Los 10 skills de `skills/` (`/arkana-agentic:<skill>`). Todos se usan desde `arkana`; invocan `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh <sub>` en **una sola orden por llamada, con la ruta sin comillas y sin `&&`, `;`, `cd` ni redirecciones** (las reglas de permisos solo reconocen esa forma).
+Los skills de `skills/` (`/arkana-agentic:<skill>`). Todos se usan desde `arkana`; invocan `bash ${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh <sub>` en **una sola orden por llamada, con la ruta sin comillas y sin `&&`, `;`, `cd` ni redirecciones** (las reglas de permisos solo reconocen esa forma).
 
 | Skill | Para qué | Subcomandos que usa | Pregunta al usuario |
 |---|---|---|---|
@@ -299,13 +298,13 @@ Los 10 skills de `skills/` (`/arkana-agentic:<skill>`). Todos se usan desde `ark
 | `status` | Estado legible; solo lectura | `status`, `totals`, `log` | No |
 | `control` | Resuelve gates y decisiones manuales | `status`, `log`, `approve`, `reject`, `retry`, `skip`, `policy` | Siempre antes de aprobar |
 | `stop` | Parada suave, pausa, reanudación o parada forzosa; obedece de inmediato | `stop`, `pause`, `resume`, `stop --force`, `status` | Solo si no está claro cuál |
-| `fix` | Migra el layout antiguo y recupera tareas interrumpidas; nunca reintenta por su cuenta | `check`, `status`, `fix [--dry-run] [--task T --action …]`, `act stop` | *Reintentar* · *Descartar* · *Detener el plan* |
+| `fix` | Recupera tareas interrumpidas; nunca reintenta por su cuenta | `check`, `status`, `fix [--dry-run] [--task T --action …]`, `act stop` | *Reintentar* · *Descartar* · *Detener el plan* |
 | `archive` | Integra, deja o descarta las ramas por repo y archiva el plan terminado | `status`, `integrate review|merge|keep|discard`, `archive` | Por repo y para archivar |
 | `costs` | Costes del libro: workers por plan y tarea, y coste real de las sesiones | `costs [--plan --session --component --since --by --purge] [--json]` | Antes de `--purge` real |
 
 ### `/arkana-agentic:install`
 
-Hace tres cosas: (1) crea `.arkana/arkana-agentic/{config,state,data}` con modo 700; (2) pone en el `CLAUDE.md` de ARKANA el bloque `<!-- arkana:agentic:start -->…<!-- arkana:agentic:end -->` con las reglas del orquestador (`templates/orquestador.md`) y sustituye la referencia antigua `@orquestacion/ORQUESTADOR.md`; (3) habilita `arkana-agentic@arkana` en `~/.claude/settings.json` (copia previa en `.arkana/arkana-agentic/bak/`). Pasos: `--dry-run` primero, pedir confirmación, aplicar, recordar que el `CLAUDE.md` queda modificado **sin commit** y que hay que recargar los plugins; con layout antiguo, el siguiente paso es `/arkana-agentic:fix`. Después, `/arkana-workspace:fix` para las reglas de permisos.
+Hace tres cosas: (1) crea `.arkana/arkana-agentic/{config,state,data}` con modo 700; (2) pone en el `CLAUDE.md` de ARKANA el bloque `<!-- arkana:agentic:start -->…<!-- arkana:agentic:end -->` con las reglas del orquestador (`templates/orquestador.md`); (3) habilita `arkana-agentic@arkana` en `~/.claude/settings.json` (copia previa en `.arkana/arkana-agentic/bak/`). Pasos: `--dry-run` primero, pedir confirmación, aplicar, recordar que el `CLAUDE.md` queda modificado **sin commit** y que hay que recargar los plugins. Después, `/arkana-workspace:fix` para las reglas de permisos.
 
 ### `/arkana-agentic:check`
 
@@ -340,7 +339,7 @@ Si dices «para ya» o «mátalo», es forzosa. Tras una forzosa el repo puede t
 
 ### `/arkana-agentic:fix`
 
-Ejecuta `check` y `status`; si `check` marca `layout`, `fix --dry-run`, enseñar qué se movería y, con confirmación, `fix` (copia `tar.gz` en `.arkana/arkana-workspace/bak/`; se niega con un plan activo o un worker vivo). También detecta las tareas `en_curso` sin worker vivo, las marca `interrumpida` e indica el estado del repo. Pregunta *Reintentar la tarea* (descarta lo hecho a medias) · *Descartar la tarea* · *Detener el plan*, y ejecuta `fix --task <T> --action retry|discard` o `act stop`. Nunca reintenta por su cuenta ni mata un worker que no reconoce. Para seguir: `/arkana-agentic:run`.
+Ejecuta `check` y `status`; `fix` detecta las tareas `en_curso` sin worker vivo, las marca `interrumpida` e indica el estado del repo. Pregunta *Reintentar la tarea* (descarta lo hecho a medias) · *Descartar la tarea* · *Detener el plan*, y ejecuta `fix --task <T> --action retry|discard` o `act stop`. Nunca reintenta por su cuenta ni mata un worker que no reconoce. Para seguir: `/arkana-agentic:run`.
 
 ### `/arkana-agentic:archive`
 
@@ -354,7 +353,7 @@ Ejecuta `check` y `status`; si `check` marca `layout`, `fix --dry-run`, enseñar
 
 ## 6. Referencia de `agentic.sh`
 
-`bash scripts/agentic.sh <subcomando> [opciones]` (`${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh`). Hay **22 subcomandos**; los de varias acciones (`plan`, `act`, `integrate`, `policy`) se detallan por acción. `bash scripts/agentic.sh <sub> --help` es de solo lectura. Atajos: `scripts/check.sh` (= `agentic.sh check`), `launch-worker.sh <plan> <tarea>`, `verify-task.sh <plan> <tarea> [--json]`, `snapshot.sh` y `watchdog.sh` (motores internos).
+`bash scripts/agentic.sh <subcomando> [opciones]` (`${CLAUDE_PLUGIN_ROOT}/scripts/agentic.sh`). Estos son sus subcomandos; los de varias acciones (`plan`, `act`, `integrate`, `policy`) se detallan por acción. `bash scripts/agentic.sh <sub> --help` es de solo lectura. Atajos: `scripts/check.sh` (= `agentic.sh check`), `launch-worker.sh <plan> <tarea>`, `verify-task.sh <plan> <tarea> [--json]`, `snapshot.sh` y `watchdog.sh` (motores internos).
 
 ### 6.1 Convenciones
 
@@ -390,7 +389,7 @@ Ejecuta `check` y `status`; si `check` marca `layout`, `fix --dry-run`, enseñar
 | `pause` / `resume` | Pausa y reanudación | — |
 | `retry <T>` / `skip <T>` | Reintento u omisión manual (usuario) | `--from-message` (solo `retry`) |
 | `approve <G>` / `reject <G>` | Resuelve un gate | `--note`; `reject`: `--reason`, `--stop` |
-| `fix` | Migra el layout y recupera tareas interrumpidas | `--dry-run`, `--task`, `--action` |
+| `fix` | Recupera tareas interrumpidas | `--dry-run`, `--task`, `--action` |
 | `archive` | Archiva un plan terminado | — |
 | `totals` | Gasto acumulado | — |
 | `costs` | Costes del libro | `--session`, `--component`, `--since`, `--by`, `--purge`, `--dry-run` |
@@ -554,7 +553,7 @@ agentic.sh reject G03 --stop
 
 ### `fix`
 
-`agentic.sh fix [--dry-run] [--task T] [--action retry|discard] [--plan ID]` — Dos cosas. (1) **Layout:** si el directorio de ejecución tiene el layout antiguo (`planes/`, `run/`… o una carpeta `orquestacion/archivo`), lo migra a `config/`, `state/` y `data/` con copia `tar.gz` en `.arkana/arkana-workspace/bak/`; se niega (exit 3) con un plan activo o un worker vivo. `--dry-run` solo enseña qué se movería. (2) **Recuperación:** marca `interrumpida` las tareas `en_curso` sin worker vivo, limpia un `worker.json` obsoleto y, por cada una, avisa de su repo, rama y si tiene cambios sin commitear; exit 5 hasta que decidas. `--task T --action retry` descarta lo hecho a medias y deja la tarea `lista`; `--action discard` la deja `cancelada` y descarta los cambios; `--task` sin `--action`, exit 2; una tarea que no está `interrumpida`, exit 3. Nunca reintenta por su cuenta.
+`agentic.sh fix [--dry-run] [--task T] [--action retry|discard] [--plan ID]` — Recuperación tras una caída: marca `interrumpida` las tareas `en_curso` sin worker vivo, limpia un `worker.json` obsoleto y, por cada una, avisa de su repo, rama y si tiene cambios sin commitear; exit 5 hasta que decidas. `--task T --action retry` descarta lo hecho a medias y deja la tarea `lista`; `--action discard` la deja `cancelada` y descarta los cambios; `--task` sin `--action`, exit 2; una tarea que no está `interrumpida`, exit 3. Nunca reintenta por su cuenta.
 
 ```bash
 agentic.sh fix --dry-run
@@ -643,7 +642,6 @@ agentic.sh policy set total_budget_usd 40 --ceiling
 | `claude-flags` | `claude --help` ofrece `--restricted`, `--tools`, `--json-schema`, `--permission-prompts`, `--max-budget-usd`, `--no-session-persistence`, `--settings` | `FAIL`: sin ellos no se garantiza la contención. |
 | `utilidades` | `timeout`, `setsid`, `flock`, `python3`, `jq`, `git`, `sha256sum` | `FAIL`: instala lo que falte. |
 | `metadatos-ubicacion` | Dónde está `.arkana` (informativo) | — |
-| `layout` | Layout `config/state/data` | `WARN`: `/arkana-agentic:fix` migra. |
 | `runtime-700` | Modo 700 del directorio de ejecución | `WARN`: `chmod 700`. |
 | `politica-valida` | Política por defecto válida y ningún límite por encima de su techo | `FAIL`: `policy show`. |
 | `worker-huerfano` | Sin worker vivo ni `worker.json` obsoleto | `WARN`: `fix`. |
@@ -661,8 +659,7 @@ Las que **lee** el plugin (comprobadas en el código):
 
 | Variable | Dónde | Para qué |
 |---|---|---|
-| `ARKANA_HOME` | `paths.py`, hooks | Carpeta del repo de Arkana (`arkana`, o `shared`, nombre heredado); si falta, se prueba `ARKANA_SHARED`, el ancestro del plugin y la raíz git del directorio actual. |
-| `ARKANA_SHARED` | `paths.py` | Alternativa a `ARKANA_HOME`. |
+| `ARKANA_HOME` | `paths.py`, hooks | Carpeta del repo de Arkana; si falta, se prueba el ancestro del plugin y la raíz git del directorio actual. |
 | `ARKANA_PLUGINS_DIR` | `paths.py` | Carpeta de metadatos (por defecto `<arkana>/.arkana`). |
 | `ARKANA_AGENTIC_DIR` | `state.py` | Directorio de ejecución (por defecto `<.arkana>/arkana-agentic`). |
 | `ARKANA_AGENTIC_CLAUDE_BIN` | `launch.py`, `doctor.py` | Binario de `claude` (las pruebas usan uno falso). |
@@ -695,12 +692,12 @@ Requiere `claude` ≥ 2.1.259 con los flags `--restricted`, `--tools`, `--json-s
 Sin red ni API (usan un `claude` falso inyectable con `ARKANA_AGENTIC_CLAUDE_BIN`) y sin tocar `~/.claude`:
 
 ```bash
-bash tests/run-unit.sh                         # máquina de estados, esquemas, adaptadores, comandos y rutas, commits, mensajes, libro, layout
+bash tests/run-unit.sh                         # máquina de estados, esquemas, adaptadores, comandos y rutas, commits, mensajes, libro
 bash tests/run-e2e.sh                          # lanzador, verificador, parada, recuperación, control, mensajes y un flujo completo (~3 min)
 bash tests/containment/run-containment.sh      # CON claude real: cuesta dinero; también con  agentic.sh check --deep
 ```
 
-La batería de **contención** lanza workers reales con tareas adversarias (leer o escribir fuera del repo, `.env`, rutas protegidas, `git`, inyección, límites) y comprueba el **efecto**; una segunda pasada con reglas neutras mide la contención estructural con independencia de la obediencia del modelo. Usa el `HOME` real (el login lo necesita) y solo canarios de prueba. Coste: ver `ARKANA_CONTAINMENT_MODEL` y `ARKANA_CONTAINMENT_MAX_USD`; el script lo estima en 0,3–0,6 USD con haiku. Resultados y alcance en `docs/VERIFICACION.md`; repítela al cambiar de versión de `claude` o de modelo. Desde la raíz del repo de Arkana, `bash scripts/run-all-tests.sh [--quick] [--only <texto>]` ejecuta el núcleo y los seis plugins.
+La batería de **contención** lanza workers reales con tareas adversarias (leer o escribir fuera del repo, `.env`, rutas protegidas, `git`, inyección, límites) y comprueba el **efecto**; una segunda pasada con reglas neutras mide la contención estructural con independencia de la obediencia del modelo. Usa el `HOME` real (el login lo necesita) y solo canarios de prueba. Coste: ver `ARKANA_CONTAINMENT_MODEL` y `ARKANA_CONTAINMENT_MAX_USD`; el script lo estima en 0,3–0,6 USD con haiku. Repítela al cambiar de versión de `claude` o de modelo. Desde la raíz del repo de Arkana, `bash scripts/run-all-tests.sh [--quick] [--only <texto>]` ejecuta el núcleo y todos los plugins.
 
 ## 10. Dónde está cada cosa
 
@@ -710,7 +707,7 @@ La batería de **contención** lanza workers reales con tareas adversarias (leer
 | Lanzador, vigilante y verificador | `scripts/lib/launch.py`, `watchdog.py`, `verify.py`, `snapshot.py` (envoltorios `launch-worker.sh`, `verify-task.sh`, `snapshot.sh`, `watchdog.sh`) |
 | Estado, transiciones y límites | `scripts/lib/state.py`, `validate.py`, `matchers.py` |
 | Repos, adaptadores y commits | `scripts/lib/repos.py`, `adapters.py`, `commitmsg.py` |
-| Salud, instalación y migración | `scripts/lib/doctor.py`, `install.py`, `migrate.py` |
+| Salud e instalación | `scripts/lib/doctor.py`, `install.py` |
 | Mensajes y libro | `scripts/lib/inbox.py`, `ledger.py` (hooks en `hooks/hooks.json`) |
 | Código común del workspace | `scripts/_core/` (copia vendorizada de `lib/arkana_core/`; se regenera con `bash scripts/vendor-core.sh` desde la raíz de Arkana) |
 | Política por defecto y techos | `policy/politica.default.json` |
@@ -718,7 +715,7 @@ La batería de **contención** lanza workers reales con tareas adversarias (leer
 | Esquemas de plan, tarea, informe y política | `schemas/` |
 | Reglas del orquestador, reglas y prompt del worker | `templates/orquestador.md`, `worker-rules.md`, `worker-prompt.md.tpl` |
 | Skills y contrato del plugin | `skills/<skill>/SKILL.md`, `arkana-plugin.json` |
-| Documentación | `docs/GUIA.md`, `ESPECIFICACION.md`, `VERIFICACION.md`, `PILOTO.md` (y los planes de referencia del piloto) |
+| Documentación | `docs/GUIA.md`, `docs/ESPECIFICACION.md` |
 
 Estado de ejecución, dentro de `arkana` y **ignorado por git** (modo 700), en `<arkana>/.arkana/arkana-agentic/`:
 
@@ -729,7 +726,6 @@ state/                   estado local de ejecución
   planes/<plan>/           plan.json · plan.aprobado.sha256 · registro.jsonl
                            tareas/ · informes/ · verificacion/ · logs/ · snapshots/
   run/                     worker.json · killed.json · PAUSE · STOP · STOP-FORCE · linea.json (lo lee la statusline)
-  sesiones/                coste visto por la statusline antigua
 data/                    datos del usuario (se exportan con --include-data)
   ledger/{plans,sessions}/ libro de planes y sesiones
   archive/<plan>/          planes archivados

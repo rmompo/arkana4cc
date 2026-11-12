@@ -3,7 +3,7 @@
 
 - Crea .arkana/arkana-agentic/{config,state,data} (700).
 - Pone en el CLAUDE.md de ARKANA el bloque `<!-- arkana:agentic:start -->…end -->` con las reglas del orquestador (plantilla del plugin,
-  templates/orquestador.md) y sustituye la referencia antigua `@orquestacion/ORQUESTADOR.md`. Copia previa en `.arkana/arkana-agentic/bak/`.
+  templates/orquestador.md). Copia previa en `.arkana/arkana-agentic/bak/`.
 - Habilita `arkana-agentic@arkana` en ~/.claude/settings.json (copia .bak); hay que recargar los plugins después.
 """
 import os
@@ -18,8 +18,6 @@ import state  # noqa: E402
 from arkana_core import datafiles, seedblock  # noqa: E402
 
 PLUGIN_KEY = "arkana-agentic@arkana"
-OLD_REF = "@orquestacion/ORQUESTADOR.md"
-NEW_REF = "el bloque `arkana:agentic` de este fichero (lo pone `/arkana-agentic:install`)."
 
 
 def template():
@@ -65,13 +63,6 @@ def run(dry=False, no_settings=False):
             items.append(("WARN", "bloque", "falta el CLAUDE.md de ARKANA: créalo desde la plantilla (arkana-workspace:fix) y repite"))
         else:
             items.append(("DRY" if dry and act != "igual" else "OK", "bloque", f"bloque arkana:agentic {act} en CLAUDE.md"))
-            with open(p, encoding="utf-8") as f:
-                text = f.read()
-            if OLD_REF in text:
-                if not dry:
-                    new = "\n".join(l.replace(OLD_REF + ".", NEW_REF).replace(OLD_REF, NEW_REF) for l in text.split("\n"))
-                    datafiles.atomic_write(p, new)
-                items.append(("DRY" if dry else "OK", "referencia", "sustituida la importación @orquestacion/ORQUESTADOR.md"))
     if not no_settings:
         en = plugin_enabled()
         if en:

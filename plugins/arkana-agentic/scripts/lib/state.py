@@ -4,7 +4,7 @@
 Todo cambio de estado pasa por aqui: una transicion que no esta en las tablas se rechaza.
 Directorio de ejecucion:  $ARKANA_AGENTIC_DIR  o  <arkana>/.arkana/arkana-agentic  (ver paths.py), con tres carpetas:
   config/   politica.json y comandos-permitidos.json locales (portables: se exportan)
-  state/    planes/, run/ (worker, linea.json, marcas), sesiones/ (coste visto por la statusline) y `actual`: estado local de ejecucion
+  state/    planes/, run/ (worker, linea.json, marcas) y `actual`: estado local de ejecucion
   data/     ledger/ (libro de planes y sesiones) y archive/ (planes archivados): datos del usuario (con --include-data)
 
 Uso (CLI):
@@ -102,10 +102,6 @@ def run_dir():
 
 def actual_file():
     return os.path.join(state_dir(), "actual")
-
-
-def sessions_dir():
-    return os.path.join(state_dir(), "sesiones")
 
 
 def archive_dir():

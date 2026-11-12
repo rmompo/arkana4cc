@@ -19,7 +19,7 @@ class TestInstall(unittest.TestCase):
         os.makedirs(os.environ["HOME"])
         self.cm = os.path.join(self.shared, "CLAUDE.md")
         with open(self.cm, "w", encoding="utf-8") as f:
-            f.write("# shared\n\n- Orquestación multi-repo (`/arkana-agentic:*`): reglas del orquestador en @orquestacion/ORQUESTADOR.md.\n")
+            f.write("# shared\n\n- Orquestación multi-repo (`/arkana-agentic:*`): reglas del orquestador.\n")
 
     def tearDown(self):
         os.environ.clear(); os.environ.update(self.old)
@@ -39,8 +39,6 @@ class TestInstall(unittest.TestCase):
         t = self.read()
         self.assertEqual(t.count("<!-- arkana:agentic:start -->"), 1)
         self.assertIn("Orquestador (arkana-agentic)", t)
-        self.assertNotIn("@orquestacion/ORQUESTADOR.md", t)
-        self.assertIn("bloque `arkana:agentic`", t)
         for d in ("config", "state", "data"):
             self.assertEqual(oct(os.stat(os.path.join(state.base_dir(), d)).st_mode & 0o777), "0o700")
         with open(os.path.join(os.environ["HOME"], ".claude", "settings.json")) as f:

@@ -11,7 +11,7 @@
   approve <G> | reject <G>           resolver un gate (parada obligatoria)
   costs [--plan --session --component --since --by plan|session|component|day --purge]   costes del libro de planes y sesiones
   totals                  gasto acumulado de todos los planes y de todas las sesiones de Claude (solo consulta)
-  fix [--dry-run] [--task T --action retry|discard]   migra el layout, limpia restos y recupera tareas interrumpidas (antes `recover`)
+  fix [--dry-run] [--task T --action retry|discard]   limpia restos y recupera tareas interrumpidas
   install [--dry-run]     carpetas, bloque `arkana:agentic` en el CLAUDE.md de ARKANA y plugin habilitado
   archive | integrate | policy | check (antes `doctor`)
 Opciones comunes: --plan <id> (por defecto el plan actual) y --json.
@@ -106,7 +106,7 @@ def read_lines(ruta):
 
 
 def plan_branch_name(plan, rid):
-    """Nombre de la rama de trabajo del plan (arkana-worker/<plan>; los planes anteriores usaron m3a/<plan>) en el repo, o None si el plan aun no ha lanzado ninguna tarea alli."""
+    """Nombre de la rama de trabajo del plan (arkana-worker/<plan>) en el repo, o None si el plan aun no ha lanzado ninguna tarea alli."""
     return ((plan.get("ramas") or {}).get(rid) or {}).get("nombre")
 
 
@@ -864,7 +864,7 @@ def cmd_policy(a):
 # ---------- archivo e integracion ----------
 def cmd_totals(a):
     """Total general: suma del gasto de todos los planes (los de planes/ y los archivados en ARKANA) y de todas las sesiones de Claude
-    (la statusline anota el ultimo coste visto de cada sesion en sesiones/<id>). Solo lee; no se borra nada."""
+    (el coste lo anota la statusline). Solo lee; no se borra nada."""
     planes = {}
     raices = [state.planes_dir(), state.archive_dir()]
     for raiz in raices:
@@ -877,16 +877,9 @@ def cmd_totals(a):
                 continue
             planes.setdefault(pid, {"plan": pid, "estado": d.get("estado"), "gasto_usd": round(float(d.get("contadores", {}).get("gasto_usd", 0)), 4),
                                     "asunto": d.get("asunto", "")})
-    sesiones = []
-    carpeta = state.sessions_dir()
-    if os.path.isdir(carpeta):
-        for sid in sorted(os.listdir(carpeta)):
-            try:
-                with open(os.path.join(carpeta, sid), encoding="utf-8") as f:
-                    ts, coste = f.read().split()[:2]
-                sesiones.append({"sesion": sid, "ultimo_ts": int(float(ts)), "gasto_usd": round(float(coste), 4)})
-            except (OSError, ValueError):
-                continue
+    import ledger
+    sesiones = [{"sesion": sid, "gasto_usd": round(float(r["cost_usd"]), 4)}
+                for sid, r in sorted(ledger.all_sessions().items()) if isinstance(r.get("cost_usd"), (int, float))]
     total_p = round(sum(x["gasto_usd"] for x in planes.values()), 4)
     total_s = round(sum(x["gasto_usd"] for x in sesiones), 4)
     datos = {"planes": {"cantidad": len(planes), "total_usd": total_p, "detalle": sorted(planes.values(), key=lambda x: x["plan"])},
@@ -1107,20 +1100,8 @@ def cmd_integrate(a):
     return OK
 
 
-# ---------- fix: layout y recuperacion ----------
+# ---------- fix: recuperacion ----------
 def cmd_fix(a):
-    import migrate
-    base = state.base_dir()
-    if migrate.pending(base) or os.path.isdir(os.path.join(os.path.dirname(os.path.dirname(base)), "orquestacion", "archivo")):
-        items = migrate.run(base, getattr(a, "dry_run", False), os.path.join(paths_plugins(), "arkana-workspace", "bak"))
-        for st, i, d in items:
-            print(f"{st}|fix:{i}|{d}")
-        if any(st == "FAIL" for st, _, _ in items):
-            return PRE
-        if getattr(a, "dry_run", False):
-            return OK
-    elif getattr(a, "dry_run", False):
-        print("OK|fix:layout|el layout ya es config/state/data")
     if not os.path.isdir(state.planes_dir()):
         return OK
     try:
@@ -1135,11 +1116,6 @@ def cmd_fix(a):
         print("OK|fix|no hay plan actual: nada más que recuperar")
         return OK
     return cmd_recover(a)
-
-
-def paths_plugins():
-    import paths
-    return paths.plugins_dir()
 
 
 def cmd_recover(a):

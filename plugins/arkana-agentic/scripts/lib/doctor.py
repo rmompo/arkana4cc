@@ -51,10 +51,7 @@ def checks(profundo, necesita_red=False):
     falta = [u for u in REQUIRED_TOOLS if not shutil.which(u)]
     r("OK" if not falta else "FAIL", "utilidades", "presentes" if not falta else "faltan: " + " ".join(falta))
     r("OK", "metadatos-ubicacion", paths.plugins_dir().replace(os.path.expanduser("~"), "~"))
-    import migrate
     base = state.base_dir()
-    viejo = migrate.pending(base) if os.path.isdir(base) else []
-    r("WARN" if viejo else "OK", "layout", ("layout antiguo (" + ", ".join(o for o, _ in viejo) + "): ejecuta fix") if viejo else "layout config/state/data")
     if os.path.isdir(base):
         modo = st.S_IMODE(os.stat(base).st_mode)
         r("OK" if modo == 0o700 else "WARN", "runtime-700", f"{base.replace(os.path.expanduser('~'), '~')} modo {oct(modo)[2:]}")

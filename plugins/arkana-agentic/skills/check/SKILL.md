@@ -1,6 +1,6 @@
 ---
 name: check
-description: Comprueba la salud de la orquestación de arkana-agentic - versión y flags de claude, utilidades, directorio de ejecución (700), política válida, workers huérfanos, reglas de permisos de arkana y ORQUESTADOR.md. Solo lectura y sin coste (con --deep ejecuta además la batería de contención con claude real, ~0,3-0,6 USD).
+description: Comprueba la salud de la orquestación de arkana-agentic - versión y flags de claude, utilidades, directorio de ejecución (700), política válida, workers huérfanos, reglas de permisos de arkana y bloque arkana:agentic. Solo lectura y sin coste (con --deep ejecuta además la batería de contención con claude real, ~0,3-0,6 USD).
 ---
 
 # arkana-agentic:check
@@ -33,7 +33,6 @@ Valida que el entorno puede orquestar con garantías. **No modifica nada.**
 | `utilidades` | Instala lo que falte (`timeout`, `setsid`, `flock`, `python3`, `jq`, `git`, `sha256sum`). |
 | `runtime-700` | `chmod 700` sobre el directorio de ejecución indicado. |
 | `politica-valida` | Revisa `<arkana>/.arkana/arkana-agentic/config/politica.json` (`agentic.sh policy show`). |
-| `layout` | Layout antiguo (planes/, run/…): `/arkana-agentic:fix` migra a `config/`, `state/` y `data/`. |
 | `worker-huerfano` | Ejecuta `agentic.sh fix` (si el worker sigue vivo, no lo mates sin que el usuario lo pida). |
 | `adaptadores` | `WARN`: el verificador no encuentra una herramienta del tipo de componente (no hereda el `PATH` del shell): `/arkana-workspace:config tools --tool <nombre> --version <v> --path <ruta>`. |
 | `permisos-arkana` | `/arkana-workspace:fix` en `arkana` (añade las reglas del orquestador). |

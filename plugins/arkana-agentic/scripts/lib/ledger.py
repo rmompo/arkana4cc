@@ -5,7 +5,7 @@
   data/ledger/sessions/<sid>.json    id, inicio/fin, componente, plan, duración, tokens, coste y de dónde sale (`cost_source`)
 
 El **coste real de una sesión lo escribe la statusline** (es lo único que lo recibe): `.arkana/arkana-statusline/state/sessions/<sid>.json`
-(`{"session_id","cost_usd","ts"}`; su única escritora) o, mientras la statusline antigua siga instalada, `state/sesiones/<sid>` (`<ts> <coste>`).
+(`{"session_id","cost_usd","ts"}`; su única escritora).
 Los hooks solo LEEN ese fichero. Los tokens salen del transcript (`message.usage` de cada mensaje del asistente) y la duración, de los hooks.
 Sin ese fichero el coste queda vacío (`null`): no se estima nunca.
 
@@ -51,12 +51,7 @@ def statusline_cost(sid):
     new = datafiles.read_json(os.path.join(paths.plugins_dir(), "arkana-statusline", "state", "sessions", sid + ".json"))
     if isinstance(new, dict) and isinstance(new.get("cost_usd"), (int, float)):
         return float(new["cost_usd"]), new.get("ts")
-    try:
-        with open(os.path.join(state.sessions_dir(), sid), encoding="utf-8") as f:
-            ts, coste = f.read().split()[:2]
-        return float(coste), int(float(ts))
-    except (OSError, ValueError):
-        return None, None
+    return None, None
 
 
 def transcript_tokens(path):
@@ -150,16 +145,16 @@ def all_sessions():
             res[r["session_id"]] = r
     # sesiones que la statusline vio pero que aun no tienen apunte en el libro (anteriores a los hooks, o sin SessionEnd): solo coste y fecha
     seen = {}
-    for base, new in ((os.path.join(paths.plugins_dir(), "arkana-statusline", "state", "sessions"), True), (state.sessions_dir(), False)):
-        for f in sorted(os.listdir(base)) if os.path.isdir(base) else []:
-            sid = f[:-5] if new and f.endswith(".json") else f
-            if sid in res or sid in seen or _sid(sid) != sid:
-                continue
-            c, ts = statusline_cost(sid)
-            if c is not None:
-                when = datetime.datetime.fromtimestamp(float(ts), datetime.timezone.utc) if isinstance(ts, (int, float)) else None
-                seen[sid] = {"schema_version": SCHEMA, "session_id": sid, "started": _iso(when) if when else None, "ended": None, "component": None, "plan": None,
-                             "cost_usd": round(c, 4), "cost_source": "statusline", "sin_apunte": True}
+    base = os.path.join(paths.plugins_dir(), "arkana-statusline", "state", "sessions")
+    for f in sorted(os.listdir(base)) if os.path.isdir(base) else []:
+        sid = f[:-5] if f.endswith(".json") else f
+        if sid in res or sid in seen or _sid(sid) != sid:
+            continue
+        c, ts = statusline_cost(sid)
+        if c is not None:
+            when = datetime.datetime.fromtimestamp(float(ts), datetime.timezone.utc) if isinstance(ts, (int, float)) else None
+            seen[sid] = {"schema_version": SCHEMA, "session_id": sid, "started": _iso(when) if when else None, "ended": None, "component": None, "plan": None,
+                         "cost_usd": round(c, 4), "cost_source": "statusline", "sin_apunte": True}
     res.update(seen)
     return res
 
