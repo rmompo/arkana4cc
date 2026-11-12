@@ -1,0 +1,245 @@
+#!/usr/bin/env python3
+"""Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run (solo biblioteca estándar).
+
+  check  [--home DIR] [--json]                          solo lectura: migraciones aplicadas y pendientes, y el sello del layout
+  apply  [--dry-run] [--to N] [--home DIR] [--json]     aplica las pendientes en orden (las `b*` de base, antes que las numéricas)
+
+Una migración es un módulo de `migrations/` con: `ID`, `TITLE`, `SCOPE` (`shared`, `local` o ambos), `touches(ctx)` (rutas relativas a la carpeta
+de ARKANA que escribe en el repo), `detect(ctx)` (¿está pendiente? idempotente), `apply(ctx, rep)` y `verify(ctx)` (lista de problemas).
+`shared` = cambia ficheros versionados del repo de ARKANA: una persona migra, commitea y empuja, y el resto hace pull y vuelve a ejecutar `apply`
+(solo se aplica su parte local). `local` = cambia `.arkana/`.
+
+Reglas: nunca hace commit ni push; el ámbito `shared` exige repo git y que las rutas que va a escribir no tengan cambios sin commitear; antes de
+tocar `.arkana/` deja una copia `tar.gz` en `.arkana/arkana-workspace/bak/`. El estado local está en `.arkana/arkana-evolve/state.json`; el sello
+compartido (`layout`) está en `arkana-project.json`. Códigos de salida: 0 sin fallos, 1 fallo, 2 uso, 3 precondición no cumplida.
+"""
+import argparse
+import datetime
+import importlib.util
+import os
+import re
+import subprocess
+import sys
+import tarfile
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "..", "_core"))
+from arkana_core import datafiles, locate, output  # noqa: E402
+
+MIGRATIONS_DIR = os.path.join(HERE, "migrations")
+PROJECT_FILE = "arkana-project.json"
+STATE_REL = os.path.join("arkana-evolve", "state.json")
+REQUIRED = ("ID", "TITLE", "SCOPE", "touches", "detect", "apply", "verify")
+
+
+class EError(Exception):
+    def __init__(self, msg, cod=1):
+        super().__init__(msg)
+        self.cod = cod
+
+
+def now_iso():
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+class Ctx:
+    """Lo que ven las migraciones: la carpeta de ARKANA, su estado local y `dry` (si es un ensayo)."""
+
+    def __init__(self, home, dry=False):
+        self.home = home
+        self.state = locate.state_dir(home)
+        self.dry = dry
+        self.project_path = os.path.join(home, PROJECT_FILE)
+        self.state_path = os.path.join(self.state, STATE_REL)
+
+    def path(self, *parts):
+        return os.path.join(self.home, *parts)
+
+    def project(self):
+        return datafiles.read_json(self.project_path)
+
+    def git(self, *args):
+        return subprocess.run(["git", "-C", self.home, *args], capture_output=True, text=True, timeout=20,
+                              env=dict(os.environ, GIT_TERMINAL_PROMPT="0", LC_ALL="C"))
+
+    def applied_local(self):
+        st = datafiles.read_json(self.state_path, {}) or {}
+        return {e.get("id") for e in st.get("applied", []) if isinstance(e, dict)}
+
+    def mark_applied(self, mid):
+        st = datafiles.read_json(self.state_path, {}) or {}
+        applied = [e for e in st.get("applied", []) if isinstance(e, dict) and e.get("id") != mid]
+        applied.append({"id": mid, "date": now_iso()})
+        datafiles.atomic_write_json(self.state_path, {"schema_version": 1, "applied": applied}, mode=0o600)
+
+
+def is_baseline(mod):
+    return str(mod.ID).startswith("b")
+
+
+def sort_key(mod):
+    return (0, str(mod.ID)) if is_baseline(mod) else (1, "%08d" % int(mod.ID))
+
+
+def load_migrations(directory=MIGRATIONS_DIR):
+    mods = []
+    for f in sorted(os.listdir(directory)):
+        if not re.match(r"^[bm]\d+_[a-z0-9_]+\.py$", f):
+            continue
+        spec = importlib.util.spec_from_file_location("arkana_evolve_" + f[:-3], os.path.join(directory, f))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        falta = [a for a in REQUIRED if not hasattr(mod, a)]
+        if falta:
+            raise EError(f"la migración {f} no define: {', '.join(falta)}")
+        mods.append(mod)
+    return sorted(mods, key=sort_key)
+
+
+def latest_layout(mods):
+    return max([int(m.ID) for m in mods if not is_baseline(m)] or [0])
+
+
+def project_layout(ctx):
+    p = ctx.project()
+    return int(p.get("layout", 0)) if isinstance(p, dict) and isinstance(p.get("layout", 0), int) else 0
+
+
+def find_home(arg):
+    home = os.path.abspath(arg) if arg else locate.find_home()
+    if not home or not locate.is_home(home):
+        raise EError("no hay workspace de Arkana (falta .arkana/arkana.json): ejecuta /arkana-workspace:install", 3)
+    return home
+
+
+# ---------- check ----------
+def cmd_check(a, ctx, rep):
+    mods = load_migrations()
+    latest = latest_layout(mods)
+    layout = project_layout(ctx)
+    if layout > latest:
+        rep.add("WARN", "layout", f"el repo está en layout {layout} y esta instalación solo conoce hasta {latest}: actualiza arkana-evolve")
+    elif layout < latest:
+        rep.add("WARN", "layout", f"el repo está en layout {layout}; la última migración es {latest}: ejecuta /arkana-evolve:apply")
+    else:
+        rep.add("OK", "layout", f"layout {layout} (al día)")
+    for m in mods:
+        if m.detect(ctx):
+            rep.add("WARN", m.ID, f"pendiente: {m.TITLE} → /arkana-evolve:apply")
+        else:
+            problems = m.verify(ctx)
+            if problems:
+                for p in problems:
+                    rep.add("WARN", m.ID, f"aplicada, pero {p}")
+            else:
+                rep.add("OK", m.ID, f"aplicada: {m.TITLE}")
+
+
+# ---------- apply ----------
+def parse_to(value):
+    if value is None:
+        return None
+    if not re.match(r"^\d+$", str(value)):
+        raise EError(f"--to espera un número de migración (p. ej. 1 o 0001), no {value!r}", 2)
+    return int(value)
+
+
+def check_preconditions(ctx, pending):
+    if not any("shared" in m.SCOPE for m in pending):
+        return
+    r = ctx.git("rev-parse", "--is-inside-work-tree")
+    if r.returncode != 0 or r.stdout.strip() != "true":
+        raise EError("la carpeta de ARKANA no es un repositorio git: las migraciones compartidas necesitan git para poder revisarse y revertirse", 3)
+    sucios = []
+    for m in pending:
+        if "shared" not in m.SCOPE:
+            continue
+        rutas = list(m.touches(ctx))
+        if rutas:
+            # solo bloquean los ficheros VERSIONADOS con cambios (los sin seguimiento `??` ya existen y la migración no los pisa)
+            sucios += [l[3:] for l in ctx.git("status", "--porcelain", "--", *rutas).stdout.splitlines() if l.strip() and not l.startswith("??")]
+    if sucios:
+        raise EError("hay cambios sin commitear en lo que va a escribir la migración: " + ", ".join(sorted(set(sucios))[:5]) + " (commitéalos o descártalos y repite)", 3)
+
+
+def backup(ctx):
+    bak = os.path.join(ctx.state, "arkana-workspace", "bak")
+    os.makedirs(bak, exist_ok=True)
+    dest = os.path.join(bak, "evolve-" + datetime.datetime.now().strftime("%Y%m%dT%H%M%S") + ".tar.gz")
+
+    def skip(ti):
+        return None if ti.name.startswith(os.path.join(".arkana", "arkana-workspace", "bak")) else ti
+
+    with tarfile.open(dest, "w:gz") as tf:
+        tf.add(ctx.state, arcname=".arkana", filter=skip)
+    os.chmod(dest, 0o600)
+    return dest
+
+
+def cmd_apply(a, ctx, rep):
+    mods = load_migrations()
+    hasta = parse_to(a.to)
+    pending = [m for m in mods if m.detect(ctx) and (is_baseline(m) or hasta is None or int(m.ID) <= hasta)]
+    if not pending:
+        rep.add("OK", "apply", f"nada que hacer: layout {project_layout(ctx)}, sin migraciones pendientes")
+        return
+    check_preconditions(ctx, pending)
+    if not ctx.dry and any("local" in m.SCOPE for m in pending):
+        rep.add("OK", "copia", f"copia de .arkana en {os.path.relpath(backup(ctx), ctx.home)}")
+    for m in pending:
+        rep.add("INFO", m.ID, f"{m.TITLE} (ámbito {'+'.join(m.SCOPE)})")
+        antes = rep.count("FAIL")
+        m.apply(ctx, rep)
+        if rep.count("FAIL") > antes:
+            rep.add("FAIL", "apply", f"se detiene en {m.ID}: las siguientes no se han aplicado")
+            return
+        if not ctx.dry:
+            problems = m.verify(ctx)
+            if problems:
+                for p in problems:
+                    rep.add("FAIL", m.ID, f"verificación: {p}")
+                return
+    if ctx.dry:
+        rep.add("DRY", "apply", f"{len(pending)} migraciones se aplicarían; no se ha escrito nada")
+    else:
+        rep.add("OK", "apply", f"{len(pending)} migraciones aplicadas. Nada commiteado: revisa `git status` y commitea (una sola persona; el resto hace pull y ejecuta apply)")
+
+
+def make_parser():
+    p = argparse.ArgumentParser(prog="evolve.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    s = p.add_subparsers(dest="cmd", required=True)
+
+    def common(x, dry):
+        x.add_argument("--home")
+        x.add_argument("--json", action="store_true")
+        if dry:
+            x.add_argument("--dry-run", dest="dry_run", action="store_true")
+        return x
+
+    common(s.add_parser("check"), False)
+    ap = common(s.add_parser("apply"), True)
+    ap.add_argument("--to")
+    return p
+
+
+def main(argv=None):
+    try:
+        a = make_parser().parse_args(argv)
+    except SystemExit as e:
+        return 2 if e.code else 0
+    rep = output.Report("arkana-evolve", a.cmd)
+    try:
+        ctx = Ctx(find_home(a.home), dry=getattr(a, "dry_run", False))
+        {"check": cmd_check, "apply": cmd_apply}[a.cmd](a, ctx, rep)
+    except EError as e:
+        rep.add("FAIL", a.cmd, str(e))
+        sys.stdout.write(rep.render(getattr(a, "json", False)))
+        return e.cod
+    except OSError as e:
+        rep.add("FAIL", a.cmd, f"error de ficheros: {e}")
+    sys.stdout.write(rep.render(getattr(a, "json", False)))
+    return rep.exit_code()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

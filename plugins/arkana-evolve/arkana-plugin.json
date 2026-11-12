@@ -1,0 +1,13 @@
+{
+  "plugin": "arkana-evolve",
+  "contract": 1,
+  "provides": ["check", "apply"],
+  "check": "python3 scripts/lib/evolve.py check",
+  "data": [
+    {
+      "path": "arkana-evolve/state.json",
+      "class": "local",
+      "description": "migraciones aplicadas en esta instalación (id y fecha)"
+    }
+  ]
+}
