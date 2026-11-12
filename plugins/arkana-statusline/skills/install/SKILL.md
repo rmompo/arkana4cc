@@ -1,7 +1,7 @@
 ---
 name: install
 description: Instala la statusline de Arkana en ~/.claude/arkana-statusline/ (statusline.sh, statusline.py y arkana_core) y activa `statusLine` en ~/.claude/settings.json. Una statusLine ajena solo se sustituye con --replace (copia de los ajustes en bak/). Acepta --dry-run y --json.
-version: 0
+version: 3
 ---
 
 # arkana-statusline:install

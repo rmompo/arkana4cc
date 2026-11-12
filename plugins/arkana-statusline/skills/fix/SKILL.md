@@ -1,7 +1,7 @@
 ---
 name: fix
 description: Reinstala la copia de la statusline si está desactualizada y activa `statusLine` si no hay ninguna. Nunca sustituye la de otro (eso es install --replace). Con copia .bak. Acepta --dry-run y --json.
-version: 0
+version: 2
 ---
 
 # arkana-statusline:fix
