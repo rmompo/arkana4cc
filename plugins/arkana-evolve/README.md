@@ -29,8 +29,14 @@ Salida `ESTADO|ID|detalle` y `RESUMEN|n FAIL|n WARN` ([`OUTPUT-CONTRACT`](../doc
 
 ## Migraciones
 
+Las `b*` son de **base**: convierten formatos antiguos y se ejecutan antes que las numéricas; no hacen nada en instalaciones al día. Cuando ninguna instalación necesite una, se borra.
+
 | Id | Ámbito | Qué hace |
 |---|---|---|
+| `b001` | local | Layout de `arkana-agentic`: `planes/ run/ sesiones/ …` → `config/ state/ data/`; se niega con un plan activo o un worker vivo; copia a `data/archive/` los planes de `orquestacion/archivo/`. |
+| `b002` | local | `novedades/` (comunicaciones antiguas) → mensajes de `arkana-messaging`; no sobrescribe ni toca el origen. Después, `/arkana-messaging:sync`. |
+| `b003` | shared | `conocimiento/` → `arkana-knowledge/` con `git mv`; `tipo/modulos` → `topic/components`; el historial pasa al `## Changelog`; borra `.historial/` y `catalogo.json`. |
+| `b004` | local + shared | Alias histórico `shared` → `arkana` en mensajes, planes, libro, tareas, `local.json` y notas. |
 | `0001` | shared + local | Crea `arkana-project.json` (registro compartido: UUID del workspace y de cada pieza —`arkana` incluida— con su alias, sello `layout`) y las carpetas fijas con `.gitkeep`: `arkana-incoming/` (cuyo `.gitignore` interno ignora todo salvo `.gitignore` y `.gitkeep`), `arkana-knowledge/`, `arkana-docs/` y `arkana-docs/md/`. Si el registro ya existe (otra persona migró) no regenera ningún UUID. |
 
 ## Pruebas

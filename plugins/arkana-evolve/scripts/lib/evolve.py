@@ -82,6 +82,8 @@ def sort_key(mod):
 
 
 def load_migrations(directory=MIGRATIONS_DIR):
+    if directory not in sys.path:
+        sys.path.insert(0, directory)                  # las migraciones comparten el helper `_legacy`
     mods = []
     for f in sorted(os.listdir(directory)):
         if not re.match(r"^[bm]\d+_[a-z0-9_]+\.py$", f):
