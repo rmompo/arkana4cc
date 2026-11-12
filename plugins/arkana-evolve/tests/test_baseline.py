@@ -123,7 +123,7 @@ class TestB003Conocimiento(unittest.TestCase):
             self.assertEqual(r.returncode, 0, r.stdout)
             nueva = "arkana-knowledge/decision/orquestar.md"
             t = lab.read(nueva)
-            for x in ("topic: decision", "components: [app, api]", "state: active", "id: decision-orquestar", "version: 1.2", "# Orquestar", "Cuerpo."):
+            for x in ("topic: decision", "state: active", "slug: orquestar", "version: 1.2", "# Orquestar", "Cuerpo."):
                 self.assertIn(x, t)
             self.assertNotIn("tipo:", t)
             self.assertNotIn("modulos:", t)
@@ -134,9 +134,10 @@ class TestB003Conocimiento(unittest.TestCase):
             self.assertFalse(os.path.exists(os.path.join(lab.arkana, "catalogo.json")))
             st = git(lab.arkana, "status", "--short").stdout
             self.assertRegex(st, r"(?m)^R.? +conocimiento/decision/orquestar.md -> arkana-knowledge/decision/orquestar.md")      # git mv
-            ref = lab.read("estado-proyecto.md")
+            self.assertFalse(os.path.exists(os.path.join(lab.arkana, "estado-proyecto.md")))               # la 0004 (encadenada) la lleva a arkana-knowledge/
+            ref = lab.read("arkana-knowledge/reference/estado-proyecto.md")
             self.assertIn("topic: reference", ref)
-            self.assertIn("components: [all]", ref)                                                        # modulos vacío = todos; no se mueve
+            self.assertIn("components: [all]", ref)                                                        # modulos vacío = todos
             self.assertIn("nada que hacer", lab.run("apply").stdout)
 
     def test_cambios_sin_commitear_en_lo_antiguo_se_niegan(self):
@@ -177,7 +178,8 @@ class TestB004AliasShared(unittest.TestCase):
             self.assertEqual(json.loads(lab.read(".arkana/arkana-todo/todos.json"))["tareas"][0]["componente"], "arkana")
             loc = json.loads(lab.read(".arkana/arkana-workspace/local.json"))
             self.assertEqual((sorted(loc["paths"]), list(loc["git"])), (["api", "arkana"], ["arkana"]))
-            self.assertIn("components: [arkana, api]", lab.read("arkana-knowledge/decision/n.md"))
+            ids = {c["alias"]: c["id"] for c in json.loads(lab.read("arkana-project.json"))["components"]}      # la 0004 encadenada guarda los componentes por id
+            self.assertIn(f"components: [{ids['arkana']}, {ids['api']}]", lab.read("arkana-knowledge/decision/n.md"))
             self.assertIn("nada que hacer", lab.run("apply").stdout)
 
     def test_sin_alias_antiguo_no_hay_nada_que_hacer(self):

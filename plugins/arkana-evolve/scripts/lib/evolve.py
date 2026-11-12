@@ -114,6 +114,17 @@ def stamp(ctx, mod):
         datafiles.atomic_write_json(ctx.project_path, p)
 
 
+def settle(ctx, mods):
+    """Sube el sello a toda migración numérica que ya no está pendiente aunque no haya tenido nada que hacer en esta instalación (su `detect` es falso).
+    Se detiene en la primera pendiente: el sello nunca salta una migración sin aplicar."""
+    for m in mods:
+        if is_baseline(m):
+            continue
+        if m.detect(ctx):
+            return
+        stamp(ctx, m)
+
+
 def project_layout(ctx):
     p = ctx.project()
     return int(p.get("layout", 0)) if isinstance(p, dict) and isinstance(p.get("layout", 0), int) else 0
@@ -193,31 +204,46 @@ def backup(ctx):
 def cmd_apply(a, ctx, rep):
     mods = load_migrations()
     hasta = parse_to(a.to)
-    pending = [m for m in mods if m.detect(ctx) and (is_baseline(m) or hasta is None or int(m.ID) <= hasta)]
+
+    def pendientes(done):
+        return [m for m in mods if m not in done and m.detect(ctx) and (is_baseline(m) or hasta is None or int(m.ID) <= hasta)]
+
+    pending = pendientes([])
     if not pending:
+        if not ctx.dry:
+            settle(ctx, mods)
         rep.add("OK", "apply", f"nada que hacer: layout {project_layout(ctx)}, sin migraciones pendientes")
         return
-    check_preconditions(ctx, pending)
-    if not ctx.dry and any("local" in m.SCOPE for m in pending):
-        rep.add("OK", "copia", f"copia de .arkana en {os.path.relpath(backup(ctx), ctx.home)}")
-    for m in pending:
-        rep.add("INFO", m.ID, f"{m.TITLE} (ámbito {'+'.join(m.SCOPE)})")
-        antes = rep.count("FAIL")
-        m.apply(ctx, rep)
-        if rep.count("FAIL") > antes:
-            rep.add("FAIL", "apply", f"se detiene en {m.ID}: las siguientes no se han aplicado")
-            return
-        if not ctx.dry:
-            problems = m.verify(ctx)
-            if problems:
-                for p in problems:
-                    rep.add("FAIL", m.ID, f"verificación: {p}")
+    done, backed = [], False
+    while pending:
+        if not done:                                      # solo lo que ya estaba sucio ANTES de empezar: lo que escribe esta misma ejecución no cuenta
+            check_preconditions(ctx, pending)
+        if not ctx.dry and not backed and any("local" in m.SCOPE for m in pending):
+            rep.add("OK", "copia", f"copia de .arkana en {os.path.relpath(backup(ctx), ctx.home)}")
+            backed = True
+        for m in pending:
+            rep.add("INFO", m.ID, f"{m.TITLE} (ámbito {'+'.join(m.SCOPE)})")
+            antes = rep.count("FAIL")
+            m.apply(ctx, rep)
+            done.append(m)
+            if rep.count("FAIL") > antes:
+                rep.add("FAIL", "apply", f"se detiene en {m.ID}: las siguientes no se han aplicado")
                 return
-            stamp(ctx, m)
+            if not ctx.dry:
+                problems = m.verify(ctx)
+                if problems:
+                    for p in problems:
+                        rep.add("FAIL", m.ID, f"verificación: {p}")
+                    return
+                stamp(ctx, m)
+        # una migración puede dejar listo el terreno de otra (la de base mueve ficheros que luego migra una numérica): se vuelve a mirar
+        pending = [] if ctx.dry else pendientes(done)
+    if not ctx.dry and hasta is None:
+        settle(ctx, mods)
     if ctx.dry:
-        rep.add("DRY", "apply", f"{len(pending)} migraciones se aplicarían; no se ha escrito nada")
+        rep.add("DRY", "apply", f"{len(done)} migraciones se aplicarían; no se ha escrito nada")
     else:
-        rep.add("OK", "apply", f"{len(pending)} migraciones aplicadas. Nada commiteado: revisa `git status` y commitea (una sola persona; el resto hace pull y ejecuta apply)")
+        rep.add("OK", "apply", f"{len(done)} migraciones aplicadas. Nada commiteado: revisa `git status` y commitea (una sola persona; el resto hace pull y ejecuta apply)")
 
 
 def make_parser():
