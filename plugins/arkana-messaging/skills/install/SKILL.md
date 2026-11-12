@@ -1,7 +1,8 @@
 ---
 name: install
-description: Primera puesta en marcha (repetible) de la mensajería - crea el almacén y habilita el plugin en ~/.claude/settings.json. No escribe nada en los repos. Copia .bak de lo que modifica. Acepta --dry-run y --json.
-version: 5
+description: Primera puesta en marcha (repetible) de la mensajería - crea el almacén y habilita el plugin en ~/.claude/settings.json. No escribe nada en los repos. Copia .bak de lo que modifica. Acepta --dry-run y --json. Also invoked explicitly as /arkana-messaging:install
+allowed-tools: [AskUserQuestion]
+version: 13
 ---
 
 # arkana-messaging:install

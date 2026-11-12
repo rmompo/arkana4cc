@@ -1,7 +1,8 @@
 ---
 name: fix
-description: Corrige lo que check marca en la mensajería (almacén ausente, plugin deshabilitado). Interactivo, con copia .bak. Acepta --dry-run y --json.
-version: 3
+description: Corrige lo que check marca en la mensajería (almacén ausente, plugin deshabilitado). Interactivo, con copia .bak. Acepta --dry-run y --json. Also invoked explicitly as /arkana-messaging:fix
+allowed-tools: [AskUserQuestion]
+version: 11
 ---
 
 # arkana-messaging:fix

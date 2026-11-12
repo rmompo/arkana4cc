@@ -1,7 +1,8 @@
 ---
 name: put
-description: Guarda un mensaje del componente actual para otros componentes (aviso, tarea, revisión o pregunta) en el almacén local, o lo cierra (hecho o descartado) o lo comenta. Quién envía lo decide el directorio de trabajo, no un argumento. Pide confirmación antes de guardar. Acepta --dry-run y --json.
-version: 6
+description: Guarda un mensaje del componente actual para otros componentes (aviso, tarea, revisión o pregunta) en el almacén local, o lo cierra (hecho o descartado) o lo comenta. Quién envía lo decide el directorio de trabajo, no un argumento. Pide confirmación antes de guardar. Acepta --dry-run y --json. Also invoked explicitly as /arkana-messaging:put
+allowed-tools: [AskUserQuestion]
+version: 14
 ---
 
 # arkana-messaging:put
