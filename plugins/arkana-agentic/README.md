@@ -2,7 +2,7 @@
 
 Orquestación multi-repo desde ARKANA (el repositorio de conciliación y gobierno del proyecto, la carpeta `arkana`) sobre los componentes del proyecto, cada uno un repositorio; el workspace es ARKANA más el proyecto. Tú pides algo; el **orquestador** (la sesión de Claude de ARKANA) redacta un **plan**; **tú lo apruebas**; y se ejecuta **una tarea cada vez** con un **worker sin shell** en el repo que toque. El resultado de cada tarea lo **verifica un script**, no el worker, y tú decides en las paradas obligatorias. **El modelo propone; el script decide.**
 
-> Estado: **0.9.0**. Motor, plano de control y skills terminados; probados sin coste con un `claude` falso y con una batería de contención con `claude` real. Falta un piloto real supervisado para pasar a 1.0.0. Es una cola **distinta** de la manual de `arkana-messaging` (`put` / `get`).
+> Estado: **0.10.0**. Motor, plano de control y skills terminados; probados sin coste con un `claude` falso y con una batería de contención con `claude` real. Falta un piloto real supervisado para pasar a 1.0.0. Es una cola **distinta** de la manual de `arkana-messaging` (`put` / `get`).
 
 Este plugin es uno de los del marketplace `arkana`; la visión de conjunto está en [`../README.md`](../README.md). Otros documentos: [`docs/GUIA.md`](docs/GUIA.md) (guía para personas), [`docs/ESPECIFICACION.md`](docs/ESPECIFICACION.md) (especificación).
 
@@ -652,6 +652,10 @@ agentic.sh policy set total_budget_usd 40 --ceiling
 | `contencion` | Solo con `--deep` | `FAIL`: **no orquestes** hasta resolverlo. |
 
 ---
+
+### Renombrado de componentes
+
+`scripts/lib/rename.py --from A --to B [--dry-run]` es el comando `rename` de su contrato: lo invoca `arkana-workspace:component edit --rename`. Reescribe `repo` en las tareas, las claves de `ramas` en los planes y `component(es)` en el libro, de los planes en curso y de los archivados. Se niega mientras haya un plan activo o un worker vivo (el ensayo previo de `component edit` lo detecta y no cambia nada).
 
 ## 7. Variables de entorno
 

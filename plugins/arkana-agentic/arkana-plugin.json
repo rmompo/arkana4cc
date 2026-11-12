@@ -44,5 +44,6 @@
   "hooks": [
     "SessionStart",
     "SessionEnd"
-  ]
+  ],
+  "rename": "python3 scripts/lib/rename.py"
 }
