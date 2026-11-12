@@ -1,7 +1,8 @@
 ---
 name: check
-description: Comprueba la salud de la orquestación de arkana-agentic - versión y flags de claude, utilidades, directorio de ejecución (700), política válida, workers huérfanos, reglas de permisos de arkana y reglas del orquestador (hook). Solo lectura y sin coste (con --deep ejecuta además la batería de contención con claude real, ~0,3-0,6 USD).
-version: 2
+description: Comprueba la salud de la orquestación de arkana-agentic - versión y flags de claude, utilidades, directorio de ejecución (700), política válida, workers huérfanos, reglas de permisos de arkana y reglas del orquestador (hook). Solo lectura y sin coste (con --deep ejecuta además la batería de contención con claude real, ~0,3-0,6 USD). Also invoked explicitly as /arkana-agentic:check
+allowed-tools: []
+version: 12
 ---
 
 # arkana-agentic:check

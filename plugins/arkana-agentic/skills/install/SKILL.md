@@ -1,7 +1,8 @@
 ---
 name: install
-description: Primera puesta en marcha (repetible) de la orquestación - carpetas config/state/data y plugin habilitado en ~/.claude/settings.json. No escribe nada en los repos (las reglas del orquestador las inyecta un hook). Copia .bak de lo que modifica. Acepta --dry-run.
-version: 6
+description: Primera puesta en marcha (repetible) de la orquestación - carpetas config/state/data y plugin habilitado en ~/.claude/settings.json. No escribe nada en los repos (las reglas del orquestador las inyecta un hook). Copia .bak de lo que modifica. Acepta --dry-run. Also invoked explicitly as /arkana-agentic:install
+allowed-tools: [AskUserQuestion]
+version: 16
 ---
 
 # arkana-agentic:install

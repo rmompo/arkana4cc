@@ -1,7 +1,8 @@
 ---
 name: control
-description: Resuelve las paradas obligatorias (gates) del plan de orquestación y las decisiones manuales - aprobar o rechazar un gate, reintentar u omitir una tarea, ver el registro de una tarea, ajustar los límites. Siempre pregunta al usuario antes de aprobar.
-version: 3
+description: Resuelve las paradas obligatorias (gates) del plan de orquestación y las decisiones manuales - aprobar o rechazar un gate, reintentar u omitir una tarea, ver el registro de una tarea, ajustar los límites. Siempre pregunta al usuario antes de aprobar. Also invoked explicitly as /arkana-agentic:control
+allowed-tools: [AskUserQuestion]
+version: 13
 ---
 
 # arkana-agentic:control

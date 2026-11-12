@@ -1,7 +1,8 @@
 ---
 name: plan
-description: Redacta un plan de orquestación multi-repo a partir de lo que pide el usuario (tareas pequeñas, un repo cada una, con criterios verificables), lo valida y lo somete a su aprobación. Solo desde arkana. No ejecuta nada hasta que el usuario aprueba.
-version: 7
+description: Redacta un plan de orquestación multi-repo a partir de lo que pide el usuario (tareas pequeñas, un repo cada una, con criterios verificables), lo valida y lo somete a su aprobación. Solo desde arkana. No ejecuta nada hasta que el usuario aprueba. Also invoked explicitly as /arkana-agentic:plan
+allowed-tools: [AskUserQuestion]
+version: 17
 ---
 
 # arkana-agentic:plan

@@ -1,7 +1,8 @@
 ---
 name: status
-description: Muestra el estado del plan de orquestación actual - tareas, intentos, gasto y tiempo frente a los límites, worker en marcha y gate abierto - en formato legible. Solo lectura.
-version: 9
+description: Muestra el estado del plan de orquestación actual - tareas, intentos, gasto y tiempo frente a los límites, worker en marcha y gate abierto - en formato legible. Solo lectura. Also invoked explicitly as /arkana-agentic:status
+allowed-tools: []
+version: 19
 ---
 
 # arkana-agentic:status

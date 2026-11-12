@@ -1,7 +1,8 @@
 ---
 name: archive
-description: Archiva un plan de orquestación terminado en .arkana/arkana-agentic/data/archive/ (plan, tareas, informes, verificaciones y registro, sin logs ni instantáneas) y, con confirmación, integra, deja o descarta la rama del plan en cada repo.
-version: 1
+description: Archiva un plan de orquestación terminado en .arkana/arkana-agentic/data/archive/ (plan, tareas, informes, verificaciones y registro, sin logs ni instantáneas) y, con confirmación, integra, deja o descarta la rama del plan en cada repo. Also invoked explicitly as /arkana-agentic:archive
+allowed-tools: [AskUserQuestion]
+version: 11
 ---
 
 # arkana-agentic:archive

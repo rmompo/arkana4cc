@@ -1,7 +1,8 @@
 ---
 name: costs
-description: Consulta los costes del libro de planes y sesiones - gasto de los workers por plan y tarea y coste real de las sesiones de Claude (el que anota la statusline) - con filtros por plan, sesión, componente y fecha y agrupación por plan, sesión, componente o día. Solo lectura. Acepta --json.
-version: 4
+description: Consulta los costes del libro de planes y sesiones - gasto de los workers por plan y tarea y coste real de las sesiones de Claude (el que anota la statusline) - con filtros por plan, sesión, componente y fecha y agrupación por plan, sesión, componente o día. Solo lectura. Acepta --json. Also invoked explicitly as /arkana-agentic:costs
+allowed-tools: []
+version: 14
 ---
 
 # arkana-agentic:costs
