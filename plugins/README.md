@@ -41,7 +41,7 @@ Después, desde la carpeta de Arkana y en este orden:
 3. `/arkana-workspace:config tools` declara las herramientas del proyecto (ver «Dónde vive cada cosa»).
 4. `/arkana-messaging:install`, `/arkana-agentic:install`, `/arkana-statusline:install`, `/arkana-knowledge:install` y `/arkana-todo:install`, los que uses.
 5. `/arkana-evolve:apply` lleva el layout al más reciente (registro del proyecto con UUID y carpetas fijas con `.gitkeep`); una sola persona lo aplica y empuja, el resto hace pull y lo ejecuta.
-6. `/arkana-workspace:fix` y `/arkana-workspace:check`: permisos, `CLAUDE.md`, identidad git y convención de commits; el `check` revisa también los demás plugins.
+6. `/arkana-workspace:fix` y `/arkana-workspace:check`: permisos, exclusiones locales de git, identidad git y convención de commits; el `check` revisa también los demás plugins.
 
 ## Dónde vive cada cosa
 
@@ -57,7 +57,7 @@ Los metadatos no ensucian los repos del proyecto: están en `.arkana/` (ignorada
 | Carpetas fijas del repo de ARKANA: entrada de documentos, conocimiento y documentos de origen | `arkana-incoming/` (solo `.gitkeep`), `arkana-knowledge/`, `arkana-docs/` (con `md/`) | por git |
 | Mensajes, planes y libro de sesiones | `arkana-messaging/`, `arkana-agentic/` | datos locales |
 
-**Directrices de commit.** Cada componente, **incluida ARKANA**, elige su formato (`conventional` por defecto: `tipo(scope): descripción`; `ia4d`, opcional: `verbo(scope) descripción`) y puede fijar los dominios de correo del autor (`--git-email-domain`). Un bloque `arkana:commits` lo deja en su `CLAUDE.md` o `CLAUDE.local.md`. Siempre en inglés, ≤72 caracteres, sin punto final y **sin `Co-Authored-By`, que nunca se permite y no es configurable**.
+**Directrices de commit.** Cada componente, **incluida ARKANA**, elige su formato (`conventional` por defecto: `tipo(scope): descripción`; `ia4d`, opcional: `verbo(scope) descripción`) y puede fijar los dominios de correo del autor (`--git-email-domain`). La convención la inyecta el hook de sesión en el contexto de cada pieza; no se escribe en ningún fichero de los repos. Siempre en inglés, ≤72 caracteres, sin punto final y **sin `Co-Authored-By`, que nunca se permite y no es configurable**.
 
 **Herramientas.** Lo específico del stack (Node, JDK, Maven, paquetes de Angular, un registro privado de npm…) se declara una vez con `config tools`. `arkana-workspace:check` lo comprueba y `arkana-agentic` lo usa para el `PATH`, `JAVA_HOME` y `.npmrc` de sus verificaciones. Los plugins no llevan ninguna herramienta, versión ni registro fijados.
 
@@ -68,7 +68,7 @@ Los metadatos no ensucian los repos del proyecto: están en `.arkana/` (ignorada
 - **Red.** Ningún comando de red se ejecuta sin tope de tiempo, con el DNS comprobado antes; `sync` y el asistente de credenciales usan además un cortacircuitos. Sin VPN, `arkana-agentic` avisa (`WARN`) pero sigue: su trabajo es local.
 - **Herramientas del sistema.** Los plugins usan lo que el entorno ya tiene (`shutil.which`) y nunca instalan nada por su cuenta: ni paquetes del sistema, ni con `sudo` (el usuario lo protege con contraseña y Arkana no la tiene). Si falta algo, `check` lo señala y el skill **pide a la persona usuaria que lo instale**, explicando qué herramienta, para qué sirve y el comando exacto. Lo opcional degrada la función (se avisa), lo imprescindible bloquea con un `FAIL` claro.
 - **Hooks.** No hacen nada dentro de un worker (`ARKANA_WORKER=1`) ni fuera de un workspace, y nunca rompen la sesión.
-- **Bloques gestionados.** Los plugins escriben bloques `<!-- arkana:NOMBRE:start -->…<!-- arkana:NOMBRE:end -->` (`messaging`, `commits`, `agentic`) en los `CLAUDE.md`; lo de fuera no se toca y se deja copia `.bak`.
+- **Directrices por hook, no por fichero.** Los plugins no escriben en `CLAUDE.md` ni `CLAUDE.local.md` de los repos de trabajo: el hook `SessionStart` (también tras `compact`) de cada plugin inyecta en el contexto del modelo sus propias directrices (workspace: convención de commits, reglas comunes y `ARKANA.local.md`; messaging: instrucciones de uso; agentic: reglas del orquestador en la sesión de ARKANA). Las notas locales de un repo van en `ARKANA.local.md`, excluido con `.git/info/exclude`.
 - **Código común.** La fuente es `lib/arkana_core/` (localizador, manifiesto, esquemas, salida, red, bloques). Cada plugin lleva su copia en `scripts/_core/`, porque un plugin instalado no puede leer a otro: se regenera con `bash scripts/vendor-core.sh` y `--check` comprueba que está al día.
 
 ## Pruebas

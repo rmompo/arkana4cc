@@ -50,7 +50,7 @@ Cada plugin declara en su `arkana-plugin.json` qué guarda y de qué clase es ca
 
 ## Manifiesto `core/workspace.json`
 
-Bloque `arkana` (`alias ARKANA`, `path`, `remote`, `branches`, `git`, `commit_format`) y `components[]`: `alias`, `type` (`node`, `maven`, `docs`, `generic`), `path` relativa a la raíz del workspace, `remote` y `remote_host`, `branches {main, develop}`, `git {token_ref}`, `commit_format` (`ia4d` o `conventional`), `vpn`, `seed_file` (`CLAUDE.md` o `CLAUDE.local.md`), `statusline`, `tools[{tool, version}]`. El **orden** de `components[]` es el que usan la statusline, `list` y el BRIEF (ARKANA siempre primero); `statusline` (`component edit --statusline` / `--no-statusline`) fuerza mostrar u ocultar el componente, y sin la marca se muestra salvo los de tipo `docs`. La identidad git (usuario y correo) y las rutas absolutas **no** van aquí: están en `arkana-workspace/local.json`.
+Bloque `arkana` (`alias ARKANA`, `path`, `remote`, `branches`, `git`, `commit_format`) y `components[]`: `alias`, `type` (`node`, `maven`, `docs`, `generic`), `path` relativa a la raíz del workspace, `remote` y `remote_host`, `branches {main, develop}`, `git {token_ref}`, `commit_format` (`ia4d` o `conventional`), `vpn`, `statusline`, `tools[{tool, version}]`. El **orden** de `components[]` es el que usan la statusline, `list` y el BRIEF (ARKANA siempre primero); `statusline` (`component edit --statusline` / `--no-statusline`) fuerza mostrar u ocultar el componente, y sin la marca se muestra salvo los de tipo `docs`. La identidad git (usuario y correo) y las rutas absolutas **no** van aquí: están en `arkana-workspace/local.json`.
 
 ## Reglas
 
