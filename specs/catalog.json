@@ -11,10 +11,50 @@
       "description": "Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verificación por scripts, límites y control (estado, parada, recuperación).",
       "category": "other",
       "status": "beta",
-      "version": "0.10.0",
+      "version": "0.10.10",
       "spec": "specs/arkana-agentic.md",
       "path": "plugins/arkana-agentic",
       "changelog": [
+        {
+          "version": "0.10.10",
+          "changes": "stop: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.10.9",
+          "changes": "status: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.10.8",
+          "changes": "run: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.10.7",
+          "changes": "plan: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.10.6",
+          "changes": "install: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.10.5",
+          "changes": "fix: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.10.4",
+          "changes": "costs: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.10.3",
+          "changes": "control: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.10.2",
+          "changes": "check: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.10.1",
+          "changes": "archive: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
         {
           "version": "0.10.0",
           "changes": "Bootstrap: plugin registered in catalog.json"
@@ -23,8 +63,12 @@
       "skills": [
         {
           "name": "archive",
-          "version": 0,
+          "version": 1,
           "changelog": [
+            {
+              "version": 1,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -33,8 +77,12 @@
         },
         {
           "name": "check",
-          "version": 0,
+          "version": 2,
           "changelog": [
+            {
+              "version": 2,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -43,8 +91,12 @@
         },
         {
           "name": "control",
-          "version": 0,
+          "version": 3,
           "changelog": [
+            {
+              "version": 3,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -53,8 +105,12 @@
         },
         {
           "name": "costs",
-          "version": 0,
+          "version": 4,
           "changelog": [
+            {
+              "version": 4,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -63,8 +119,12 @@
         },
         {
           "name": "fix",
-          "version": 0,
+          "version": 5,
           "changelog": [
+            {
+              "version": 5,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -73,8 +133,12 @@
         },
         {
           "name": "install",
-          "version": 0,
+          "version": 6,
           "changelog": [
+            {
+              "version": 6,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -83,8 +147,12 @@
         },
         {
           "name": "plan",
-          "version": 0,
+          "version": 7,
           "changelog": [
+            {
+              "version": 7,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -93,8 +161,12 @@
         },
         {
           "name": "run",
-          "version": 0,
+          "version": 8,
           "changelog": [
+            {
+              "version": 8,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -103,8 +175,12 @@
         },
         {
           "name": "status",
-          "version": 0,
+          "version": 9,
           "changelog": [
+            {
+              "version": 9,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -113,8 +189,12 @@
         },
         {
           "name": "stop",
-          "version": 0,
+          "version": 10,
           "changelog": [
+            {
+              "version": 10,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -128,10 +208,18 @@
       "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra (apply, check)",
       "category": "other",
       "status": "beta",
-      "version": "0.5.0",
+      "version": "0.5.2",
       "spec": "specs/arkana-evolve.md",
       "path": "plugins/arkana-evolve",
       "changelog": [
+        {
+          "version": "0.5.2",
+          "changes": "check: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "0.5.1",
+          "changes": "apply: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
         {
           "version": "0.5.0",
           "changes": "Bootstrap: plugin registered in catalog.json"
@@ -140,8 +228,12 @@
       "skills": [
         {
           "name": "apply",
-          "version": 0,
+          "version": 1,
           "changelog": [
+            {
+              "version": 1,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -150,8 +242,12 @@
         },
         {
           "name": "check",
-          "version": 0,
+          "version": 2,
           "changelog": [
+            {
+              "version": 2,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -165,10 +261,42 @@
       "description": "Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y documentos de origen con su versión en Markdown, ingesta desde arkana-incoming y consulta (add, query, modify, delete, ingest)",
       "category": "other",
       "status": "beta",
-      "version": "2.0.1",
+      "version": "2.0.9",
       "spec": "specs/arkana-knowledge.md",
       "path": "plugins/arkana-knowledge",
       "changelog": [
+        {
+          "version": "2.0.9",
+          "changes": "query: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.0.8",
+          "changes": "modify: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.0.7",
+          "changes": "install: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.0.6",
+          "changes": "ingest: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.0.5",
+          "changes": "fix: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.0.4",
+          "changes": "delete: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.0.3",
+          "changes": "check: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.0.2",
+          "changes": "add: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
         {
           "version": "2.0.1",
           "changes": "Bootstrap: plugin registered in catalog.json"
@@ -177,8 +305,12 @@
       "skills": [
         {
           "name": "add",
-          "version": 1,
+          "version": 2,
           "changelog": [
+            {
+              "version": 2,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 1,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -187,8 +319,12 @@
         },
         {
           "name": "check",
-          "version": 1,
+          "version": 3,
           "changelog": [
+            {
+              "version": 3,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 1,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -197,8 +333,12 @@
         },
         {
           "name": "delete",
-          "version": 1,
+          "version": 4,
           "changelog": [
+            {
+              "version": 4,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 1,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -207,8 +347,12 @@
         },
         {
           "name": "fix",
-          "version": 1,
+          "version": 5,
           "changelog": [
+            {
+              "version": 5,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 1,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -217,8 +361,12 @@
         },
         {
           "name": "ingest",
-          "version": 1,
+          "version": 6,
           "changelog": [
+            {
+              "version": 6,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 1,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -227,8 +375,12 @@
         },
         {
           "name": "install",
-          "version": 1,
+          "version": 7,
           "changelog": [
+            {
+              "version": 7,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 1,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -237,8 +389,12 @@
         },
         {
           "name": "modify",
-          "version": 1,
+          "version": 8,
           "changelog": [
+            {
+              "version": 8,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 1,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -247,8 +403,12 @@
         },
         {
           "name": "query",
-          "version": 1,
+          "version": 9,
           "changelog": [
+            {
+              "version": 9,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 1,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -262,10 +422,42 @@
       "description": "Mensajes entre los componentes de un workspace de Arkana: put, get, delete (lógico), sync y reconcile; almacén local, sin git ni red",
       "category": "other",
       "status": "beta",
-      "version": "2.1.0",
+      "version": "2.1.8",
       "spec": "specs/arkana-messaging.md",
       "path": "plugins/arkana-messaging",
       "changelog": [
+        {
+          "version": "2.1.8",
+          "changes": "sync: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.1.7",
+          "changes": "query: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.1.6",
+          "changes": "put: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.1.5",
+          "changes": "install: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.1.4",
+          "changes": "get: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.1.3",
+          "changes": "fix: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.1.2",
+          "changes": "delete: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "2.1.1",
+          "changes": "check: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
         {
           "version": "2.1.0",
           "changes": "Bootstrap: plugin registered in catalog.json"
@@ -274,8 +466,12 @@
       "skills": [
         {
           "name": "check",
-          "version": 0,
+          "version": 1,
           "changelog": [
+            {
+              "version": 1,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -284,8 +480,12 @@
         },
         {
           "name": "delete",
-          "version": 0,
+          "version": 2,
           "changelog": [
+            {
+              "version": 2,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -294,8 +494,12 @@
         },
         {
           "name": "fix",
-          "version": 0,
+          "version": 3,
           "changelog": [
+            {
+              "version": 3,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -304,8 +508,12 @@
         },
         {
           "name": "get",
-          "version": 0,
+          "version": 4,
           "changelog": [
+            {
+              "version": 4,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -314,8 +522,12 @@
         },
         {
           "name": "install",
-          "version": 0,
+          "version": 5,
           "changelog": [
+            {
+              "version": 5,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -324,8 +536,12 @@
         },
         {
           "name": "put",
-          "version": 0,
+          "version": 6,
           "changelog": [
+            {
+              "version": 6,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -334,8 +550,12 @@
         },
         {
           "name": "query",
-          "version": 0,
+          "version": 7,
           "changelog": [
+            {
+              "version": 7,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -344,8 +564,12 @@
         },
         {
           "name": "sync",
-          "version": 0,
+          "version": 8,
           "changelog": [
+            {
+              "version": 8,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -359,10 +583,26 @@
       "description": "Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión",
       "category": "other",
       "status": "beta",
-      "version": "1.1.0",
+      "version": "1.1.4",
       "spec": "specs/arkana-statusline.md",
       "path": "plugins/arkana-statusline",
       "changelog": [
+        {
+          "version": "1.1.4",
+          "changes": "refresh: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.3",
+          "changes": "install: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.2",
+          "changes": "fix: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.1",
+          "changes": "check: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
         {
           "version": "1.1.0",
           "changes": "Bootstrap: plugin registered in catalog.json"
@@ -371,8 +611,12 @@
       "skills": [
         {
           "name": "check",
-          "version": 0,
+          "version": 1,
           "changelog": [
+            {
+              "version": 1,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -381,8 +625,12 @@
         },
         {
           "name": "fix",
-          "version": 0,
+          "version": 2,
           "changelog": [
+            {
+              "version": 2,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -391,8 +639,12 @@
         },
         {
           "name": "install",
-          "version": 0,
+          "version": 3,
           "changelog": [
+            {
+              "version": 3,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -401,8 +653,12 @@
         },
         {
           "name": "refresh",
-          "version": 0,
+          "version": 4,
           "changelog": [
+            {
+              "version": 4,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -416,10 +672,42 @@
       "description": "Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: local, sin red, con prioridad, vencimiento y componente, cierre reversible y borrado lógico (add, list, done, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.0",
+      "version": "1.1.8",
       "spec": "specs/arkana-todo.md",
       "path": "plugins/arkana-todo",
       "changelog": [
+        {
+          "version": "1.1.8",
+          "changes": "modify: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.7",
+          "changes": "list: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.6",
+          "changes": "install: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.5",
+          "changes": "fix: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.4",
+          "changes": "done: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.3",
+          "changes": "delete: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.2",
+          "changes": "check: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "1.1.1",
+          "changes": "add: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
         {
           "version": "1.1.0",
           "changes": "Bootstrap: plugin registered in catalog.json"
@@ -428,8 +716,12 @@
       "skills": [
         {
           "name": "add",
-          "version": 0,
+          "version": 1,
           "changelog": [
+            {
+              "version": 1,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -438,8 +730,12 @@
         },
         {
           "name": "check",
-          "version": 0,
+          "version": 2,
           "changelog": [
+            {
+              "version": 2,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -448,8 +744,12 @@
         },
         {
           "name": "delete",
-          "version": 0,
+          "version": 3,
           "changelog": [
+            {
+              "version": 3,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -458,8 +758,12 @@
         },
         {
           "name": "done",
-          "version": 0,
+          "version": 4,
           "changelog": [
+            {
+              "version": 4,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -468,8 +772,12 @@
         },
         {
           "name": "fix",
-          "version": 0,
+          "version": 5,
           "changelog": [
+            {
+              "version": 5,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -478,8 +786,12 @@
         },
         {
           "name": "install",
-          "version": 0,
+          "version": 6,
           "changelog": [
+            {
+              "version": 6,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -488,8 +800,12 @@
         },
         {
           "name": "list",
-          "version": 0,
+          "version": 7,
           "changelog": [
+            {
+              "version": 7,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -498,8 +814,12 @@
         },
         {
           "name": "modify",
-          "version": 0,
+          "version": 8,
           "changelog": [
+            {
+              "version": 8,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -513,10 +833,54 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.0",
+      "version": "6.2.11",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.11",
+          "changes": "sync: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.10",
+          "changes": "status: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.9",
+          "changes": "rew-grants: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.8",
+          "changes": "install: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.7",
+          "changes": "import: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.6",
+          "changes": "handover: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.5",
+          "changes": "fix: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.4",
+          "changes": "export: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.3",
+          "changes": "config: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.2",
+          "changes": "component: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
+        {
+          "version": "6.2.1",
+          "changes": "check: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+        },
         {
           "version": "6.2.0",
           "changes": "Bootstrap: plugin registered in catalog.json"
@@ -525,8 +889,12 @@
       "skills": [
         {
           "name": "check",
-          "version": 0,
+          "version": 1,
           "changelog": [
+            {
+              "version": 1,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -535,8 +903,12 @@
         },
         {
           "name": "component",
-          "version": 0,
+          "version": 2,
           "changelog": [
+            {
+              "version": 2,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -545,8 +917,12 @@
         },
         {
           "name": "config",
-          "version": 0,
+          "version": 3,
           "changelog": [
+            {
+              "version": 3,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -555,8 +931,12 @@
         },
         {
           "name": "export",
-          "version": 0,
+          "version": 4,
           "changelog": [
+            {
+              "version": 4,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -565,8 +945,12 @@
         },
         {
           "name": "fix",
-          "version": 0,
+          "version": 5,
           "changelog": [
+            {
+              "version": 5,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -575,8 +959,12 @@
         },
         {
           "name": "handover",
-          "version": 0,
+          "version": 6,
           "changelog": [
+            {
+              "version": 6,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -585,8 +973,12 @@
         },
         {
           "name": "import",
-          "version": 0,
+          "version": 7,
           "changelog": [
+            {
+              "version": 7,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -595,8 +987,12 @@
         },
         {
           "name": "install",
-          "version": 0,
+          "version": 8,
           "changelog": [
+            {
+              "version": 8,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -605,8 +1001,12 @@
         },
         {
           "name": "rew-grants",
-          "version": 0,
+          "version": 9,
           "changelog": [
+            {
+              "version": 9,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -615,8 +1015,12 @@
         },
         {
           "name": "status",
-          "version": 0,
+          "version": 10,
           "changelog": [
+            {
+              "version": 10,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
@@ -625,8 +1029,12 @@
         },
         {
           "name": "sync",
-          "version": 0,
+          "version": 11,
           "changelog": [
+            {
+              "version": 11,
+              "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
+            },
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
