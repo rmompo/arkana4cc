@@ -16,6 +16,11 @@ def run(lab, cwd, env=None):
                           env=dict(lab.env, **(env or {})), cwd=cwd, timeout=30)
 
 
+def migrada(lab):
+    """Marca la instalación del laboratorio como ya migrada (registro del proyecto en el layout que esperan los plugins)."""
+    wj(os.path.join(lab.arkana, "arkana-project.json"), {"schema_version": 1, "layout": 3, "workspace": {"id": "x", "name": "t"}, "components": []})
+
+
 def wj(p, obj):
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with open(p, "w", encoding="utf-8") as f:
@@ -25,6 +30,7 @@ def wj(p, obj):
 class TestHookEstado(unittest.TestCase):
     def test_resumen_con_cambios_plan_y_mensajes_sin_inyectar_en_el_contexto(self):
         with TC.CLab() as lab:
+            migrada(lab)
             app = os.path.join(lab.ws, "app")
             subprocess.run(["git", "init", "-q", app], check=True)
             with open(os.path.join(app, "nuevo.txt"), "w") as f:
@@ -69,6 +75,17 @@ class TestHookEstado(unittest.TestCase):
             self.assertEqual((r.returncode, r.stdout), (0, ""))
             r = run(lab, lab.root, env={"ARKANA_HOME": ""})
             self.assertEqual((r.returncode, r.stdout), (0, ""))
+
+class TestAvisoDeMigracion(unittest.TestCase):
+    def test_avisa_al_usuario_si_el_layout_es_anterior_y_no_si_esta_al_dia(self):
+        with TC.CLab() as lab:
+            m = json.loads(run(lab, os.path.join(lab.ws, "app")).stdout)["systemMessage"]
+            self.assertTrue(m.startswith("[ARKANA] ⚠ Instalación en layout 0; esta versión necesita 3. Ejecuta /arkana-evolve:apply."), m)
+            migrada(lab)
+            out = json.loads(run(lab, os.path.join(lab.ws, "app")).stdout)
+            self.assertNotIn("Instalación en layout", out.get("systemMessage", ""))          # al día: sin aviso (el BRIEF normal sí puede salir)
+            self.assertIn("hookSpecificOutput", out)
+
 
 class TestHookDirectrices(unittest.TestCase):
     def ctx(self, r):

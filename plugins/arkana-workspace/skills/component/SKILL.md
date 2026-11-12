@@ -21,6 +21,7 @@ Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directric
 | `--vpn` / `--no-vpn` | Si requiere VPN |
 | `--statusline` / `--no-statusline` | Si `arkana-statusline` lo muestra. Sin la marca se muestra salvo los de tipo `docs`; `--statusline` fuerza mostrarlo y `--no-statusline` lo oculta. No se aplica a ARKANA, que siempre se muestra |
 | `--tool-version tool=ver`, `--tool-path tool=ruta` | Herramientas que pide (la ruta va a `local.json`) |
+| `--rename NUEVO` | Solo `edit`: cambia el alias (el id no cambia) en el manifiesto, `local.json`, el registro y los datos locales de los plugins; ensaya antes y no cambia nada si algún plugin no puede (plan activo). Los documentos compartidos referencian por id y no se tocan |
 | `--yes` | Confirma `remove` (solo quita del manifiesto; la carpeta no se toca) |
 
 ## Pasos

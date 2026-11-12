@@ -15,7 +15,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "_core"))
 sys.path.insert(0, os.path.join(HERE, "lib"))
-from arkana_core import datafiles, locate, manifest  # noqa: E402
+from arkana_core import datafiles, locate, manifest, project  # noqa: E402
 import directives  # noqa: E402
 import gitstate  # noqa: E402
 
@@ -121,6 +121,10 @@ def main(argv):
         st = locate.state_dir(home)
         aliases = ws.aliases()
         text = brief(git_pending(ws, aliases), messaging_pending(st, aliases), active_plan(st))
+        have = project.layout(home)
+        if have < project.LAYOUT_REQUIRED:                                      # instalación sin migrar: lo primero que debe ver la persona usuaria
+            aviso = f"[ARKANA] ⚠ Instalación en layout {have}; esta versión necesita {project.LAYOUT_REQUIRED}. Ejecuta /arkana-evolve:apply."
+            text = aviso + ("\n\n" + text if text else "\n")
         out = {}
         if text:
             out["systemMessage"] = text

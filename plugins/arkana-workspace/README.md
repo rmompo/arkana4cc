@@ -2,7 +2,7 @@
 
 Plugin base de Arkana para Claude Code. Gobierna el **workspace** (ARKANA, repositorio de conciliación y gobierno del proyecto y sus componentes, más el proyecto, que se compone de uno o más componentes, cada uno un repositorio): qué componentes lo forman, quién puede leer o escribir dónde, con qué credenciales, con qué herramientas, con qué convención de commits y en qué estado está cada repo. Es el único plugin del que dependen los demás para saber «dónde está todo».
 
-Versión del plugin: 6.0.0 (`.claude-plugin/plugin.json`). Contrato `arkana-plugin.json` versión 1. Solo biblioteca estándar de Python 3 (`python3`, `git`; `jq` lo usan el núcleo bash y la statusline). Visión de conjunto de los plugins: [`../README.md`](../README.md).
+Versión del plugin: 6.1.0 (`.claude-plugin/plugin.json`). Contrato `arkana-plugin.json` versión 1. Solo biblioteca estándar de Python 3 (`python3`, `git`; `jq` lo usan el núcleo bash y la statusline). Visión de conjunto de los plugins: [`../README.md`](../README.md).
 
 ## Índice
 
@@ -142,6 +142,7 @@ Campos de cada bloque (ARKANA y componentes comparten los marcados «ambos»):
 | `vpn` | componente | booleano | Si requiere VPN. `--vpn` / `--no-vpn`; `handover` lo muestra |
 | `tools[]` | componente | lista `{tool, version}` | Herramientas y versiones que pide el componente. `--tool-version tool=ver` |
 | `statusline` | componente | booleano | Si `arkana-statusline` lo muestra (sin la marca se muestra salvo los de tipo `docs`). `--statusline` / `--no-statusline`; este plugin no lo lee |
+| `id` | ambos | UUID v4 | **Identidad inmutable** de la pieza, la del registro compartido `arkana-project.json` (la escribe `/arkana-evolve:apply` y `component add`). El alias puede cambiar con `component edit --rename`; el id, nunca. Los documentos compartidos por git referencian por id |
 | `owner`, `label` | componente | texto | Admitidos por el esquema; ningún script de este plugin los lee ni hay opción para fijarlos |
 
 Ejemplo mínimo:
@@ -336,6 +337,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/layout.py" init --base /work/proyecto
 | `arkana-presente`, `arkana-escribible` | Existe ARKANA y se puede escribir en ella | OK/FAIL |
 | `permisos` | `settings.local.json` frente al modelo (`permissions.diff`); FAIL si hay `missing`, `weaker` o `bash-missing`; WARN con el resto | OK/WARN/FAIL |
 | `commits` | El `commit_format` del componente es válido (la convención la inyecta el hook) | OK/FAIL |
+| `registro` | El id del componente coincide con el registro compartido `arkana-project.json` (alias vigente, id en el manifiesto, alta en el registro) | OK/WARN |
 | `git-repo` | Es un repo git; si no, `WARN` y termina | WARN |
 | `gitignore-env` | `.env` ignorado | OK/FAIL |
 | `ignore-editor`, `ignore-editor-session`, `ignore-arkana-local` | `.claude/`, `.claude-session/` y `ARKANA.local.md` ignorados por cualquier vía (`.gitignore` o `.git/info/exclude`) | OK/FAIL |
@@ -476,6 +478,8 @@ Sin arreglo en el skill: `arkana-escribible` (permisos del sistema de ficheros) 
 | `--commit-format` | `conventional`, `ia4d` | `conventional` (efectivo si falta) | El CLI acepta cualquier texto; un valor distinto de los dos hace fallar `commits.py` y `check` (`commits`) con «commit_format desconocido» |
 | `--vpn` / `--no-vpn` | flags | sin definir | Guarda `vpn: true/false`. Rechazado para ARKANA |
 | `--statusline` / `--no-statusline` | flags | sin definir | Guarda `statusline: true/false`: fuerza mostrar u ocultar el componente en la barra de `arkana-statusline`. Rechazado para ARKANA, que siempre se muestra |
+| `--rename NUEVO` | alias | — | Solo `edit`. Cambia el **alias** (el id no cambia): manifiesto, claves de `local.json`, registro del proyecto y, con el comando `rename` que declaren en su contrato, los datos locales de los plugins (mensajes, tareas, planes, libro). **Antes ensaya** todos los plugins con `--dry-run` y, si alguno no puede (p. ej. un plan activo), no cambia nada. Si el registro ya trae el alias nuevo (lo renombró otra persona y empujó), solo alinea tu copia. Rechazado para ARKANA |
+| `--plugins-dir DIR` | ruta | `<carpeta de Arkana>/plugins` | Dónde buscar los contratos con `rename` |
 | `--tool-version tool=ver` | repetible | — | Añade o cambia `tools[]` del componente. Formato `nombre=valor` (si no, error). Rechazado para ARKANA |
 | `--tool-path tool=ruta` | repetible | — | Ruta local de la herramienta; va a `local.json` (`tool_paths[alias]`). Rechazado para ARKANA |
 | `--yes` | flag | no | Confirma `remove` (obligatorio salvo con `--dry-run`); solo quita del manifiesto, la carpeta y el repo no se tocan |
@@ -830,7 +834,7 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 |---|---|---|---|
 | `SessionStart` | `startup\|resume\|clear\|compact` | `python3 -I "${CLAUDE_PLUGIN_ROOT}/scripts/hooks.py" session-status` | 10 s |
 
-**Qué hace.** (1) Muestra al **usuario** (campo `systemMessage`) un BRIEF corto, solo si hay algo que contar (cambios sin subir, mensajes, plan activo). (2) Inyecta en el contexto del **modelo** (`hookSpecificOutput.additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (la más específica; ARKANA incluida): reglas comunes, convención de commits y `ARKANA.local.md`. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker) ni si no hay workspace. Nunca falla (siempre sale con 0).
+**Qué hace.** (1) Muestra al **usuario** (campo `systemMessage`) un BRIEF corto, solo si hay algo que contar (cambios sin subir, mensajes, plan activo), precedido de un aviso `⚠ Instalación en layout N; esta versión necesita M. Ejecuta /arkana-evolve:apply.` cuando el registro del proyecto está por debajo del layout que esperan los plugins. (2) Inyecta en el contexto del **modelo** (`hookSpecificOutput.additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (la más específica; ARKANA incluida): reglas comunes, convención de commits y `ARKANA.local.md`. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker) ni si no hay workspace. Nunca falla (siempre sale con 0).
 
 **Formato del BRIEF** (secciones en este orden; cada una solo si tiene contenido):
 

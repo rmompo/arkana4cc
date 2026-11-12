@@ -15,7 +15,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "_core"))
 sys.path.insert(0, os.path.join(HERE, "..", "lib"))
-from arkana_core import manifest, output  # noqa: E402
+from arkana_core import manifest, output, project  # noqa: E402
 import commits  # noqa: E402
 import permissions  # noqa: E402
 import proc  # noqa: E402
@@ -58,6 +58,19 @@ def check(ws, alias, network=True):
     else:
         graves = [k for k, _ in its if permissions.STATUS_OF[k] == "FAIL"]
         add("FAIL" if graves else "WARN", "permisos", f"{len(its)} desviaciones ({', '.join(sorted({k for k, _ in its}))}); ver arkana-workspace:rew-grants")
+    # 2b. Registro del proyecto (id inmutable + alias renombrable, compartidos por git)
+    reg = project.Registry.load(ws.home)
+    bid = c.get("id")
+    if not reg.present:
+        add("WARN", "registro", f"no hay {project.FILE}: ejecuta /arkana-evolve:apply")
+    elif reg.id_of(alias) is None and reg.alias_of(bid) is None:
+        add("WARN", "registro", f"{manifest.display(alias)} no está en el registro compartido: se da de alta con /arkana-evolve:apply")
+    elif bid and reg.alias_of(bid) and reg.alias_of(bid) != manifest.canon(alias):
+        add("WARN", "registro", f"el registro compartido llama {reg.alias_of(bid)} a este componente: alinea tu copia con `component edit --alias {alias} --rename {reg.alias_of(bid)}`")
+    elif not bid:
+        add("WARN", "registro", "el manifiesto local no lleva el id del componente: ejecuta /arkana-evolve:apply")
+    else:
+        add("OK", "registro", f"id {bid[:8]}… en el registro compartido")
     # 3. Convención de commits (la inyecta el hook de sesión desde el manifiesto: aquí solo se valida el formato)
     err = commits.check(ws, alias)
     add("FAIL" if err else "OK", "commits", err or f"convención de commits: {commits.fmt_of(ws, alias)}")

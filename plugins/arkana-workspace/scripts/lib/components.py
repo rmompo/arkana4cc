@@ -7,8 +7,10 @@
                       [--statusline|--no-statusline] [--tool-version tool=ver]... [--tool-path tool=ruta]...
   components.py edit   --alias A  (mismas opciones que add; solo se cambia lo indicado). `--alias arkana` edita ARKANA: su `--commit-format`,
                       `--git-email-domain`, remoto, ramas, `--token-ref`/`--git-username` (no admite --type, --path, --vpn, --statusline ni --tool-*)
+  components.py edit   --alias A --rename NUEVO   cambia el ALIAS de un componente (su id no cambia): manifiesto, `local.json`, registro del proyecto y los datos
+                      locales de los plugins que declaren `rename` en su contrato. Los documentos compartidos referencian por id y no se tocan.
   components.py remove --alias A  [--yes]
-  Opciones comunes: --home DIR  --dry-run  --json
+  Opciones comunes: --home DIR  --dry-run  --json  [--plugins-dir DIR]
 
 `--path` se da absoluta o relativa a la raíz del workspace y se guarda relativa. La identidad git (user/email) y las rutas absolutas van
 a `local.json`, no al manifiesto exportable. `--git-email-domain` (repetible) fija los dominios de correo que debe tener el autor de los commits del
@@ -23,8 +25,10 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "_core"))
-from arkana_core import datafiles, locate, manifest, output  # noqa: E402
+from arkana_core import contract, datafiles, locate, manifest, output, project  # noqa: E402
+import proc  # noqa: E402
 
 
 def _load(home):
@@ -125,6 +129,46 @@ def update_local(home, alias, tool_paths, git_user, git_email, dry, new_abs_path
     datafiles.atomic_write_json(p, d, mode=0o644)
 
 
+def rename_local(home, old, new, dry):
+    """Renombra el alias en las claves de `local.json` (rutas, identidad git y rutas de herramientas)."""
+    p = os.path.join(locate.state_dir(home), manifest.LOCAL_JSON)
+    d = _local(home)
+    ch = False
+    for k in ("paths", "git", "tool_paths"):
+        if isinstance(d.get(k), dict) and old in d[k]:
+            d[k][new] = d[k].pop(old)
+            ch = True
+    if ch and not dry:
+        datafiles.atomic_write_json(p, d, mode=0o644)
+    return ch
+
+
+def rename_hooks(rep, plugins_dir, home, old, new, dry):
+    """Ejecuta el comando `rename` que cada plugin declara en su contrato (reescribe SUS datos locales); una línea ESTADO|ID|detalle por resultado."""
+    if not os.path.isdir(plugins_dir):
+        return
+    for name in sorted(os.listdir(plugins_dir)):
+        pdir = os.path.join(plugins_dir, name)
+        if name == "arkana-workspace" or not os.path.isfile(os.path.join(pdir, contract.CONTRACT_FILE)):
+            continue
+        try:
+            c = contract.load(pdir)
+        except contract.ContractError as e:
+            rep.add("FAIL", f"{name}:contrato", str(e))
+            continue
+        if not c.get("rename"):
+            continue
+        cmd = f"{c['rename']} --from {old} --to {new}" + (" --dry-run" if dry else "")
+        rc, out = proc.run(["bash", "-c", cmd], 120, dict(os.environ, ARKANA_HOME=home, CLAUDE_PLUGIN_ROOT=pdir), cwd=pdir)
+        n = 0
+        for l in out.splitlines():
+            p = l.split("|", 2)
+            if len(p) == 3 and p[0] in output.STATUSES:
+                rep.add(p[0], f"{name}:{p[1]}", p[2]); n += 1
+        if rc != 0 and not n:
+            rep.add("FAIL", f"{name}:rename", "el comando de renombrado falló sin salida en el formato común")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="components.py")
     ap.add_argument("cmd", choices=["list", "add", "edit", "remove"])
@@ -146,6 +190,8 @@ def main(argv=None):
     ap.add_argument("--no-statusline", dest="statusline", action="store_false")
     ap.add_argument("--tool-version", action="append")
     ap.add_argument("--tool-path", action="append")
+    ap.add_argument("--rename")
+    ap.add_argument("--plugins-dir")
     ap.add_argument("--yes", action="store_true")
     ap.add_argument("--home")
     ap.add_argument("--dry-run", action="store_true")
@@ -171,11 +217,16 @@ def main(argv=None):
             if any(c["alias"] == alias for c in data["components"]) or alias in manifest.RESERVED:
                 raise ValueError(f"el alias {alias!r} ya existe o está reservado")
             block = {"alias": alias, "type": a.type or "generic", "path": ""}
+            reg = project.Registry.load(home)
+            if reg.present:                                                    # con registro, el componente nace con su id (inmutable)
+                block["id"] = reg.id_of(alias) or project.new_id()
             tp = apply_options(block, a, root)
             data["components"].append(block)
             save(home, path, data, a.dry_run)
             update_local(home, alias, tp, a.git_user, a.git_email, a.dry_run)
-            rep.add("DRY" if a.dry_run else "OK", alias, f"componente añadido en {block['path']}", component=alias)
+            if reg.present and not a.dry_run:
+                project.add_component(home, alias, cid=block["id"])
+            rep.add("DRY" if a.dry_run else "OK", alias, f"componente añadido en {block['path']}" + (f" (id {block['id'][:8]}…)" if block.get("id") else ""), component=alias)
         elif a.cmd == "edit":
             if alias == "arkana":                                             # ARKANA también tiene sus directrices de commit, su remoto y su identidad git
                 solo_componentes = [o for o, v in (("--type", a.type), ("--path", a.path), ("--vpn/--no-vpn", a.vpn), ("--statusline/--no-statusline", a.statusline), ("--tool-version", a.tool_version), ("--tool-path", a.tool_path)) if v is not None]
@@ -186,10 +237,40 @@ def main(argv=None):
                 block = next((c for c in data["components"] if c["alias"] == alias), None)
             if block is None:
                 raise ValueError(f"no existe el componente {a.alias!r}")
+            new = None
+            if a.rename:
+                new = manifest.canon(a.rename)
+                if alias == "arkana":
+                    raise ValueError("ARKANA no se renombra")
+                if not manifest.ALIAS_RX.match(new) or new in manifest.RESERVED:
+                    raise ValueError(f"alias no válido o reservado: {a.rename!r}")
+                if new != alias and any(c["alias"] == new for c in data["components"]):
+                    raise ValueError(f"ya existe un componente llamado {new}")
+                block["alias"] = new
+                if new != alias and not a.dry_run:                             # ensayo previo: si algún plugin no puede renombrar ahora, no se cambia nada
+                    pre = output.Report("arkana-workspace", "rename-ensayo")
+                    rename_hooks(pre, os.path.realpath(a.plugins_dir) if a.plugins_dir else os.path.join(home, "plugins"), home, alias, new, True)
+                    fallos = [i for i in pre.items if i["status"] == "FAIL"]
+                    if fallos:
+                        raise ValueError("el renombrado no es posible ahora (no se ha cambiado nada): " + "; ".join(f"{i['id']}: {i['detail']}" for i in fallos[:3]))
             tp = apply_options(block, a, root)
-            update_local(home, alias, tp, a.git_user, a.git_email, a.dry_run, os.path.realpath(os.path.join(root, block["path"])) if a.path else None)
+            target = new or alias
+            if new and new != alias:
+                reg = project.Registry.load(home)
+                if reg.present and (reg.id_of(alias) or reg.id_of(new)) and not a.dry_run:
+                    project.rename_component(home, alias, new)                 # el id no cambia: los documentos compartidos siguen valiendo
+                    block.setdefault("id", reg.id_of(alias) or reg.id_of(new))
+                elif reg.present and block.get("id") is None:
+                    block["id"] = reg.id_of(alias) or reg.id_of(new)
+            if new and new != alias:
+                rename_local(home, alias, new, a.dry_run)                      # antes que update_local: las claves nuevas no deben pisarse
+            update_local(home, target, tp, a.git_user, a.git_email, a.dry_run, os.path.realpath(os.path.join(root, block["path"])) if a.path else None)
             save(home, path, data, a.dry_run)
-            rep.add("DRY" if a.dry_run else "OK", alias, "componente actualizado", component=alias)
+            if new and new != alias:
+                rep.add("DRY" if a.dry_run else "OK", target, f"alias {alias} → {new} en el manifiesto y en local.json", component=target)
+                rename_hooks(rep, os.path.realpath(a.plugins_dir) if a.plugins_dir else os.path.join(home, "plugins"), home, alias, new, a.dry_run)
+            else:
+                rep.add("DRY" if a.dry_run else "OK", alias, "componente actualizado", component=alias)
         elif a.cmd == "remove":
             if not any(c["alias"] == alias for c in data["components"]):
                 raise ValueError(f"no existe el componente {a.alias!r}")
@@ -197,6 +278,8 @@ def main(argv=None):
                 raise ValueError("remove pide confirmación explícita: --yes (no borra la carpeta ni el repo, solo lo quita del manifiesto)")
             data["components"] = [c for c in data["components"] if c["alias"] != alias]
             save(home, path, data, a.dry_run)
+            if not a.dry_run and project.Registry.load(home).present:
+                project.retire_component(home, alias)                          # el id se conserva (retirado) para que las referencias sigan mostrándose
             rep.add("DRY" if a.dry_run else "OK", alias, "componente quitado del manifiesto (la carpeta no se toca)", component=alias)
     except (ValueError, OSError, KeyError, manifest.ManifestError) as e:
         rep.add("FAIL", a.cmd, str(e))
