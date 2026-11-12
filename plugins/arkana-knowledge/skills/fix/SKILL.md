@@ -1,6 +1,7 @@
 ---
 name: fix
 description: Corrige el conocimiento - reconstruye el índice local derivado y crea las carpetas fijas que falten. Para el resto de avisos de check indica qué hacer, sin tocar notas ni documentos. Acepta --dry-run y --json.
+version: 1
 ---
 
 # arkana-knowledge:fix

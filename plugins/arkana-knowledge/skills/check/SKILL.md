@@ -1,6 +1,7 @@
 ---
 name: check
 description: Valida de solo lectura notas y documentos - frontmatter, ids UUID únicos, componentes contra el registro, Changelog al día, sha256 de los originales, huérfanos, punteros git-lfs y cola de arkana-incoming. Nunca corrige. Acepta --json.
+version: 1
 ---
 
 # arkana-knowledge:check

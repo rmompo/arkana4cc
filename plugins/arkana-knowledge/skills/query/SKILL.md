@@ -1,6 +1,7 @@
 ---
 name: query
 description: Consulta notas y documentos (por su versión en Markdown) filtrando por topic, componente y tipo, y responde citando UUID, versión y ruta. Oculta lo borrado. Úsalo antes de decidir algo que pueda estar ya decidido. Solo lectura; acepta --json.
+version: 1
 ---
 
 # arkana-knowledge:query
