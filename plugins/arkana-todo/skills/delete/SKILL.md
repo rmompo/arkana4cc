@@ -1,7 +1,8 @@
 ---
 name: delete
-description: Borra una tarea de forma lógica (queda con estado deleted, se oculta de list y se conserva). Se recupera con modify --restore. Pide confirmación. Acepta --dry-run y --json.
-version: 3
+description: Borra una tarea de forma lógica (queda con estado deleted, se oculta de list y se conserva). Se recupera con modify --restore. Pide confirmación. Acepta --dry-run y --json. Also invoked explicitly as /arkana-todo:delete
+allowed-tools: [AskUserQuestion]
+version: 11
 ---
 
 # arkana-todo:delete

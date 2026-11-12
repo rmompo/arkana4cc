@@ -1,7 +1,8 @@
 ---
 name: fix
-description: Repara la lista de tareas - añade los campos que faltan y recalcula el contador de ids. No borra ni reescribe tareas. Acepta --dry-run y --json.
-version: 5
+description: Repara la lista de tareas - añade los campos que faltan y recalcula el contador de ids. No borra ni reescribe tareas. Acepta --dry-run y --json. Also invoked explicitly as /arkana-todo:fix
+allowed-tools: []
+version: 13
 ---
 
 # arkana-todo:fix

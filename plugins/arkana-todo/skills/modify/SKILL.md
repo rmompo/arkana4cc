@@ -1,7 +1,8 @@
 ---
 name: modify
-description: Cambia el título, la prioridad, el vencimiento (o none), el componente (o none) o las notas de una tarea, o restaura una borrada con --restore. Acepta --dry-run y --json.
-version: 8
+description: Cambia el título, la prioridad, el vencimiento (o none), el componente (o none) o las notas de una tarea, o restaura una borrada con --restore. Acepta --dry-run y --json. Also invoked explicitly as /arkana-todo:modify
+allowed-tools: []
+version: 16
 ---
 
 # arkana-todo:modify

@@ -1,7 +1,8 @@
 ---
 name: done
-description: Cierra una tarea de la lista (o la reabre con --reopen). Acepta --dry-run y --json.
-version: 4
+description: Cierra una tarea de la lista (o la reabre con --reopen). Acepta --dry-run y --json. Also invoked explicitly as /arkana-todo:done
+allowed-tools: []
+version: 12
 ---
 
 # arkana-todo:done

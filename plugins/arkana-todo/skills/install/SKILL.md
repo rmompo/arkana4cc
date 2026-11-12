@@ -1,7 +1,8 @@
 ---
 name: install
-description: Primera puesta en marcha - crea la lista de tareas (.arkana/arkana-todo/todos.json) si falta. Repetible. Acepta --dry-run y --json.
-version: 6
+description: Primera puesta en marcha - crea la lista de tareas (.arkana/arkana-todo/todos.json) si falta. Repetible. Acepta --dry-run y --json. Also invoked explicitly as /arkana-todo:install
+allowed-tools: []
+version: 14
 ---
 
 # arkana-todo:install

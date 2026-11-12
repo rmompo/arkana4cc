@@ -1,7 +1,8 @@
 ---
 name: add
-description: Añade una tarea a la lista de pendientes con prioridad, vencimiento y componente opcionales. Antes busca si ya existe una equivalente. Acepta --dry-run y --json.
-version: 1
+description: Añade una tarea a la lista de pendientes con prioridad, vencimiento y componente opcionales. Antes busca si ya existe una equivalente. Acepta --dry-run y --json. Also invoked explicitly as /arkana-todo:add
+allowed-tools: [AskUserQuestion]
+version: 9
 ---
 
 # arkana-todo:add

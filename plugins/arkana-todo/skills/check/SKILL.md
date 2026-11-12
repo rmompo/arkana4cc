@@ -1,7 +1,8 @@
 ---
 name: check
-description: Valida la lista de tareas de solo lectura - campos obligatorios, ids únicos, estados, prioridades, fechas y contador; avisa de las tareas vencidas. Nunca corrige. Acepta --json.
-version: 2
+description: Valida la lista de tareas de solo lectura - campos obligatorios, ids únicos, estados, prioridades, fechas y contador; avisa de las tareas vencidas. Nunca corrige. Acepta --json. Also invoked explicitly as /arkana-todo:check
+allowed-tools: []
+version: 10
 ---
 
 # arkana-todo:check
