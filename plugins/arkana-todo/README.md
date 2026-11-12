@@ -2,7 +2,7 @@
 
 Lista de tareas pendientes de la persona usuaria en un workspace de Arkana. Es **local y sin red**: un único fichero JSON en `.arkana/arkana-todo/todos.json`, con prioridad, vencimiento y componente opcionales. Cerrar es reversible y borrar es **lógico** (la tarea queda oculta, no se pierde).
 
-Es uno de los seis plugins del marketplace `arkana` (visión de conjunto en [`../README.md`](../README.md)). Solo usa la biblioteca estándar de Python 3.
+Es uno de los plugins del marketplace `arkana` (visión de conjunto en [`../README.md`](../README.md)). Solo usa la biblioteca estándar de Python 3.
 
 ## Instalación
 
