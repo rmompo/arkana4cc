@@ -15,7 +15,7 @@
     {
       "name": "arkana-messaging",
       "source": "./plugins/arkana-messaging",
-      "description": "Mensajes entre los componentes de un workspace: put, get, delete (lógico), sync y reconcile; almacén local, hooks y semilla"
+      "description": "Mensajes entre los componentes de un workspace: put, get, delete (lógico), sync y reconcile; almacén local y hooks"
     },
     {
       "name": "arkana-statusline",
@@ -30,7 +30,7 @@
     {
       "name": "arkana-knowledge",
       "source": "./plugins/arkana-knowledge",
-      "description": "Conocimiento común versionado con catálogo, por topic y componente, con Changelog en cada nota y borrado lógico"
+      "description": "Conocimiento común versionado: notas con UUID y Changelog, y documentos de origen con su versión en Markdown; ingesta desde arkana-incoming, consulta por topic y componente y borrado lógico"
     },
     {
       "name": "arkana-todo",
