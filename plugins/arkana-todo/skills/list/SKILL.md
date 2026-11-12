@@ -1,6 +1,7 @@
 ---
 name: list
 description: Lista las tareas pendientes (por defecto las abiertas), ordenadas por vencimiento y prioridad; filtra por estado, componente, prioridad o vencidas. Solo lectura. Acepta --json.
+version: 0
 ---
 
 # arkana-todo:list

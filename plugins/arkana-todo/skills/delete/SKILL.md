@@ -1,6 +1,7 @@
 ---
 name: delete
 description: Borra una tarea de forma lógica (queda con estado deleted, se oculta de list y se conserva). Se recupera con modify --restore. Pide confirmación. Acepta --dry-run y --json.
+version: 0
 ---
 
 # arkana-todo:delete
