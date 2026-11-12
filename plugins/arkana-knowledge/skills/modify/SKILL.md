@@ -1,7 +1,8 @@
 ---
 name: modify
-description: Modifica una nota existente (por UUID o slug) - sube la versión, añade una línea al Changelog de la propia nota (nunca lo pisa); también restaura una nota borrada con --restore. Acepta --dry-run y --json.
-version: 8
+description: Modifica una nota existente (por UUID o slug) - sube la versión, añade una línea al Changelog de la propia nota (nunca lo pisa); también restaura una nota borrada con --restore. Acepta --dry-run y --json. Also invoked explicitly as /arkana-knowledge:modify
+allowed-tools: []
+version: 16
 ---
 
 # arkana-knowledge:modify

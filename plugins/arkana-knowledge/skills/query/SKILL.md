@@ -1,7 +1,8 @@
 ---
 name: query
-description: Consulta notas y documentos (por su versión en Markdown) filtrando por topic, componente y tipo, y responde citando UUID, versión y ruta. Oculta lo borrado. Úsalo antes de decidir algo que pueda estar ya decidido. Solo lectura; acepta --json.
-version: 9
+description: Consulta notas y documentos (por su versión en Markdown) filtrando por topic, componente y tipo, y responde citando UUID, versión y ruta. Oculta lo borrado. Úsalo antes de decidir algo que pueda estar ya decidido. Solo lectura; acepta --json. Also invoked explicitly as /arkana-knowledge:query
+allowed-tools: []
+version: 17
 ---
 
 # arkana-knowledge:query

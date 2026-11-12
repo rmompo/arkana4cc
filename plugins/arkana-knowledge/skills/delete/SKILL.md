@@ -1,7 +1,8 @@
 ---
 name: delete
-description: Borra una nota de forma lógica - queda con state deleted, se oculta de query y se conserva; el borrado queda en su Changelog y se deshace con modify --restore. Pide confirmación. Acepta --dry-run y --json.
-version: 4
+description: Borra una nota de forma lógica - queda con state deleted, se oculta de query y se conserva; el borrado queda en su Changelog y se deshace con modify --restore. Pide confirmación. Acepta --dry-run y --json. Also invoked explicitly as /arkana-knowledge:delete
+allowed-tools: []
+version: 12
 ---
 
 # arkana-knowledge:delete

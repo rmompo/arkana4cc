@@ -1,7 +1,8 @@
 ---
 name: install
-description: Primera puesta en marcha del conocimiento - crea las carpetas fijas arkana-incoming/, arkana-knowledge/, arkana-docs/ y arkana-docs/md/ (con .gitkeep) y el índice local. Repetible; nunca instala herramientas. Acepta --dry-run y --json.
-version: 7
+description: Primera puesta en marcha del conocimiento - crea las carpetas fijas arkana-incoming/, arkana-knowledge/, arkana-docs/ y arkana-docs/md/ (con .gitkeep) y el índice local. Repetible; nunca instala herramientas. Acepta --dry-run y --json. Also invoked explicitly as /arkana-knowledge:install
+allowed-tools: []
+version: 15
 ---
 
 # arkana-knowledge:install

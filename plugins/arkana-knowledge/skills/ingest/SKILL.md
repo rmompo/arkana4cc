@@ -1,7 +1,8 @@
 ---
 name: ingest
-description: Ingiere lo que hay en arkana-incoming/ (o una ruta indicada) - decide si es conocimiento (nota) o documento (original en arkana-docs/ con su Markdown en arkana-docs/md/), pregunta cuando hay duda explicando cuál, convierte con herramientas o con el propio modelo y registra procedencia. Nunca instala herramientas. Acepta --dry-run.
-version: 6
+description: Ingiere lo que hay en arkana-incoming/ (o una ruta indicada) - decide si es conocimiento (nota) o documento (original en arkana-docs/ con su Markdown en arkana-docs/md/), pregunta cuando hay duda explicando cuál, convierte con herramientas o con el propio modelo y registra procedencia. Nunca instala herramientas. Acepta --dry-run. Also invoked explicitly as /arkana-knowledge:ingest
+allowed-tools: [AskUserQuestion]
+version: 14
 ---
 
 # arkana-knowledge:ingest

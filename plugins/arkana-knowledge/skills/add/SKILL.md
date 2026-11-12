@@ -1,7 +1,8 @@
 ---
 name: add
-description: Añade una nota de conocimiento común (decisión, lección, pendiente, contrato, referencia o metodología) en arkana-knowledge/<topic>/ con id UUID, frontmatter versionado, procedencia (fuentes) y Changelog. Antes busca para no duplicar. Acepta --dry-run y --json.
-version: 2
+description: Añade una nota de conocimiento común (decisión, lección, pendiente, contrato, referencia o metodología) en arkana-knowledge/<topic>/ con id UUID, frontmatter versionado, procedencia (fuentes) y Changelog. Antes busca para no duplicar. Acepta --dry-run y --json. Also invoked explicitly as /arkana-knowledge:add
+allowed-tools: [AskUserQuestion]
+version: 10
 ---
 
 # arkana-knowledge:add
