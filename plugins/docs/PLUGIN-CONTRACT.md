@@ -27,7 +27,7 @@ Cada plugin de Arkana trae en su raíz un `arkana-plugin.json` (esquema en `lib/
 | `hooks` | Eventos de Claude Code que usa (`SessionStart`, `UserPromptSubmit`, `Stop`, `SessionEnd`) |
 | `data[]` | Rutas relativas a `.arkana/` (nunca absolutas ni con `..`) con su clase (`config`, `data`, `local`, `secret`). Lo que un plugin guarda **fuera** de `.arkana/` y ya viaja con git no se declara: es el caso de `arkana-knowledge`, cuyas notas viven en `arkana-knowledge/` en el repositorio de ARKANA y se comparten entre las personas usuarias por git (por eso su `data` es `[]`) |
 
-## Los seis plugins
+## Los plugins
 
 Estructura: el **workspace** es ARKANA más el proyecto, y el proyecto se compone de uno o más **componentes** (repositorios). ARKANA tiene su propio repositorio y es el de **conciliación, gobierno y conocimiento** del proyecto y de sus componentes; los plugins actúan desde él.
 
@@ -39,10 +39,11 @@ Estructura: el **workspace** es ARKANA más el proyecto, y el proyecto se compon
 | `arkana-agentic` | Orquestación: `plan`, `run`, `status`, `control`, `stop`, `archive`, `costs`; adaptadores por tipo de componente; libro de sesiones | `install`, `check`, `fix` |
 | `arkana-knowledge` | Conocimiento del proyecto que las personas usuarias administran (`add`, `modify`, `delete` lógico) y consultan (`query`); funciona como un pseudo-RAG: catálogo y documentos indexados y organizados para consultarlos con eficiencia | `install`, `check`, `fix` |
 | `arkana-todo` | Lista de tareas pendientes de la persona usuaria (`add`, `list`, `done`, `modify`, `delete` lógico), en `.arkana/arkana-todo/todos.json` (clase `data`) | `install`, `check`, `fix` |
+| `arkana-evolve` | Evolución de una instalación: migraciones numeradas e idempotentes (`apply`, con `--dry-run` y `--to N`) y su diagnóstico (`check`); estado local en `.arkana/arkana-evolve/state.json`. **No depende de ningún plugin** y es la excepción a los verbos comunes: no ofrece `install` ni `fix` | `check`, `apply` |
 
 ## Convenciones
 
-- **Verbos comunes.** `install` (primera puesta en marcha, repetible), `check` (solo lectura, nunca corrige) y `fix` (corrige lo que `check` marca, interactivo, con copia `.bak`). **Todos los skills aceptan `--dry-run` y `--json`** (en los de solo lectura `--dry-run` no hace nada).
+- **Verbos comunes.** `install` (primera puesta en marcha, repetible), `check` (solo lectura, nunca corrige) y `fix` (corrige lo que `check` marca, interactivo, con copia `.bak`). **Todos los skills aceptan `--dry-run` y `--json`** (en los de solo lectura `--dry-run` no hace nada). Excepción: `arkana-evolve` ofrece `check` y `apply` (no hay nada que instalar y reparar es aplicar).
 - **Código común.** La fuente canónica es `lib/arkana_core/` (localizador, manifiesto, contratos, salida, `netguard`, `seedblock`); cada plugin lleva su **copia** en `scripts/_core/` con `.vendor.json` (versión y sha256), generada por `scripts/vendor-core.sh` y vigilada por los tests. Los plugins instalados se leen de una copia en la caché de Claude Code, así que no se referencian entre sí.
 - **Contención de red.** Ningún comando que pueda tocar la red se ejecuta sin tope de tiempo y en su propio grupo de procesos (`arkana_core.netguard`): `git` de red 20 s, DNS comprobado antes (3 s) y cortacircuitos; sin VPN se avisa en lugar de esperar.
 - **Hooks.** No hacen nada dentro de un worker (`ARKANA_WORKER=1`, además de `disableAllHooks` en sus ajustes) ni fuera de un workspace; un hook nunca rompe la sesión.

@@ -5,7 +5,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$ROOT/lib/arkana_core"
-DEFAULT=(arkana-agentic arkana-knowledge arkana-messaging arkana-statusline arkana-todo arkana-workspace)
+DEFAULT=(arkana-agentic arkana-evolve arkana-knowledge arkana-messaging arkana-statusline arkana-todo arkana-workspace)
 CHECK=0; plugins=()
 for a in "$@"; do case "$a" in --check) CHECK=1 ;; *) plugins+=("$a") ;; esac; done
 [ "${#plugins[@]}" -gt 0 ] || plugins=("${DEFAULT[@]}")

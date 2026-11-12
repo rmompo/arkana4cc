@@ -20,13 +20,17 @@ Arkana es una herramienta general para gobernar proyectos de varias piezas en re
 │   │                                (cada mensaje: para y destinatarios, repeticion once|repeat, confirmaciones/entregas/ejecuciones por destinatario)
 │   ├── arkana-agentic/
 │   │   ├── config/                  politica.json y comandos-permitidos.json locales (aditivos)
-│   │   ├── state/                   planes/, run/ (worker, linea.json, marcas), sesiones/, actual
+│   │   ├── state/                   planes/, run/ (worker, linea.json, marcas), actual
 │   │   ├── data/                    ledger/{plans,sessions}/ (libro, solo metadatos) y archive/ (planes archivados)
 │   │   └── bak/
+│   ├── arkana-evolve/state.json     migraciones aplicadas en esta instalación (clase local)
 │   ├── arkana-statusline/state/sessions/<sid>.json   coste real de cada sesión (la statusline es su única escritora)
 │   └── arkana-todo/todos.json       lista de tareas de la persona usuaria (clase data)
+├── arkana-project.json              registro del proyecto (versionado): UUID y alias de cada pieza y sello `layout`
+├── arkana-incoming/                 entrada de documentos; solo `.gitkeep` y su `.gitignore` interno se versionan
 ├── arkana-knowledge/                notas versionadas en git (<topic>/<slug>.md) y catalog.json
-└── plugins/                         los seis plugins y el marketplace `arkana`; los contratos comunes están en `plugins/docs/`
+├── arkana-docs/                     documentos de origen (versionado); `md/` guarda sus versiones en Markdown
+└── plugins/                         los plugins y el marketplace `arkana`; los contratos comunes están en `plugins/docs/`
 ```
 
 Fuera del repo, por usuario: `~/.arkana-workspaces.json` (localizador: raíces de workspace conocidas) y `~/.claude/arkana-statusline/` (copia instalada de la statusline).

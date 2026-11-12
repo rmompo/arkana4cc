@@ -4,7 +4,7 @@
     "name": "R. Mompó Pavesi"
   },
   "metadata": {
-    "description": "Arkana: gobierno, mensajería, statusline, orquestación, conocimiento y tareas de un workspace multi-repo (seis plugins)"
+    "description": "Arkana: gobierno, mensajería, statusline, orquestación, conocimiento, tareas y evolución de un workspace multi-repo"
   },
   "plugins": [
     {
@@ -36,6 +36,11 @@
       "name": "arkana-todo",
       "source": "./plugins/arkana-todo",
       "description": "Lista de tareas pendientes de la persona usuaria: local, con prioridad, vencimiento y componente, cierre reversible y borrado lógico"
+    },
+    {
+      "name": "arkana-evolve",
+      "source": "./plugins/arkana-evolve",
+      "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (registro del proyecto con UUID, carpetas fijas, datos) de una versión a otra"
     }
   ]
 }

@@ -9,9 +9,9 @@ Licencia: [MIT](LICENSE). Autor: R. Mompó Pavesi.
 ```
 .
 ├── .claude-plugin/marketplace.json   el marketplace `arkana`
-├── plugins/             los seis plugins (empieza por plugins/README.md)
+├── plugins/             los plugins (empieza por plugins/README.md)
 │   ├── docs/            contratos comunes: plugin, salida, disposición de datos
-│   └── arkana-{workspace,messaging,statusline,agentic,knowledge,todo}/
+│   └── arkana-{workspace,messaging,statusline,agentic,knowledge,todo,evolve}/
 ├── lib/arkana_core/     fuente canónica del núcleo común (con sus tests)
 └── scripts/
     ├── vendor-core.sh   copia el núcleo en cada plugin (scripts/_core/) y lo vigila con --check
@@ -24,7 +24,7 @@ El núcleo se copia dentro de cada plugin porque un plugin instalado no puede le
 
 ```bash
 claude plugin marketplace add <ruta-a-este-repo>        # la raíz del repo, donde está .claude-plugin/marketplace.json
-claude plugin install arkana-workspace@arkana      # y los que quieras: arkana-messaging, arkana-agentic, arkana-statusline, arkana-knowledge, arkana-todo
+claude plugin install arkana-workspace@arkana      # y los que quieras: arkana-messaging, arkana-agentic, arkana-statusline, arkana-knowledge, arkana-todo, arkana-evolve
 ```
 
 La secuencia de instalación en un workspace está en [`plugins/README.md`](plugins/README.md#puesta-en-marcha).
@@ -45,4 +45,5 @@ Las pruebas no usan red ni API real y no tocan `~/.claude`. La batería de conte
 
 - **Sin proyectos concretos en el código.** Componentes, rutas, tipos, formatos de commit, herramientas y registros se declaran en la configuración (el manifiesto y `config tools`).
 - **Extensiones opcionales apagadas por defecto**: el formato de commit `ia4d` y la integración con Jira (ver `plugins/arkana-workspace/README.md`).
+- **Herramientas del sistema: se usan las que hay y se piden las que faltan.** Arkana aprovecha lo que ya trae el entorno (contenedor o máquina). Si necesita otra herramienta o paquete, **se lo pide a la persona usuaria** indicando cuál, para qué y el comando exacto; **jamás lo instala por su cuenta** (ni `sudo`, ni gestores de paquetes del sistema). Una herramienta opcional que falte reduce la función, no la rompe.
 - **El conocimiento se comparte por git.** `arkana-knowledge/` vive en el repositorio de ARKANA de cada proyecto, no en estos plugins.
