@@ -195,6 +195,25 @@ class TestComponent(unittest.TestCase):
             self.assertEqual(e["permisos"], "FAIL"); self.assertEqual(e["commits"], "OK"); self.assertNotIn("claude-md", e); self.assertEqual(e["git-repo"], "WARN")
             self.assertEqual(r.returncode, 1)
 
+    def test_politica_versioned_env_baja_los_fallos_del_env_a_info(self):
+        with TC.CLab() as lab:
+            repo = lab.ws + "/api"
+            env = dict(os.environ, GIT_AUTHOR_NAME="x", GIT_AUTHOR_EMAIL="x@x", GIT_COMMITTER_NAME="x", GIT_COMMITTER_EMAIL="x@x")
+            Path(repo, ".env").write_text("K=v\n")
+            subprocess.run(["git", "-C", repo, "add", "-f", ".env"], check=True)
+            subprocess.run(["git", "-C", repo, "commit", "-q", "-m", "i"], check=True, env=env)
+            e = estados(run(lab, "component.py", "--component", "api", "--no-network"))
+            self.assertEqual((e["env-versionado"], e["env-historial"]), ("FAIL", "FAIL"))
+            Path(lab.arkana, "arkana-project.json").write_text(json.dumps({"schema_version": 1, "layout": 3, "workspace": {"id": "x", "name": "w"}, "components": []}))
+            cfg = lambda *a: subprocess.run([sys.executable, "-I", os.path.join(E.SCRIPTS, "lib", "config.py"), "policy", *a, "--home", lab.arkana],
+                                            capture_output=True, text=True, env=lab.env, stdin=subprocess.DEVNULL)
+            self.assertEqual(cfg("--key", "versioned_env", "--value", "true").returncode, 0)
+            e = estados(run(lab, "component.py", "--component", "api", "--no-network"))
+            self.assertEqual((e["env-versionado"], e["env-historial"]), ("INFO", "INFO"))
+            self.assertEqual(cfg("--key", "otra", "--value", "true").returncode, 1)
+            self.assertEqual(cfg("--key", "versioned_env", "--value", "quizas").returncode, 1)
+            self.assertIn("true", cfg().stdout)
+
     def test_se_deduce_del_directorio_actual(self):
         with TC.CLab() as lab:
             r = subprocess.run([sys.executable, "-I", os.path.join(CK, "component.py"), "--home", lab.arkana, "--no-network"], capture_output=True, text=True,

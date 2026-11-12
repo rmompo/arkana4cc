@@ -339,9 +339,9 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/layout.py" init --base /work/proyecto
 | `commits` | El `commit_format` del componente es válido (la convención la inyecta el hook) | OK/FAIL |
 | `registro` | El id del componente coincide con el registro compartido `arkana-project.json` (alias vigente, id en el manifiesto, alta en el registro) | OK/WARN |
 | `git-repo` | Es un repo git; si no, `WARN` y termina | WARN |
-| `gitignore-env` | `.env` ignorado | OK/FAIL |
+| `gitignore-env` | `.env` ignorado | OK/FAIL (INFO si la política `versioned_env` lo permite) |
 | `ignore-editor`, `ignore-editor-session`, `ignore-arkana-local` | `.claude/`, `.claude-session/` y `ARKANA.local.md` ignorados por cualquier vía (`.gitignore` o `.git/info/exclude`) | OK/FAIL |
-| `env-versionado`, `env-historial` | Ningún `.env*` (salvo `.env.example`) versionado ni en el historial | OK/FAIL |
+| `env-versionado`, `env-historial` | Ningún `.env*` (salvo `.env.example`) versionado ni en el historial | OK/FAIL (INFO con `versioned_env`) |
 | `env-example` | Existe `.env.example` | OK/WARN |
 | `git-identidad` | `user.email` coherente con `git.email_domains` (sin regla: cualquiera; sin remoto: no se comprueba) | OK/WARN/FAIL |
 | `gitattributes-eol` | `.gitattributes` con `eol=lf` | OK/WARN |
@@ -515,7 +515,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/components.py" edit --alias arkana --
 
 **Orden exacta:** 1) mostrar la configuración actual (`jira` y `tools` sin opciones); 2) si el usuario quiere cambiar algo, `--dry-run`, confirmar y aplicar; 3) para rutas de repos, altas o bajas, usar `component`.
 
-`python3 scripts/lib/config.py <jira|tools> [opciones]`. Comunes: `--home DIR`, `--dry-run`, `--json`.
+`python3 scripts/lib/config.py <jira|tools|policy> [opciones]`. Comunes: `--home DIR`, `--dry-run`, `--json`.
 
 **`config jira`:**
 
@@ -550,6 +550,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/config.py" tools --tool node --versio
   --package @angular/cli@17 --registry @acme=https://registry.example.org/npm/ --port 4200
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/config.py" tools --check-url https://registry.example.org --port 8080
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/config.py" jira --url https://jira.example.org --token-ref JIRA_TOKEN --dry-run
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/config.py" policy --key versioned_env --value true   # el cliente versiona su .env a propósito (política compartida en arkana-project.json)
 ```
 
 ---

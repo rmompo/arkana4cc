@@ -6,6 +6,8 @@
                                                               tools.json: herramientas {tool, version, path, packages, registries}, `urls` y `ports` que
                                                               comprueba `check`; la ruta no se exporta. Volver a registrar una herramienta conserva lo que
                                                               no se repite. Sin opciones lista
+  config.py policy [--key K --value V]                        política compartida del proyecto (arkana-project.json, versionada): hoy `versioned_env`
+                                                              (true|false): el cliente versiona su .env a propósito y `check` no lo marca como fallo. Sin opciones lista
   Comunes: --home DIR  --dry-run  --json
 """
 from pathlib import Path
@@ -17,9 +19,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "_core"))
 sys.path.insert(0, HERE)
-from arkana_core import datafiles, locate, manifest, output  # noqa: E402
+from arkana_core import datafiles, locate, manifest, output, project  # noqa: E402
 import components as component  # noqa: E402
 from components import _kv  # noqa: E402
+
+
+POLICIES = {"versioned_env": False}
+POLICY_DOC = {"versioned_env": "el cliente versiona su .env a propósito; check no lo marca como fallo"}
 
 
 def tools_path(home):
@@ -36,10 +42,12 @@ def read_tools(home):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="config.py")
-    ap.add_argument("cmd", choices=["jira", "tools"])
+    ap.add_argument("cmd", choices=["jira", "tools", "policy"])
     ap.add_argument("--url")
     ap.add_argument("--token-ref")
     ap.add_argument("--show", action="store_true")
+    ap.add_argument("--key")
+    ap.add_argument("--value")
     ap.add_argument("--tool")
     ap.add_argument("--version")
     ap.add_argument("--path")
@@ -69,6 +77,19 @@ def main(argv=None):
                 rep.add("DRY" if a.dry_run else "OK", "jira", "configuración guardada (el token vive en .credentials)")
             for k, v in (data.get("jira") or {}).items():
                 rep.add("INFO", f"jira.{k}", v)
+        elif a.cmd == "policy":
+            if bool(a.key) != (a.value is not None):
+                raise ValueError("--key y --value van juntos")
+            if a.key:
+                if a.key not in POLICIES:
+                    raise ValueError(f"política desconocida '{a.key}' (válidas: {', '.join(POLICIES)})")
+                if a.value.lower() not in ("true", "false"):
+                    raise ValueError(f"{a.key} espera true o false")
+                if not a.dry_run:
+                    project.set_policy(home, a.key, a.value.lower() == "true")
+                rep.add("DRY" if a.dry_run else "OK", a.key, f"{a.value.lower()} (queda en arkana-project.json, sin commitear)")
+            for k in POLICIES:
+                rep.add("INFO", k, str(project.policy(home, k, POLICIES[k])).lower() + " — " + POLICY_DOC[k])
         else:
             d = read_tools(home)
             changed = False
@@ -103,7 +124,7 @@ def main(argv=None):
                 for clave in ("urls", "ports"):
                     if d.get(clave):
                         rep.add("INFO", clave, ", ".join(map(str, d[clave])))
-    except (ValueError, OSError, KeyError, manifest.ManifestError) as e:
+    except (ValueError, OSError, KeyError, manifest.ManifestError, project.ProjectError) as e:
         rep.add("FAIL", a.cmd, str(e))
     sys.stdout.write(rep.render(a.json))
     return rep.exit_code()

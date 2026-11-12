@@ -78,17 +78,19 @@ def check(ws, alias, network=True):
     if git(path, "rev-parse", "--git-dir")[0] != 0:
         add("WARN", "git-repo", "no es un repositorio git (git init y remoto pendientes)")
         return rep
+    envok = bool(project.policy(ws.home, "versioned_env", False))     # política compartida: este cliente versiona su .env a propósito
     ok = git(path, "check-ignore", "-q", ".env")[0] == 0
-    add("OK" if ok else "FAIL", "gitignore-env", ".env ignorado" if ok else ".gitignore no cubre .env")
+    add("OK" if ok else "INFO" if envok else "FAIL", "gitignore-env", ".env ignorado" if ok else
+        "el .env no se ignora (permitido por la política versioned_env del proyecto)" if envok else ".gitignore no cubre .env")
     for pat, id_, label in ((".claude/x", "ignore-editor", ".claude/"), (".claude-session/x", "ignore-editor-session", ".claude-session/"),
                             ("ARKANA.local.md", "ignore-arkana-local", "ARKANA.local.md")):
         ok = git(path, "check-ignore", "-q", pat)[0] == 0
         add("OK" if ok else "FAIL", id_, f"{label} ignorado" if ok else f"{label} sin ignorar: se añade a .git/info/exclude con fix (no se toca el .gitignore)")
     rc, tracked = git(path, "ls-files")
     envs = [f for f in tracked.splitlines() if (os.path.basename(f) == ".env" or os.path.basename(f).startswith(".env.")) and not f.endswith(".env.example")][:3]
-    add("FAIL" if envs else "OK", "env-versionado", ("versionado: " + " ".join(envs)) if envs else "ningún .env versionado")
+    add(("INFO" if envok else "FAIL") if envs else "OK", "env-versionado", (("versionado (permitido por la política versioned_env): " if envok else "versionado: ") + " ".join(envs)) if envs else "ningún .env versionado")
     hist = git(path, "log", "--all", "--oneline", "--", ".env")[1]
-    add("FAIL" if hist else "OK", "env-historial", ".env aparece en el historial de git: rotar las credenciales y limpiar el historial" if hist else ".env no está en el historial")
+    add(("INFO" if envok else "FAIL") if hist else "OK", "env-historial", (".env aparece en el historial de git (permitido por la política versioned_env)" if envok else ".env aparece en el historial de git: rotar las credenciales y limpiar el historial") if hist else ".env no está en el historial")
     add("OK" if os.path.isfile(os.path.join(path, ".env.example")) else "WARN", "env-example", ".env.example presente" if os.path.isfile(os.path.join(path, ".env.example")) else "falta .env.example (plantilla con placeholders)")
     url = git(path, "remote", "get-url", "origin")[1]
     email = git(path, "config", "user.email")[1]

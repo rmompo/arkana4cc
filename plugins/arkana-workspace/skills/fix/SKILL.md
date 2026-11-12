@@ -31,7 +31,7 @@ Aplica, **uno a uno y con confirmación**, las correcciones de los `FAIL`/`WARN`
 | `ignore-editor`, `ignore-editor-session`, `ignore-arkana-local` | `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/excludes.py" apply --component <alias>` (`--dry-run` primero): añade `.claude/`, `.claude-session/` y `ARKANA.local.md` a `.git/info/exclude` (local, no versionado). **Nunca** los pongas en el `.gitignore` del repo |
 | `gitattributes-eol` | Crear o ampliar `.gitattributes` con `* text=auto eol=lf` |
 | `env-example` | Crear `.env.example` con los **nombres** de las variables del `.env` real (nunca los valores), vacíos o `<pegar-aquí>` |
-| `env-versionado` | Explicar `git rm --cached <fichero>` y que hay que **rotar las credenciales**; ejecutarlo solo si el usuario lo confirma. Sin commit |
+| `env-versionado` | Si el proyecto declara `versioned_env` no es fallo (INFO): no hacer nada. Si no, explicar `git rm --cached <fichero>` y que hay que **rotar las credenciales**; ejecutarlo solo si el usuario lo confirma. Sin commit |
 | `env-historial` | Solo informar: rotar credenciales y limpiar el historial (manual y delicado) |
 | `git-identidad`, `anidado-<alias>` | `git config user.email <correo>` **a nivel de repo** y con confirmación; no tocar `~/.gitconfig` |
 | `jira-mcp`, `jira-mcp-deps` (extensión opcional: solo si el manifiesto tiene el bloque `jira`; los emite `check` como `tools:<ID>`, no `component.py`) | Plugin `ia4d-project-bridge` ausente: indica que se instale y se habilite. Con confirmación, `npm install --omit=dev` dentro del `mcp/jira-connector` que indica el check |
