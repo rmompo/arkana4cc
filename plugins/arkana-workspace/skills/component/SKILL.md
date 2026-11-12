@@ -1,6 +1,7 @@
 ---
 name: component
 description: Gestiona los componentes (repos) del workspace en el manifiesto core/workspace.json - list, add, edit y remove - con alias, ruta, tipo, remoto, ramas, referencia de token, VPN y herramientas. Valida, hace copia .bak y acepta --dry-run y --json. La identidad git personal y las rutas absolutas van a local.json.
+version: 0
 ---
 
 # arkana-workspace:component

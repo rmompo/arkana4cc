@@ -1,6 +1,7 @@
 ---
 name: rew-grants
 description: Muestra la matriz de permisos R/E/W entre ARKANA y los componentes - la esperada (del manifiesto) y la efectiva (de cada .claude/settings.local.json) - y sus desviaciones (missing, extra, weaker, stronger, legacy, duplicate, mode). Solo lectura; sirve también para regenerar la tabla de organizacion-proyecto.md.
+version: 0
 ---
 
 # arkana-workspace:rew-grants
