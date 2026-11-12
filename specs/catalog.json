@@ -11,10 +11,50 @@
       "description": "Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verificación por scripts, límites y control (estado, parada, recuperación).",
       "category": "other",
       "status": "beta",
-      "version": "0.10.10",
+      "version": "0.10.20",
       "spec": "specs/arkana-agentic.md",
       "path": "plugins/arkana-agentic",
       "changelog": [
+        {
+          "version": "0.10.20",
+          "changes": "stop: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.10.19",
+          "changes": "status: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.10.18",
+          "changes": "run: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.10.17",
+          "changes": "plan: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.10.16",
+          "changes": "install: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.10.15",
+          "changes": "fix: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.10.14",
+          "changes": "costs: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.10.13",
+          "changes": "control: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.10.12",
+          "changes": "check: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.10.11",
+          "changes": "archive: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
         {
           "version": "0.10.10",
           "changes": "stop: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -63,8 +103,12 @@
       "skills": [
         {
           "name": "archive",
-          "version": 1,
+          "version": 11,
           "changelog": [
+            {
+              "version": 11,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 1,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -77,8 +121,12 @@
         },
         {
           "name": "check",
-          "version": 2,
+          "version": 12,
           "changelog": [
+            {
+              "version": 12,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 2,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -91,8 +139,12 @@
         },
         {
           "name": "control",
-          "version": 3,
+          "version": 13,
           "changelog": [
+            {
+              "version": 13,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 3,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -105,8 +157,12 @@
         },
         {
           "name": "costs",
-          "version": 4,
+          "version": 14,
           "changelog": [
+            {
+              "version": 14,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 4,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -119,8 +175,12 @@
         },
         {
           "name": "fix",
-          "version": 5,
+          "version": 15,
           "changelog": [
+            {
+              "version": 15,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 5,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -133,8 +193,12 @@
         },
         {
           "name": "install",
-          "version": 6,
+          "version": 16,
           "changelog": [
+            {
+              "version": 16,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 6,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -147,8 +211,12 @@
         },
         {
           "name": "plan",
-          "version": 7,
+          "version": 17,
           "changelog": [
+            {
+              "version": 17,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 7,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -161,8 +229,12 @@
         },
         {
           "name": "run",
-          "version": 8,
+          "version": 18,
           "changelog": [
+            {
+              "version": 18,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 8,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -175,8 +247,12 @@
         },
         {
           "name": "status",
-          "version": 9,
+          "version": 19,
           "changelog": [
+            {
+              "version": 19,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 9,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -189,8 +265,12 @@
         },
         {
           "name": "stop",
-          "version": 10,
+          "version": 20,
           "changelog": [
+            {
+              "version": 20,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 10,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -208,10 +288,18 @@
       "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra (apply, check)",
       "category": "other",
       "status": "beta",
-      "version": "0.5.2",
+      "version": "0.5.4",
       "spec": "specs/arkana-evolve.md",
       "path": "plugins/arkana-evolve",
       "changelog": [
+        {
+          "version": "0.5.4",
+          "changes": "check: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "0.5.3",
+          "changes": "apply: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
         {
           "version": "0.5.2",
           "changes": "check: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -228,8 +316,12 @@
       "skills": [
         {
           "name": "apply",
-          "version": 1,
+          "version": 3,
           "changelog": [
+            {
+              "version": 3,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 1,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -242,8 +334,12 @@
         },
         {
           "name": "check",
-          "version": 2,
+          "version": 4,
           "changelog": [
+            {
+              "version": 4,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 2,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -261,10 +357,42 @@
       "description": "Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y documentos de origen con su versión en Markdown, ingesta desde arkana-incoming y consulta (add, query, modify, delete, ingest)",
       "category": "other",
       "status": "beta",
-      "version": "2.0.9",
+      "version": "2.0.17",
       "spec": "specs/arkana-knowledge.md",
       "path": "plugins/arkana-knowledge",
       "changelog": [
+        {
+          "version": "2.0.17",
+          "changes": "query: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.0.16",
+          "changes": "modify: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.0.15",
+          "changes": "install: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.0.14",
+          "changes": "ingest: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.0.13",
+          "changes": "fix: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.0.12",
+          "changes": "delete: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.0.11",
+          "changes": "check: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.0.10",
+          "changes": "add: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
         {
           "version": "2.0.9",
           "changes": "query: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -305,8 +433,12 @@
       "skills": [
         {
           "name": "add",
-          "version": 2,
+          "version": 10,
           "changelog": [
+            {
+              "version": 10,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 2,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -319,8 +451,12 @@
         },
         {
           "name": "check",
-          "version": 3,
+          "version": 11,
           "changelog": [
+            {
+              "version": 11,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 3,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -333,8 +469,12 @@
         },
         {
           "name": "delete",
-          "version": 4,
+          "version": 12,
           "changelog": [
+            {
+              "version": 12,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 4,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -347,8 +487,12 @@
         },
         {
           "name": "fix",
-          "version": 5,
+          "version": 13,
           "changelog": [
+            {
+              "version": 13,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 5,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -361,8 +505,12 @@
         },
         {
           "name": "ingest",
-          "version": 6,
+          "version": 14,
           "changelog": [
+            {
+              "version": 14,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 6,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -375,8 +523,12 @@
         },
         {
           "name": "install",
-          "version": 7,
+          "version": 15,
           "changelog": [
+            {
+              "version": 15,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 7,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -389,8 +541,12 @@
         },
         {
           "name": "modify",
-          "version": 8,
+          "version": 16,
           "changelog": [
+            {
+              "version": 16,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 8,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -403,8 +559,12 @@
         },
         {
           "name": "query",
-          "version": 9,
+          "version": 17,
           "changelog": [
+            {
+              "version": 17,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 9,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -422,10 +582,42 @@
       "description": "Mensajes entre los componentes de un workspace de Arkana: put, get, delete (lógico), sync y reconcile; almacén local, sin git ni red",
       "category": "other",
       "status": "beta",
-      "version": "2.1.8",
+      "version": "2.1.16",
       "spec": "specs/arkana-messaging.md",
       "path": "plugins/arkana-messaging",
       "changelog": [
+        {
+          "version": "2.1.16",
+          "changes": "sync: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.1.15",
+          "changes": "query: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.1.14",
+          "changes": "put: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.1.13",
+          "changes": "install: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.1.12",
+          "changes": "get: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.1.11",
+          "changes": "fix: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.1.10",
+          "changes": "delete: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "2.1.9",
+          "changes": "check: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
         {
           "version": "2.1.8",
           "changes": "sync: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -466,8 +658,12 @@
       "skills": [
         {
           "name": "check",
-          "version": 1,
+          "version": 9,
           "changelog": [
+            {
+              "version": 9,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 1,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -480,8 +676,12 @@
         },
         {
           "name": "delete",
-          "version": 2,
+          "version": 10,
           "changelog": [
+            {
+              "version": 10,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 2,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -494,8 +694,12 @@
         },
         {
           "name": "fix",
-          "version": 3,
+          "version": 11,
           "changelog": [
+            {
+              "version": 11,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 3,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -508,8 +712,12 @@
         },
         {
           "name": "get",
-          "version": 4,
+          "version": 12,
           "changelog": [
+            {
+              "version": 12,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 4,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -522,8 +730,12 @@
         },
         {
           "name": "install",
-          "version": 5,
+          "version": 13,
           "changelog": [
+            {
+              "version": 13,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 5,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -536,8 +748,12 @@
         },
         {
           "name": "put",
-          "version": 6,
+          "version": 14,
           "changelog": [
+            {
+              "version": 14,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 6,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -550,8 +766,12 @@
         },
         {
           "name": "query",
-          "version": 7,
+          "version": 15,
           "changelog": [
+            {
+              "version": 15,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 7,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -564,8 +784,12 @@
         },
         {
           "name": "sync",
-          "version": 8,
+          "version": 16,
           "changelog": [
+            {
+              "version": 16,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 8,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -583,10 +807,26 @@
       "description": "Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión",
       "category": "other",
       "status": "beta",
-      "version": "1.1.4",
+      "version": "1.1.8",
       "spec": "specs/arkana-statusline.md",
       "path": "plugins/arkana-statusline",
       "changelog": [
+        {
+          "version": "1.1.8",
+          "changes": "refresh: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.7",
+          "changes": "install: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.6",
+          "changes": "fix: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.5",
+          "changes": "check: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
         {
           "version": "1.1.4",
           "changes": "refresh: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -611,8 +851,12 @@
       "skills": [
         {
           "name": "check",
-          "version": 1,
+          "version": 5,
           "changelog": [
+            {
+              "version": 5,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 1,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -625,8 +869,12 @@
         },
         {
           "name": "fix",
-          "version": 2,
+          "version": 6,
           "changelog": [
+            {
+              "version": 6,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 2,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -639,8 +887,12 @@
         },
         {
           "name": "install",
-          "version": 3,
+          "version": 7,
           "changelog": [
+            {
+              "version": 7,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 3,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -653,8 +905,12 @@
         },
         {
           "name": "refresh",
-          "version": 4,
+          "version": 8,
           "changelog": [
+            {
+              "version": 8,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 4,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -672,10 +928,42 @@
       "description": "Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: local, sin red, con prioridad, vencimiento y componente, cierre reversible y borrado lógico (add, list, done, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.8",
+      "version": "1.1.16",
       "spec": "specs/arkana-todo.md",
       "path": "plugins/arkana-todo",
       "changelog": [
+        {
+          "version": "1.1.16",
+          "changes": "modify: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.15",
+          "changes": "list: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.14",
+          "changes": "install: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.13",
+          "changes": "fix: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.12",
+          "changes": "done: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.11",
+          "changes": "delete: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.10",
+          "changes": "check: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "1.1.9",
+          "changes": "add: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
         {
           "version": "1.1.8",
           "changes": "modify: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -716,8 +1004,12 @@
       "skills": [
         {
           "name": "add",
-          "version": 1,
+          "version": 9,
           "changelog": [
+            {
+              "version": 9,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 1,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -730,8 +1022,12 @@
         },
         {
           "name": "check",
-          "version": 2,
+          "version": 10,
           "changelog": [
+            {
+              "version": 10,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 2,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -744,8 +1040,12 @@
         },
         {
           "name": "delete",
-          "version": 3,
+          "version": 11,
           "changelog": [
+            {
+              "version": 11,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 3,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -758,8 +1058,12 @@
         },
         {
           "name": "done",
-          "version": 4,
+          "version": 12,
           "changelog": [
+            {
+              "version": 12,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 4,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -772,8 +1076,12 @@
         },
         {
           "name": "fix",
-          "version": 5,
+          "version": 13,
           "changelog": [
+            {
+              "version": 13,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 5,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -786,8 +1094,12 @@
         },
         {
           "name": "install",
-          "version": 6,
+          "version": 14,
           "changelog": [
+            {
+              "version": 14,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 6,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -800,8 +1112,12 @@
         },
         {
           "name": "list",
-          "version": 7,
+          "version": 15,
           "changelog": [
+            {
+              "version": 15,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 7,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -814,8 +1130,12 @@
         },
         {
           "name": "modify",
-          "version": 8,
+          "version": 16,
           "changelog": [
+            {
+              "version": 16,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 8,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -833,10 +1153,54 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.11",
+      "version": "6.2.22",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.22",
+          "changes": "sync: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.21",
+          "changes": "status: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.20",
+          "changes": "rew-grants: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.19",
+          "changes": "install: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.18",
+          "changes": "import: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.17",
+          "changes": "handover: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.16",
+          "changes": "fix: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.15",
+          "changes": "export: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.14",
+          "changes": "config: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.13",
+          "changes": "component: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
+        {
+          "version": "6.2.12",
+          "changes": "check: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+        },
         {
           "version": "6.2.11",
           "changes": "sync: Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -889,8 +1253,12 @@
       "skills": [
         {
           "name": "check",
-          "version": 1,
+          "version": 12,
           "changelog": [
+            {
+              "version": 12,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 1,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -903,8 +1271,12 @@
         },
         {
           "name": "component",
-          "version": 2,
+          "version": 13,
           "changelog": [
+            {
+              "version": 13,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 2,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -917,8 +1289,12 @@
         },
         {
           "name": "config",
-          "version": 3,
+          "version": 14,
           "changelog": [
+            {
+              "version": 14,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 3,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -931,8 +1307,12 @@
         },
         {
           "name": "export",
-          "version": 4,
+          "version": 15,
           "changelog": [
+            {
+              "version": 15,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 4,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -945,8 +1325,12 @@
         },
         {
           "name": "fix",
-          "version": 5,
+          "version": 16,
           "changelog": [
+            {
+              "version": 16,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 5,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -959,8 +1343,12 @@
         },
         {
           "name": "handover",
-          "version": 6,
+          "version": 17,
           "changelog": [
+            {
+              "version": 17,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 6,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -973,8 +1361,12 @@
         },
         {
           "name": "import",
-          "version": 7,
+          "version": 18,
           "changelog": [
+            {
+              "version": 18,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 7,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -987,8 +1379,12 @@
         },
         {
           "name": "install",
-          "version": 8,
+          "version": 19,
           "changelog": [
+            {
+              "version": 19,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 8,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -1001,8 +1397,12 @@
         },
         {
           "name": "rew-grants",
-          "version": 9,
+          "version": 20,
           "changelog": [
+            {
+              "version": 20,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 9,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -1015,8 +1415,12 @@
         },
         {
           "name": "status",
-          "version": 10,
+          "version": 21,
           "changelog": [
+            {
+              "version": 21,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 10,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
@@ -1029,8 +1433,12 @@
         },
         {
           "name": "sync",
-          "version": 11,
+          "version": 22,
           "changelog": [
+            {
+              "version": 22,
+              "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
+            },
             {
               "version": 11,
               "changes": "Se añade version al frontmatter del skill (modelo de versiones de p4cc)"
