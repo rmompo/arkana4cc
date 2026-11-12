@@ -309,6 +309,9 @@ def cmd_validate(a, home, rep):
             p = os.path.normpath(os.path.join(root, f))
             if f.startswith(".") or p in originales:
                 continue
+            if C.is_lfs_pointer(p):
+                rep.add("WARN", "huerfano", f"{os.path.relpath(p, home)} es un puntero de git-lfs sin su Markdown: pídele a la persona usuaria que instale git-lfs y ejecute `git lfs pull`, y luego ingiérelo con /arkana-knowledge:ingest")
+                continue
             rep.add("WARN", "huerfano", f"{os.path.relpath(p, home)} está en {DOCS}/ sin su Markdown: ingiérelo con /arkana-knowledge:ingest")
     for d in FOLDERS:
         if not os.path.isdir(os.path.join(home, d)):

@@ -185,6 +185,13 @@ class Documentos(Base):
         write(self.path("arkana-docs", "a.md"), "version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 3\n")
         self.assertIn("git-lfs", self.kn("validate").stdout)
 
+    def test_puntero_lfs_huerfano_se_nombra_como_tal(self):
+        write(self.path("arkana-docs", "grande.bin"), "version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 9\n")
+        write(self.path("arkana-docs", "suelto.pdf"), "x")
+        out = self.kn("validate").stdout
+        self.assertRegex(out, r"huerfano\|arkana-docs/grande\.bin es un puntero de git-lfs")
+        self.assertRegex(out, r"huerfano\|arkana-docs/suelto\.pdf está en arkana-docs/ sin su Markdown")
+
     def test_modelo_sin_herramienta(self):
         write(self.path("md.txt"), "# Resumen del modelo\n")
         f = self.incoming("escaneado.pdf", "%PDF-1.4 sin texto")
