@@ -15,7 +15,8 @@ import os
 import re
 import uuid
 
-from arkana_core import datafiles, manifest
+from arkana_core import datafiles
+import _legacy
 
 ID = "0001"
 TITLE = "registro del proyecto (arkana-project.json) y carpetas fijas"
@@ -54,12 +55,10 @@ def _now():
 
 
 def _manifest_aliases(ctx, rep):
-    """Alias de las piezas del manifiesto local, con `arkana` primero. Sin manifiesto cargable: solo `arkana` (con aviso)."""
-    try:
-        aliases = manifest.load(ctx.home).aliases()
-    except manifest.ManifestError as e:
-        rep.add("WARN", ID, f"manifiesto no cargable ({e}); el registro solo lleva `arkana`: da de alta los componentes y vuelve a ejecutar apply")
-        aliases = ["arkana"]
+    """Alias de las piezas del manifiesto local (leído en crudo, sea cual sea su versión), con `arkana` primero. Sin manifiesto: solo `arkana` (con aviso)."""
+    aliases = [a for a, _ in _legacy.raw_pieces(ctx)]
+    if len(aliases) == 1:
+        rep.add("WARN", ID, "el manifiesto local no tiene componentes: el registro solo lleva `arkana`; da de alta los componentes y vuelve a ejecutar apply")
     return ["arkana"] + [a for a in aliases if a != "arkana"]
 
 

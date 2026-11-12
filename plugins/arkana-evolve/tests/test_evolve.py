@@ -129,7 +129,7 @@ class TestApply0001(unittest.TestCase):
             r = lab.run("apply")
             self.assertEqual(r.returncode, 0, r.stdout)
             p = lab.project()
-            self.assertEqual((p["schema_version"], p["layout"]), (1, 1))
+            self.assertEqual((p["schema_version"], p["layout"]), (1, 2))                                     # 0001 crea el registro y 0002 sube el sello
             self.assertTrue(UUID_RX.match(p["workspace"]["id"]))
             self.assertEqual([c["alias"] for c in p["components"]], ["arkana", "api"])
             ids = [c["id"] for c in p["components"]]

@@ -24,7 +24,7 @@ Salida `ESTADO|ID|detalle` y `RESUMEN|n FAIL|n WARN` ([`OUTPUT-CONTRACT`](../doc
 
 - **Migraciones.** Módulos de `scripts/lib/migrations/` (`m0001_…`, `m0002_…`). Las `b*` son de **base** (formatos antiguos anteriores a la 0001) y se ejecutan antes que las numéricas. Cada una define `ID`, `TITLE`, `SCOPE`, `touches(ctx)`, `detect(ctx)` (¿está pendiente?), `apply(ctx, rep)` y `verify(ctx)`.
 - **Ámbito.** `shared`: cambia ficheros **versionados** del repo de ARKANA. Una persona migra, revisa `git status`, commitea y empuja; el resto hace pull y vuelve a ejecutar `apply`, que solo aplica su parte local. `local`: cambia `.arkana/` (copia `tar.gz` previa en `.arkana/arkana-workspace/bak/`, modo 600).
-- **Sellos.** El layout compartido está en `arkana-project.json` (`layout`); lo aplicado en esta instalación, en `.arkana/arkana-evolve/state.json` (clase `local`).
+- **Sellos.** El layout compartido está en `arkana-project.json` (`layout`; lo sube el motor tras cada migración numérica); lo aplicado en esta instalación, en `.arkana/arkana-evolve/state.json` (clase `local`).
 - **Seguridad.** Nunca hace commit ni push. Las migraciones no pisan lo que ya existe. Las compartidas exigen repo git y que los ficheros **versionados** que van a escribirse no tengan cambios sin commitear. Si hace falta una herramienta que no está, se **pide** al usuario; nunca se instala.
 
 ## Migraciones
@@ -38,6 +38,7 @@ Las `b*` son de **base**: convierten formatos antiguos y se ejecutan antes que l
 | `b003` | shared | `conocimiento/` → `arkana-knowledge/` con `git mv`; `tipo/modulos` → `topic/components`; el historial pasa al `## Changelog`; borra `.historial/` y `catalogo.json`. |
 | `b004` | local + shared | Alias histórico `shared` → `arkana` en mensajes, planes, libro, tareas, `local.json` y notas. |
 | `0001` | shared + local | Crea `arkana-project.json` (registro compartido: UUID del workspace y de cada pieza —`arkana` incluida— con su alias, sello `layout`) y las carpetas fijas con `.gitkeep`: `arkana-incoming/` (cuyo `.gitignore` interno ignora todo salvo `.gitignore` y `.gitkeep`), `arkana-knowledge/`, `arkana-docs/` y `arkana-docs/md/`. Si el registro ya existe (otra persona migró) no regenera ningún UUID. |
+| `0002` | local + shared | Arkana deja de escribir en `CLAUDE.md` / `CLAUDE.local.md` de los repos: quita de ellos los bloques gestionados (`arkana:messaging`, `arkana:commits`, `arkana:agentic`), renombra `CLAUDE.local.md` a `ARKANA.local.md`, añade `.claude/`, `.claude-session/` y `ARKANA.local.md` a `.git/info/exclude` y retira `seed_file` del manifiesto. No toca un fichero versionado con cambios sin commitear. Las directrices las inyectan los hooks. |
 
 ## Pruebas
 

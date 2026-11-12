@@ -2,6 +2,8 @@
 import os
 import re
 
+from arkana_core import datafiles, locate
+
 LEGACY_ALIASES = {"shared": "arkana"}          # id histórico de la carpeta/alias de ARKANA
 LEGACY_TOPICS = ["decision", "lesson", "pending", "contract", "reference"]
 CHANGELOG = "## Changelog"
@@ -9,6 +11,20 @@ NOTE_FIELDS = ["id", "titulo", "topic", "version", "fecha", "autor", "components
 LIST_FIELDS = ("components", "etiquetas")
 SKIP_DIRS = {".git", "node_modules", "archivo", "plantillas", "plugins", "scripts", ".claude", ".claude-session", ".arkana", "lib",
              "arkana-incoming", "arkana-docs"}
+
+
+def raw_pieces(ctx):
+    """[(alias, carpeta)] de ARKANA y los componentes leyendo el manifiesto y `local.json` EN CRUDO: no depende del esquema vigente, así que funciona con
+    manifiestos de cualquier versión (la validación estricta ya habría rechazado campos retirados, como `seed_file`)."""
+    mf = datafiles.read_json(os.path.join(ctx.state, "core", "workspace.json"), {}) or {}
+    paths = (datafiles.read_json(os.path.join(ctx.state, "arkana-workspace", "local.json"), {}) or {}).get("paths") or {}
+    root = locate.workspace_root(ctx.home)
+    out = [("arkana", ctx.home)]
+    for c in mf.get("components", []):
+        a = str(c.get("alias", "")).strip().lower()
+        if a:
+            out.append((a, os.path.expanduser(paths.get(a) or os.path.join(root, c.get("path", "")))))
+    return out
 
 
 def canon(alias):

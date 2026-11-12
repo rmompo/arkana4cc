@@ -102,6 +102,18 @@ def latest_layout(mods):
     return max([int(m.ID) for m in mods if not is_baseline(m)] or [0])
 
 
+def stamp(ctx, mod):
+    """Tras aplicar una migración numérica, sube el sello `layout` del registro compartido y lo anota en su historial (la 0001 lo crea ya con layout 1)."""
+    p = ctx.project()
+    if is_baseline(mod) or not isinstance(p, dict):
+        return
+    n = int(mod.ID)
+    if int(p.get("layout", 0) or 0) < n:
+        p["layout"] = n
+        p.setdefault("history", []).append({"id": mod.ID, "date": now_iso()})
+        datafiles.atomic_write_json(ctx.project_path, p)
+
+
 def project_layout(ctx):
     p = ctx.project()
     return int(p.get("layout", 0)) if isinstance(p, dict) and isinstance(p.get("layout", 0), int) else 0
@@ -156,7 +168,7 @@ def check_preconditions(ctx, pending):
     for m in pending:
         if "shared" not in m.SCOPE:
             continue
-        rutas = list(m.touches(ctx))
+        rutas = list(m.touches(ctx)) + ([PROJECT_FILE] if not is_baseline(m) and int(m.ID) > 1 else [])
         if rutas:
             # solo bloquean los ficheros VERSIONADOS con cambios (los sin seguimiento `??` ya existen y la migración no los pisa)
             sucios += [l[3:] for l in ctx.git("status", "--porcelain", "--", *rutas).stdout.splitlines() if l.strip() and not l.startswith("??")]
@@ -201,6 +213,7 @@ def cmd_apply(a, ctx, rep):
                 for p in problems:
                     rep.add("FAIL", m.ID, f"verificación: {p}")
                 return
+            stamp(ctx, m)
     if ctx.dry:
         rep.add("DRY", "apply", f"{len(pending)} migraciones se aplicarían; no se ha escrito nada")
     else:
