@@ -136,7 +136,8 @@ def load(home=None, cwd=None):
         raise ManifestError(f"{path} no es JSON válido: {e}")
     errs = validate(data)
     if errs:
-        raise ManifestError("manifiesto no válido: " + "; ".join(errs[:5]))
+        hint = " (parece una instalación anterior: ejecuta /arkana-evolve:apply para migrarla)" if any("seed_file" in e for e in errs) else ""
+        raise ManifestError("manifiesto no válido: " + "; ".join(errs[:5]) + hint)
     local = {}
     try:
         with open(os.path.join(locate.state_dir(home), LOCAL_JSON), encoding="utf-8") as f:

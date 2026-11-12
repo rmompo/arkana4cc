@@ -87,13 +87,6 @@
         },
         "commit_format": {
           "type": "string"
-        },
-        "seed_file": {
-          "type": "string",
-          "enum": [
-            "CLAUDE.md",
-            "CLAUDE.local.md"
-          ]
         }
       }
     },
@@ -167,13 +160,6 @@
           },
           "vpn": {
             "type": "boolean"
-          },
-          "seed_file": {
-            "type": "string",
-            "enum": [
-              "CLAUDE.md",
-              "CLAUDE.local.md"
-            ]
           },
           "statusline": {
             "type": "boolean"

@@ -1,20 +1,19 @@
 {
   "files": {
-    "__init__.py": "db4c37c38a4357de9f4418a26e0e879dd27a6220955f9053a0d1d593bd6a4c9b",
+    "__init__.py": "22f66f8bea470f1415db065b606e70e5829a707fa4d43862f384c56e766be948",
     "arkana-core.sh": "41774984f64988e783195d77da061a83ef2d2f13c89067881a324df77fa0083f",
     "contract.py": "3265dd47cad446eb902a18b55fff1da3425509ecc08ae9bbe3252fd2b2d8108e",
     "datafiles.py": "18b265a206642c364ad9f4dbfdc666100d0ccc813f449adec6c4c59a3b1dd4af",
     "locate.py": "11ac9f3e16bb4ee96cba2cb2a771dccebbce2a7da167062171bea792d4c8ebcd",
-    "manifest.py": "e60befb9d71fe8352b95d35f9edb1c5cf97d573aa818de7b9fcf461e8787c934",
+    "manifest.py": "ccae7d773d9eff99099ca133e670c33f64e519d515433aaeb8471601a4842af6",
     "netguard.py": "8a97327dce48a6c4fc3119b2444e675ddf49e96ca1a6996134aeae654b8c3771",
     "output.py": "ab89bd5651df3855d75eabff201f94b85498988304137d12fece88d4fe988c5c",
     "schema.py": "1accac222b515399a4c31e85da2ac1df3d5a85002b232675753be3fc1902e313",
     "schemas/arkana-plugin.schema.json": "31085609ab8e2a39ffab08eb8b137ccf85c0872e0f6a441f2486f7e7027af5ed",
     "schemas/arkana.schema.json": "633aa8079a1c19877f09287b878a5369fc348fae2272d0dd778501326494be8e",
     "schemas/tools.schema.json": "87c103def8cad171c7e2f0c6a85c2896fe7a33f0974c19bba0444f03cf66d3e5",
-    "schemas/workspace.schema.json": "6f51f676cc349bf2f7eba88d111e97c53ffd968bb3738331493d32845b120b8b",
-    "seedblock.py": "5090bdb4fefb34119d4709f14ade9d8a1585099ea5a05193321f6c6b5dfe1f78"
+    "schemas/workspace.schema.json": "daf86e0a770dad115a7dbc69e61c3507e1d54d5a4c204aff3f01b5de7fe4506d"
   },
   "source": "lib/arkana_core",
-  "version": "1.3.0"
+  "version": "1.4.0"
 }

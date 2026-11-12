@@ -85,6 +85,15 @@ class TestValidacion(unittest.TestCase):
         self.assertTrue(self.errores(components=[{"alias": "a", "type": "node", "path": "p", "sobra": 1}]))
         self.assertTrue(self.errores(schema="uno"))
 
+    def test_un_manifiesto_con_seed_file_se_rechaza_y_remite_a_evolve(self):
+        with common.Lab() as lab:
+            m = common.manifiesto()
+            m["components"][0]["seed_file"] = "CLAUDE.local.md"
+            lab.escribir(os.path.join("core", "workspace.json"), m)
+            with self.assertRaises(manifest.ManifestError) as cm:
+                manifest.load(lab.arkana)
+            self.assertIn("/arkana-evolve:apply", str(cm.exception))
+
     def test_faltan_campos_obligatorios(self):
         d = common.manifiesto(); del d["arkana"]
         self.assertTrue(manifest.validate(d))
