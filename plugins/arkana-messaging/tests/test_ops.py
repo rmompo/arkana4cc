@@ -1,5 +1,4 @@
-"""install / check / fix de arkana-messaging: semilla inline, plugin habilitado, latido por sesión; todo con HOME falso."""
-import json
+"""install / check / fix de arkana-messaging: almacén, plugin habilitado y latido por sesión; todo con HOME falso y sin escribir nada en los repos."""
 import os
 import subprocess
 import unittest
@@ -13,41 +12,28 @@ def ops(lab, who, *a, env=None):
                           stdin=subprocess.DEVNULL)
 
 
-def prepara(lab):
-    for who in ("arkana", "app", "api", "app-web"):
-        with open(os.path.join(lab.cwd(who), "CLAUDE.md"), "w") as f:
-            f.write(f"# {who}\n\nReglas propias.\n")
-
-
-def leer(p):
-    with open(p, encoding="utf-8") as f:
-        return f.read()
+def instrucciones(lab):
+    """Ficheros de instrucciones que habría en las carpetas de las piezas."""
+    return [f for who in ("arkana", "app", "api", "app-web") for f in ("CLAUDE.md", "CLAUDE.local.md", "ARKANA.local.md")
+            if os.path.exists(os.path.join(lab.cwd(who), f))]
 
 
 class TestOps(unittest.TestCase):
-    def test_check_avisa_install_aplica_y_check_queda_en_ok(self):
+    def test_check_avisa_install_aplica_y_no_escribe_nada_en_los_repos(self):
         with Lab() as lab:
-            prepara(lab)
             r = ops(lab, "app", "check")
             self.assertIn("WARN|almacen", r.stdout)
-            self.assertIn("WARN|semilla-app", r.stdout)
             self.assertIn("WARN|latido", r.stdout)
+            self.assertNotIn("semilla", r.stdout)                                                               # ya no hay semillas en ficheros
             self.assertEqual(ops(lab, "app", "install", "--dry-run").returncode, 0)
-            self.assertNotIn("arkana:messaging", leer(os.path.join(lab.cwd("app"), "CLAUDE.md")))                # dry-run no escribe
+            self.assertFalse(os.path.isdir(lab.store("messages")))                                              # dry-run no escribe
             r = ops(lab, "app", "install")
             self.assertEqual(r.returncode, 0, r.stdout)
-            for who in ("arkana", "app", "api", "app-web"):
-                t = leer(os.path.join(lab.cwd(who), "CLAUDE.md"))
-                self.assertEqual(t.count("<!-- arkana:messaging:start -->"), 1, who)
-                self.assertIn("/arkana-messaging:check", t)
-                self.assertIn("Reglas propias.", t)                                                            # lo de fuera no se toca
-                self.assertNotIn("\n@", t.split("<!-- arkana:messaging:start -->")[1])                           # el bloque no importa ficheros
             self.assertTrue(os.path.isdir(lab.store("messages")))
             st = lab.jload(os.path.join(lab.home, ".claude", "settings.json"))
             self.assertTrue(st["enabledPlugins"]["arkana-messaging@arkana"])
-            self.assertTrue(os.listdir(os.path.join(lab.arkana, ".arkana", "arkana-messaging", "bak", "arkana")))
+            self.assertEqual(instrucciones(lab), [])                                                            # ni CLAUDE.md ni ARKANA.local.md: nada en los repos
             r = ops(lab, "app", "check", "--all")
-            self.assertNotIn("WARN|semilla", r.stdout)
             self.assertNotIn("WARN|plugin", r.stdout)
             self.assertIn("WARN|latido", r.stdout)                                                             # aún no han corrido hooks
             r = ops(lab, "app", "fix").stdout
@@ -57,7 +43,6 @@ class TestOps(unittest.TestCase):
 
     def test_latido_de_esta_sesion_y_respaldo(self):
         with Lab() as lab:
-            prepara(lab)
             ops(lab, "app", "install")
             sess = os.path.join(lab.store("sessions")); os.makedirs(sess)
             lab.jdump(os.path.join(sess, "otra.json"), {"actor": "app", "event": "stop"})
@@ -67,28 +52,17 @@ class TestOps(unittest.TestCase):
             self.assertIn("OK|latido|los hooks han corrido en esta sesión", ops(lab, "app", "check", env={"CLAUDE_CODE_SESSION_ID": "mi-sesion"}).stdout)
             self.assertIn("WARN|latido", ops(lab, "api", "check", env={"CLAUDE_CODE_SESSION_ID": "otra-distinta"}).stdout)
 
-    def test_fix_solo_arregla_lo_marcado_y_repone_un_bloque_desactualizado(self):
+    def test_fix_repone_el_almacen_y_solo_eso(self):
         with Lab() as lab:
-            prepara(lab)
             ops(lab, "app", "install")
-            p = os.path.join(lab.cwd("api"), "CLAUDE.md")
-            with open(p, "w") as f:
-                f.write("# be\n<!-- arkana:messaging:start -->\ncontenido viejo\n<!-- arkana:messaging:end -->\nfin\n")
-            self.assertIn("WARN|semilla-api", ops(lab, "app", "check", "--all").stdout)
+            import shutil
+            shutil.rmtree(lab.store("messages"))
+            self.assertIn("WARN|almacen", ops(lab, "app", "check").stdout)
             r = ops(lab, "app", "fix")
             self.assertEqual(r.returncode, 0, r.stdout)
-            t = leer(p)
-            self.assertNotIn("contenido viejo", t)
-            self.assertIn("arkana:messaging:start", t)
-            self.assertIn("fin", t)
-            self.assertNotIn("semilla-app", r.stdout)                                                        # lo que estaba bien no se toca
-
-    def test_claude_md_versionado_ausente_no_se_crea(self):
-        with Lab() as lab:
-            r = ops(lab, "app", "install")
-            self.assertIn("WARN|semilla-app", r.stdout)
-            self.assertIn("/arkana-workspace:fix", r.stdout)
-            self.assertFalse(os.path.exists(os.path.join(lab.cwd("app"), "CLAUDE.md")))
+            self.assertIn("OK|almacen|almacén creado", r.stdout)
+            self.assertTrue(os.path.isdir(lab.store("messages")))
+            self.assertNotIn("plugin|", r.stdout)                                                           # el plugin ya estaba habilitado: fix no lo toca
 
     def test_sin_componente_es_precondicion(self):
         with Lab() as lab:

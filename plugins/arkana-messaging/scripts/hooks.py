@@ -5,7 +5,7 @@
 
 - Nunca hacen nada dentro de un worker (`ARKANA_WORKER=1`), fuera de un workspace o si el cwd no es de ningún componente.
 - Leen el índice local pequeño (state/index.json) y, solo de lo que van a inyectar, el mensaje completo. Nada de git ni de red.
-- SessionStart: inyecta los mensajes sin leer y un recordatorio de las tareas, revisiones y preguntas abiertas que tocan a este componente.
+- SessionStart: inyecta las instrucciones de uso de la mensajería (GUIDE; no hay ningún fichero de instrucciones en los repos), los mensajes sin leer y un recordatorio de las tareas, revisiones y preguntas abiertas que tocan a este componente.
 - UserPromptSubmit: inyecta solo lo nuevo sin leer.
 - Stop: bloquea UNA sola vez por mensaje (y nunca si `stop_hook_active`) y solo si queda sin leer algo de prioridad alta, una tarea o una pregunta.
 - Un mensaje está `leído` cuando se inyectó completo o se recuperó con `get --detail`. Si no cabe, se da asunto + id y `get --detail <id>`.
@@ -21,6 +21,9 @@ import messages as M  # noqa: E402
 from arkana_core import datafiles  # noqa: E402
 
 MAX_ONE, MAX_TOTAL = 1500, 6000
+GUIDE = """[arkana-messaging] Mensajería de Arkana
+- Los mensajes sin leer para este componente llegan **inyectados** al abrir la sesión y en cada prompt. Propón al usuario atenderlos; nunca los des por hechos ni cierres nada sin su confirmación. Lo pendiente: `/arkana-messaging:get --pending`.
+- Al terminar una tarea, revisión o pregunta, propón cerrarla con `/arkana-messaging:put --done <id> --result "..."`. Nunca incluyas credenciales ni datos personales en un mensaje."""
 SESSIONS_KEEP_DAYS = 14
 
 
@@ -192,6 +195,8 @@ def main(argv):
             else:
                 out = {}
             heartbeat(store, ev, actor, name, extra={"seen": sorted(M.read_ids(store, actor)), "sig": sig})
+            if sess_start:                                          # las instrucciones de uso viajan con el hook, no en ningún fichero del repo
+                text = GUIDE + ("\n\n" + text if text else "")
             if text:
                 out["hookSpecificOutput"] = {"hookEventName": event, "additionalContext": text}
             if out:

@@ -42,7 +42,20 @@ class TestHooks(unittest.TestCase):
             self.assertIn(t, txt2)
             self.assertNotIn(n, txt2)
             self.assertNotIn("Cambia el cliente", txt2)                                         # ni el texto completo
-            self.assertIsNone(hook(lab, "app-web", "session-start"))                            # a app-web no le toca nada
+            sin = ctxt(hook(lab, "app-web", "session-start"))                                   # a app-web no le toca ningún mensaje: solo las instrucciones de uso
+            self.assertIn("Mensajería de Arkana", sin)
+            self.assertNotIn("Mensajes sin leer", sin)
+
+    def test_las_instrucciones_de_uso_viajan_en_session_start_y_no_hay_ficheros_en_el_repo(self):
+        with Lab() as lab:
+            for src in ("startup", "resume", "clear", "compact"):
+                txt = ctxt(hook(lab, "app", "session-start", {"source": src}))
+                self.assertIn("/arkana-messaging:get --pending", txt, src)
+                self.assertIn("/arkana-messaging:put --done", txt, src)
+                self.assertNotIn("CLAUDE", txt, src)
+            self.assertEqual(ctxt(hook(lab, "app", "prompt-submit")), "")                       # en cada prompt solo lo nuevo, sin repetir la guía
+            for f in ("CLAUDE.md", "CLAUDE.local.md", "ARKANA.local.md"):
+                self.assertFalse(os.path.exists(os.path.join(lab.cwd("app"), f)), f)
 
     def test_systemmessage_informa_de_pendientes_leidos_en_el_turno_y_tareas_hechas(self):
         with Lab() as lab:
@@ -62,7 +75,7 @@ class TestHooks(unittest.TestCase):
             m3 = hook(lab, "api", "prompt-submit")["systemMessage"]                         # cambió el estado: informa
             for x in ("0 abiertas · 1 hechas", "tareas pedidas por ti: 0 hechas de 1"):
                 self.assertIn(x, m3)
-            self.assertIsNone(hook(lab, "app-web", "session-start"))                            # sin mensajes, sin línea
+            self.assertNotIn("systemMessage", hook(lab, "app-web", "session-start") or {})      # sin mensajes, sin línea
             self.assertNotIn("systemMessage", hook(lab, "api", "session-start", {"source": "resume"}) or {})   # en startup/resume lo cuenta el BRIEF de workspace
 
     def test_directrices_vigentes_se_recuerdan_y_las_propuestas_no(self):

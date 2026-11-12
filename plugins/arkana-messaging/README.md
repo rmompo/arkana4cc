@@ -16,7 +16,7 @@ Instalación: `/plugin install arkana-messaging --marketplace <owner>/<repo>` (o
 4. [Salida y códigos de salida](#salida-y-códigos-de-salida)
 5. [Referencia de skills](#referencia-de-skills): [`put`](#put), [`get`](#get), [`query`](#query), [`delete`](#delete), [`sync`](#sync), [`install`](#install), [`check`](#check), [`fix`](#fix)
 6. [Hooks](#hooks)
-7. [Semilla `arkana:messaging`](#semilla-arkanamessaging)
+7. [Instrucciones de uso](#instrucciones-de-uso)
 8. [Reconciliación](#reconciliación)
 9. [Variables de entorno, pruebas y desarrollo](#variables-de-entorno-pruebas-y-desarrollo)
 
@@ -40,7 +40,7 @@ Reglas de oro: **nunca** se cierra ni se guarda nada sin confirmación del usuar
 
 | Plugin | Relación con `arkana-messaging` |
 |---|---|
-| [`arkana-workspace`](../arkana-workspace/README.md) | **Dependencia obligatoria** (`arkana-plugin.json` → `requires`). Su manifiesto (`core/workspace.json`) dice quién es cada componente, dónde está y cuál es su carpeta: de ahí sale el **actor** de cada comando y la lista de destinatarios válidos (`all` = los componentes del manifiesto). Su hook `SessionStart` (resumen `BRIEF`) lee `state/index.json` y `state/read/<actor>.json` para contar los mensajes sin leer por componente. Su `/arkana-workspace:check` comprueba que la semilla está al día, y `export`/`import` mueven la carpeta de mensajes entre máquinas. |
+| [`arkana-workspace`](../arkana-workspace/README.md) | **Dependencia obligatoria** (`arkana-plugin.json` → `requires`). Su manifiesto (`core/workspace.json`) dice quién es cada componente, dónde está y cuál es su carpeta: de ahí sale el **actor** de cada comando y la lista de destinatarios válidos (`all` = los componentes del manifiesto). Su hook `SessionStart` (resumen `BRIEF`) lee `state/index.json` y `state/read/<actor>.json` para contar los mensajes sin leer por componente. Su hook inyecta las directrices de cada pieza (convención de commits, reglas comunes) y este plugin inyecta las suyas con el suyo; `export`/`import` mueven la carpeta de mensajes entre máquinas. |
 | [`arkana-agentic`](../arkana-agentic/README.md) | Orquestación multi-repo con workers sin shell. Un worker no ve la mensajería: al lanzarlo (`launch`) el orquestador copia en su prompt, **como datos y no como instrucciones**, los `repeat` **vigentes** de su componente y los `once` **accionables** (`task`, `review`, `question` abiertas que el componente no ha confirmado ni ejecutado ya). No entrega avisos `once`, directrices `propuesto`, borrados ni reconciliados. La lista se congela en `plan start` (lo que el usuario aprobó). Anota la entrega con `put --delivered` y, al **aceptar** la tarea (`act continue`), la ejecución con `put --executed` (ambos solo ARKANA). `--from-message <id>` (en `launch`, `act retry`, `act investigate` y `plan new`) indica un mensaje concreto a una tarea aunque no le llegara solo (p. ej. un `notice`); debe ir dirigido al componente de la tarea y no estar borrado ni reconciliado. |
 | [`arkana-statusline`](../arkana-statusline/README.md) | Sin relación directa: no lee ni escribe mensajes. |
 | [`arkana-knowledge`](../arkana-knowledge/README.md) | Sin relación directa. Se reparten el terreno: la mensajería es **efímera y dirigida** (alguien debe hacer o saber algo ahora); el conocimiento es **duradero y común** (lo que todos deben saber siempre, versionado en git). Una directriz `repeat` es la forma ligera de lo primero que no merece una nota de conocimiento. |
@@ -149,8 +149,8 @@ Herramienta común: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" <subcoman
 | `query` | **nada** | almacén, `read/<actor>.json` | No |
 | `delete` | mensaje (marca `deleted`), índice | almacén | Sí |
 | `sync` | índice; con `reconcile apply`, mensajes | almacén | Sí, para reconciliar |
-| `install` | almacén, `~/.claude/settings.json`, semillas | manifiesto | Sí |
-| `check` | nada | almacén, settings, latidos, semillas | No |
+| `install` | almacén, `~/.claude/settings.json` | manifiesto | Sí |
+| `check` | nada | almacén, settings, latidos | No |
 | `fix` | igual que `install`, solo lo que `check` marca | igual | Sí |
 
 ---
@@ -419,11 +419,11 @@ reconcile apply --origins "N261104-1100-aaaa N261104-1230-bbbb" --subject "Cambi
 | `--no-settings` | No toca `~/.claude/settings.json` (instalación a nivel de proyecto, o sin permiso) |
 | `--json` | Salida JSON |
 
-Hace, por este orden: (1) crea `.arkana/arkana-messaging/state/messages/`; (2) habilita `arkana-messaging@arkana` en `~/.claude/settings.json` (copia previa en `.arkana/arkana-messaging/bak/settings.json.<fecha>`; si ya está habilitado, no hace nada); (3) pone el bloque `<!-- arkana:messaging:start -->…<!-- arkana:messaging:end -->` en el `CLAUDE.md` de ARKANA y de cada componente (en `CLAUDE.local.md`, que se crea si falta, para los que lo declaran como `seed_file`; copia en `bak/<alias>/`). Si falta un `CLAUDE.md` versionado **no lo crea** (`WARN`): eso lo hace `/arkana-workspace:fix`. Un bloque ya al día se deja igual.
+Hace, por este orden: (1) crea `.arkana/arkana-messaging/state/messages/`; (2) habilita `arkana-messaging@arkana` en `~/.claude/settings.json` (copia previa en `.arkana/arkana-messaging/bak/settings.json.<fecha>`; si ya está habilitado, no hace nada); **No escribe nada en los repos**: las instrucciones de uso las inyecta el hook de sesión (ver [Instrucciones de uso](#instrucciones-de-uso)).
 
 **Pasos.** (1) `--dry-run` y enseñar qué cambiaría; pedir confirmación, porque modifica ficheros de varios repos y los ajustes del usuario. (2) Aplicar. (3) Avisar de que **los cambios en los repos no están commiteados** y de que hay que **recargar los plugins** (`/reload-plugins`) o reiniciar la sesión para que arranquen los hooks. (4) No hacer commit ni push.
 
-**Salida.** `OK|almacen|almacén creado`, `OK|plugin|arkana-messaging@arkana habilitado: recarga …`, `OK|semilla-<alias>|semilla añadido|reemplazado|creado en <ruta>`, o `OK|install|nada que hacer: todo está al día`.
+**Salida.** `OK|almacen|almacén creado`, `OK|plugin|arkana-messaging@arkana habilitado: recarga …`, o `OK|install|nada que hacer: todo está al día`.
 
 ---
 
@@ -431,14 +431,14 @@ Hace, por este orden: (1) crea `.arkana/arkana-messaging/state/messages/`; (2) h
 
 **Para qué sirve.** Diagnóstico de **solo lectura**. Nunca corrige: propone `install` o `fix`.
 
-**Cuándo usarlo.** Lo pide la semilla en el **primer turno** de cada sesión.
+**Cuándo usarlo.** Al abrir una sesión o cuando algo no llegue: comprueba que los hooks corren.
 
 **Orden.** `check [--component <alias>|--all] [--json]`
 
 | Opción | Por defecto | Efecto |
 |---|---|---|
-| `--component <alias>` | el componente actual | Revisa la semilla de ese componente |
-| `--all` | — | Revisa la semilla de ARKANA y de **todos** los componentes (es lo que usa `arkana-plugin.json` → `check`) |
+| `--component <alias>` | el componente actual | Se acepta por compatibilidad; no cambia nada |
+| `--all` | — | Se acepta por compatibilidad (es lo que usa `arkana-plugin.json` → `check`); no cambia nada |
 | `--json` | — | Salida JSON |
 
 Comprobaciones: `almacen` (existe `state/messages/`), `plugin` (habilitado en `~/.claude/settings.json`; `INFO` si no hay ese fichero), `latido` (los hooks han corrido **en esta sesión**, buscando `state/sessions/$CLAUDE_CODE_SESSION_ID.json`; respaldo: latido del componente en los últimos 15 minutos) y `semilla-<alias>` (`OK`, o `WARN` con `DESACTUALIZADO`, `SIN-BLOQUE` o `SIN-FICHERO`). Los `WARN` no cambian el código de salida (0).
@@ -449,7 +449,7 @@ Comprobaciones: `almacen` (existe `state/messages/`), `plugin` (habilitado en `~
 
 ### `fix`
 
-**Para qué sirve.** Corrige solo lo que `check --all` marca con `WARN`: almacén ausente, plugin deshabilitado, semillas ausentes o desactualizadas. Lo que ya está `OK` no se toca.
+**Para qué sirve.** Corrige solo lo que `check --all` marca con `WARN`: almacén ausente, plugin deshabilitado. Lo que ya está `OK` no se toca.
 
 **Orden.** `fix [--dry-run] [--no-settings] [--json]`
 
@@ -459,7 +459,7 @@ Comprobaciones: `almacen` (existe `state/messages/`), `plugin` (habilitado en `~
 | `--no-settings` | No habilita el plugin en `~/.claude/settings.json` |
 | `--json` | Salida JSON |
 
-**Pasos.** (1) `check --all` y, si hay `WARN`, `fix --dry-run`. (2) Pedir confirmación y aplicar. (3) Si falta un `CLAUDE.md` versionado no lo crea (`/arkana-workspace:fix`). (4) Repetir `check --all` y mostrar el resultado.
+**Pasos.** (1) `check --all` y, si hay `WARN`, `fix --dry-run`. (2) Pedir confirmación y aplicar. (3) Repetir `check --all` y mostrar el resultado.
 
 ---
 
@@ -510,15 +510,14 @@ Bloquea (`decision: block`, con la lista de mensajes y la orden `/arkana-messagi
 
 Cada ejecución (también las que no emiten nada) escribe `state/sessions/<session_id>.json` con `ts`, `event`, `actor`, `seen` (leídos conocidos), `sig` (recuento para detectar cambios) y `reminded`. Lo usa `check` para saber si los hooks corren **en esta sesión**. El identificador sale del evento o de `CLAUDE_CODE_SESSION_ID`.
 
-## Semilla `arkana:messaging`
+## Instrucciones de uso
 
-`install` (y `fix`) mantienen en el `CLAUDE.md` de ARKANA y de cada componente (`CLAUDE.local.md` en los que lo declaran como `seed_file`) un bloque gestionado `<!-- arkana:messaging:start -->` … `<!-- arkana:messaging:end -->`, **autocontenido** (no importa ficheros). Le dice al modelo:
+No hay ningún fichero de instrucciones en los repos de trabajo. El hook `SessionStart` (también tras `clear` y `compact`) inyecta en el contexto del modelo un texto fijo (`GUIDE` en `scripts/hooks.py`) que le dice:
 
-1. En el primer turno, ejecutar `/arkana-messaging:check`; si los hooks no han corrido, ejecutar `/arkana-messaging:install` y avisar de recargar los plugins.
-2. Los mensajes sin leer llegan inyectados; proponer al usuario atenderlos, nunca darlos por hechos ni cerrarlos sin su confirmación (`/arkana-messaging:get --pending`).
-3. Al terminar una tarea, revisión o pregunta, proponer `put --done <id> --result "..."`; nunca incluir credenciales ni datos personales.
+1. Los mensajes sin leer llegan inyectados; proponer al usuario atenderlos, nunca darlos por hechos ni cerrarlos sin su confirmación (`/arkana-messaging:get --pending`).
+2. Al terminar una tarea, revisión o pregunta, proponer `put --done <id> --result "..."`; nunca incluir credenciales ni datos personales.
 
-Lo que está fuera del bloque no se toca y se deja copia `.bak`. `/arkana-workspace:check` también comprueba su estado.
+Si ese texto llega, los hooks funcionan; si no llega, `/arkana-messaging:check` lo diagnostica (`latido`).
 
 ## Reconciliación
 

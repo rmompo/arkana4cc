@@ -1,6 +1,6 @@
 ---
 name: fix
-description: Corrige lo que check --all marca en la mensajería (almacén, plugin deshabilitado, semillas ausentes o desactualizadas). Interactivo, con copia .bak. Acepta --dry-run y --json.
+description: Corrige lo que check marca en la mensajería (almacén ausente, plugin deshabilitado). Interactivo, con copia .bak. Acepta --dry-run y --json.
 ---
 
 # arkana-messaging:fix
@@ -9,10 +9,10 @@ description: Corrige lo que check --all marca en la mensajería (almacén, plugi
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" fix [--dry-run] [--no-settings] [--json]
 ```
 
-Aplica solo lo que `check --all` marca con `WARN` (lo que ya está `OK` no se toca).
+Aplica solo lo que `check` marca con `WARN` (lo que ya está `OK` no se toca). No escribe nada en los repos.
 
 ## Pasos
 
-1. `check --all` y, si hay `WARN`, `fix --dry-run` para enseñar qué cambiaría.
+1. `check` y, si hay `WARN`, `fix --dry-run` para enseñar qué cambiaría.
 2. Pide confirmación (`AskUserQuestion`) y aplica con `fix`.
-3. Si falta un `CLAUDE.md` versionado, no lo crea: eso lo hace `/arkana-workspace:fix`. Vuelve a ejecutar `check --all` y muestra el resultado.
+3. Vuelve a ejecutar `check` y muestra el resultado.
