@@ -1,7 +1,8 @@
 ---
 name: check
-description: Diagnóstico de solo lectura de la statusline - python3 y git, copia instalada al día, `statusLine` activa y nuestra, otros plugins de statusline que podrían pisarla y prueba de humo. Nunca corrige. Acepta --json.
-version: 1
+description: Diagnóstico de solo lectura de la statusline - python3 y git, copia instalada al día, `statusLine` activa y nuestra, otros plugins de statusline que podrían pisarla y prueba de humo. Nunca corrige. Acepta --json. Also invoked explicitly as /arkana-statusline:check
+allowed-tools: []
+version: 5
 ---
 
 # arkana-statusline:check

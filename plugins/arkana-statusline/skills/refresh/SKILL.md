@@ -1,7 +1,8 @@
 ---
 name: refresh
-description: Hace `git fetch` de los componentes (con comprobación de DNS y tope de 20 s por repo) para que ⇣ (commits por bajar) de la statusline esté al día. Solo descarga referencias: no toca ficheros ni ramas locales. Acepta --component, --no-fetch y --json.
-version: 4
+description: Hace `git fetch` de los componentes (con comprobación de DNS y tope de 20 s por repo) para que ⇣ (commits por bajar) de la statusline esté al día. Solo descarga referencias: no toca ficheros ni ramas locales. Acepta --component, --no-fetch y --json. Also invoked explicitly as /arkana-statusline:refresh
+allowed-tools: []
+version: 8
 ---
 
 # arkana-statusline:refresh
