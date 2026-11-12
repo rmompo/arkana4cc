@@ -82,23 +82,36 @@ class Workspace:
         self._blocks = {"arkana": data["arkana"]}
         for c in data.get("components", []):
             self._blocks[c["alias"]] = c
+        self._ids = {str(b["id"]).lower(): a for a, b in self._blocks.items() if b.get("id")}     # id → alias (los bloques pueden llevar el `id` del registro)
+
+    def key(self, x):
+        """Alias canónico de una pieza dada por alias o por id (el valor tal cual si no se conoce)."""
+        k = canon(x)
+        return self._ids.get(k, k)
+
+    def id_of(self, alias):
+        return self._blocks.get(self.key(alias), {}).get("id")
+
+    def alias_of(self, x):
+        k = self.key(x)
+        return k if k in self._blocks else None
 
     def aliases(self, include_arkana=True):
         res = list(self._blocks)
         return res if include_arkana else [a for a in res if a != "arkana"]
 
     def has(self, alias):
-        return canon(alias) in self._blocks
+        return self.key(alias) in self._blocks
 
     def get(self, alias):
-        a = canon(alias)
+        a = self.key(alias)
         if a not in self._blocks:
             raise KeyError(f"componente desconocido: {alias}")
         return self._blocks[a]
 
     def path(self, alias):
         """Ruta absoluta: la de `local.json` si existe para ese alias; si no, la relativa del manifiesto bajo la raíz."""
-        a = canon(alias)
+        a = self.key(alias)
         self.get(a)
         ov = (self.local.get("paths") or {}).get(a)
         if ov:
@@ -108,7 +121,7 @@ class Workspace:
     def nested_in(self, alias):
         """Alias de las piezas cuya carpeta cuelga de la de `alias` (p. ej. app-web y app-ui dentro de app)."""
         base = self.path(alias).rstrip(os.sep) + os.sep
-        return [a for a in self._blocks if a != canon(alias) and (self.path(a).rstrip(os.sep) + os.sep).startswith(base)]
+        return [a for a in self._blocks if a != self.key(alias) and (self.path(a).rstrip(os.sep) + os.sep).startswith(base)]
 
     def owner_of(self, path):
         """Alias de la pieza más específica que contiene `path` (la de ruta más larga), o None."""
