@@ -1,6 +1,7 @@
 ---
 name: status
 description: Muestra el estado del plan de orquestación actual - tareas, intentos, gasto y tiempo frente a los límites, worker en marcha y gate abierto - en formato legible. Solo lectura.
+version: 0
 ---
 
 # arkana-agentic:status
