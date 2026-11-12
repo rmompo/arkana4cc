@@ -1,6 +1,7 @@
 ---
 name: delete
 description: Borra un mensaje de forma lógica (queda la marca `deleted`, se ignora y viaja en sync y en export). Solo ARKANA o el componente que lo escribió. Pide confirmación. Acepta --dry-run y --json.
+version: 0
 ---
 
 # arkana-messaging:delete

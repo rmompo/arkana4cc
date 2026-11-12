@@ -1,6 +1,7 @@
 ---
 name: get
 description: Lista o muestra los mensajes dirigidos al componente actual (o todos, si eres ARKANA), con filtros por tipo, estado, destinatario, remitente, usuario y fecha; --pending para lo que hay que atender. Solo lectura, local, sin red. Acepta --json.
+version: 0
 ---
 
 # arkana-messaging:get

@@ -1,6 +1,7 @@
 ---
 name: sync
 description: Reconstruye el índice local de mensajes, repara reconciliaciones cortadas y, con --reconcile, lista candidatos a reconciliar; con reconcile apply crea UN mensaje resumen que sustituye a los solapados. Acepta --dry-run y --json.
+version: 0
 ---
 
 # arkana-messaging:sync

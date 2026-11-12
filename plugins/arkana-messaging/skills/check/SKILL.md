@@ -1,6 +1,7 @@
 ---
 name: check
 description: Diagnóstico de solo lectura de la mensajería - almacén, plugin habilitado y latido de los hooks en ESTA sesión. Nunca corrige; propone install o fix. Acepta --json.
+version: 0
 ---
 
 # arkana-messaging:check

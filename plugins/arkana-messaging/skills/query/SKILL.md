@@ -1,6 +1,7 @@
 ---
 name: query
 description: Consulta de SOLO LECTURA de los mensajes del componente actual (todos si eres ARKANA): muestra únicamente id, remitente, asunto y destinatarios. No los marca como leídos, ni como hechos, ni cambia ningún estado. Con --unread lista lo que el hook cuenta como sin leer; con --detail añade también el texto del mensaje (sin marcarlo). Local, sin red. Acepta --json.
+version: 0
 ---
 
 # arkana-messaging:query
