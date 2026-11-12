@@ -9,7 +9,7 @@ check (solo lectura): almacén, plugin habilitado, latido de los hooks (de ESTA 
 componente en los últimos 15 min) y semilla del componente actual (con --all, la de todos).
 install (repetible): crea el almacén, habilita el plugin en `~/.claude/settings.json` (copia .bak) y pone la semilla `arkana:messaging` en el
 ARKANA y en cada componente (CLAUDE.md, o CLAUDE.local.md en los que lo declaran como seed_file; copia en `.arkana/arkana-messaging/bak/`). Quita del CLAUDE.md de
-ARKANA la importación obsoleta `@.arkana/core/novedades.md`. Tras `install` hay que recargar los plugins de la sesión.
+Tras `install` hay que recargar los plugins de la sesión.
 fix: aplica solo lo que `check --all` marca (almacén, plugin, semillas).
 """
 import argparse
@@ -25,7 +25,6 @@ from arkana_core import datafiles, locate, manifest, output, seedblock  # noqa: 
 import messages as M  # noqa: E402
 
 PLUGIN_KEY = "arkana-messaging@arkana"
-OLD_IMPORTS = {"@.arkana/core/novedades.md"}
 HEARTBEAT_WINDOW = 15 * 60
 
 SEED = """<!-- arkana-messaging: bloque generado por /arkana-messaging:install; no se edita a mano -->
@@ -138,10 +137,6 @@ def do(cmd, a):
                 rep.add("WARN", i, "no existe la carpeta del componente")
                 continue
             act = seedblock.apply(p, "messaging", SEED, backup_dir=os.path.join(bak, al), dry=dry, create=os.path.basename(p) != "CLAUDE.md")
-            if al == "arkana":
-                n = seedblock.drop_lines(p, OLD_IMPORTS, backup_dir=os.path.join(bak, al), dry=dry)
-                if n:
-                    rep.add("DRY" if dry else "OK", "import-obsoleto", f"quitada la importación @.arkana/core/novedades.md de {os.path.relpath(p, ws.root)}")
             if act == "falta-fichero":
                 rep.add("WARN", i, f"falta {os.path.relpath(p, ws.root)}: créalo con /arkana-workspace:fix y repite")
             elif act != "igual":

@@ -16,7 +16,7 @@ def ops(lab, who, *a, env=None):
 def prepara(lab):
     for who in ("arkana", "app", "api", "app-web"):
         with open(os.path.join(lab.cwd(who), "CLAUDE.md"), "w") as f:
-            f.write(f"# {who}\n\nReglas propias.\n" + ("@.arkana/core/novedades.md\n" if who == "arkana" else ""))
+            f.write(f"# {who}\n\nReglas propias.\n")
 
 
 def leer(p):
@@ -42,7 +42,6 @@ class TestOps(unittest.TestCase):
                 self.assertIn("/arkana-messaging:check", t)
                 self.assertIn("Reglas propias.", t)                                                            # lo de fuera no se toca
                 self.assertNotIn("\n@", t.split("<!-- arkana:messaging:start -->")[1])                           # el bloque no importa ficheros
-            self.assertNotIn("novedades.md", leer(os.path.join(lab.cwd("arkana"), "CLAUDE.md")))               # importación obsoleta fuera
             self.assertTrue(os.path.isdir(lab.store("messages")))
             st = lab.jload(os.path.join(lab.home, ".claude", "settings.json"))
             self.assertTrue(st["enabledPlugins"]["arkana-messaging@arkana"])

@@ -4,7 +4,7 @@ Mensajería **entre ARKANA y los componentes del proyecto** de un workspace de A
 
 Todo es **local y sin red**: un fichero JSON por mensaje en `.arkana/arkana-messaging/state/messages/` y un índice pequeño en `state/index.json`. No usa git ni servidor. Entre desarrolladores los mensajes solo viajan con `/arkana-workspace:export` e `import` (la carpeta de mensajes es de clase `data`).
 
-Visión de conjunto de los seis plugins de Arkana: [`../README.md`](../README.md).
+Visión de conjunto de los plugins de Arkana: [`../README.md`](../README.md).
 
 Instalación: `/plugin install arkana-messaging --marketplace <owner>/<repo>` (o `claude plugin marketplace add <ruta>` y después `claude plugin install arkana-messaging@arkana`).
 
@@ -105,7 +105,7 @@ Un `task` exige `instrucciones` y `criterios`; una `review`, `cuerpo` o `instruc
 | `state/.lock` | local | Cerrojo entre procesos |
 | `bak/` | local | Copias `.bak` de lo que modifica `install`/`fix` (`settings.json.<fecha>` y `<alias>/…`) |
 
-**Cerrojo.** Toda mutación (`put`, `delete`, `sync`, `reconcile apply`, `adopt` y el marcado de leídos) toma `flock` exclusivo sobre `state/.lock`: varias sesiones publicando o cerrando a la vez no se pisan. Las escrituras son atómicas (fichero temporal + renombrado). El borrado es **lógico**: el fichero se conserva con `estado: deleted`, de modo que la marca viaja en export/import (la marca de borrado gana siempre).
+**Cerrojo.** Toda mutación (`put`, `delete`, `sync`, `reconcile apply` y el marcado de leídos) toma `flock` exclusivo sobre `state/.lock`: varias sesiones publicando o cerrando a la vez no se pisan. Las escrituras son atómicas (fichero temporal + renombrado). El borrado es **lógico**: el fichero se conserva con `estado: deleted`, de modo que la marca viaja en export/import (la marca de borrado gana siempre).
 
 ### Quién actúa y qué ve cada uno
 
@@ -136,11 +136,11 @@ Todos los subcomandos (salvo `get`, `query` y `reconcile candidates`, que imprim
 | `0` | Sin fallos (los `WARN` no cuentan) |
 | `1` | Fallo (mensaje inexistente o no visible, permiso denegado, acción no válida para ese mensaje, error de ficheros) |
 | `2` | Uso incorrecto (opción desconocida o inválida, falta un argumento obligatorio, mensaje que no pasa la validación, destinatario desconocido) |
-| `3` | Precondición no cumplida: no hay workspace, el `cwd` no pertenece a ningún componente, o no existe la carpeta de origen de `adopt` |
+| `3` | Precondición no cumplida: no hay workspace, el `cwd` no pertenece a ningún componente |
 
 ## Referencia de skills
 
-Herramienta común: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" <subcomando> [opciones]`. Los subcomandos `install`, `check` y `fix` los atiende `scripts/lib/ops.py`; el resto, `scripts/lib/messages.py`. Hay 8 skills (`skills/*/SKILL.md`); además `messaging.sh` expone los subcomandos `reconcile` y `adopt`, que se usan a través de `put` y `sync` (ver [Reconciliación](#reconciliación)).
+Herramienta común: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/messaging.sh" <subcomando> [opciones]`. Los subcomandos `install`, `check` y `fix` los atiende `scripts/lib/ops.py`; el resto, `scripts/lib/messages.py`. Los skills están en `skills/*/SKILL.md`; además `messaging.sh` expone el subcomando `reconcile`, que se usa a través de `put` y `sync` (ver [Reconciliación](#reconciliación)).
 
 | Skill | Escribe | Lee | Pide confirmación al usuario |
 |---|---|---|---|
@@ -360,9 +360,9 @@ Permisos: **ARKANA** borra cualquier mensaje; un componente, **solo los que escr
 
 ### `sync`
 
-**Para qué sirve.** Mantenimiento del almacén y reconciliación de mensajes solapados. Reconstruye `state/index.json` desde los mensajes, lista ficheros ilegibles, completa una reconciliación cortada a medias y, con `--reconcile`, informa de candidatos. Sus subcomandos auxiliares `reconcile` y `adopt` completan el skill.
+**Para qué sirve.** Mantenimiento del almacén y reconciliación de mensajes solapados. Reconstruye `state/index.json` desde los mensajes, lista ficheros ilegibles, completa una reconciliación cortada a medias y, con `--reconcile`, informa de candidatos. Su subcomando auxiliar `reconcile` completa el skill.
 
-**Cuándo usarlo.** Tras importar un ZIP, si el índice parece desactualizado, si `check`/`get` avisan de ficheros ilegibles, o cuando `put` sugiere reconciliar. `adopt`, una sola vez, para recoger mensajes del formato antiguo.
+**Cuándo usarlo.** Tras importar un ZIP, si el índice parece desactualizado, si `check`/`get` avisan de ficheros ilegibles, o cuando `put` sugiere reconciliar.
 
 #### `sync [--reconcile] [--dry-run] [--json]`
 
@@ -391,10 +391,6 @@ Solo lectura. Devuelve grupos de **mensajes con el mismo conjunto de destinatari
 
 Crea **un** mensaje resumen (con `origins`, destinatarios = los de los originales, remitente = actor) y pasa los originales a `reconciled` (con `reconciled_into`), de modo que dejan de mostrarse. Primero se guarda el resumen y luego se marcan los originales: si se corta, `sync` completa el resto.
 
-#### `adopt [--source DIR] [--dry-run] [--json]`
-
-Adopta **una sola vez** los mensajes JSON del formato antiguo (carpeta `novedades/` del repo de ARKANA, o `--source DIR`). Los convierte al esquema actual, **no sobrescribe** los que ya están en el almacén, avisa (`WARN`) de los `.md` y de los JSON no convertibles. Si la carpeta no existe: código 3. Resumen: `OK|adopt|n adoptadas, m ya estaban en el almacén`.
-
 **Pasos de reconciliación** (decide el modelo, confirma el usuario): (1) `reconcile candidates [--to <alias>] --json`. (2) Decidir **cuáles se solapan de verdad** (misma petición repetida, información superada por otra posterior); si no, no hacer nada. (3) Redactar un único resumen que conserve todo lo accionable; enseñarlo y pedir confirmación. (4) `reconcile apply …`. Nunca reconciliar mensajes de destinatarios distintos ni ya cerrados.
 
 **Ejemplos.**
@@ -405,7 +401,6 @@ sync --reconcile
 reconcile candidates --to api --json
 reconcile apply --origins "N261104-1100-aaaa N261104-1230-bbbb" --subject "Cambios pedidos a api (consolidado)" \
     --type task --instructions-file "$SCRATCH/i.txt" --criteria-file "$SCRATCH/c.txt"
-adopt --dry-run
 ```
 
 ---
@@ -424,7 +419,7 @@ adopt --dry-run
 | `--no-settings` | No toca `~/.claude/settings.json` (instalación a nivel de proyecto, o sin permiso) |
 | `--json` | Salida JSON |
 
-Hace, por este orden: (1) crea `.arkana/arkana-messaging/state/messages/`; (2) habilita `arkana-messaging@arkana` en `~/.claude/settings.json` (copia previa en `.arkana/arkana-messaging/bak/settings.json.<fecha>`; si ya está habilitado, no hace nada); (3) pone el bloque `<!-- arkana:messaging:start -->…<!-- arkana:messaging:end -->` en el `CLAUDE.md` de ARKANA y de cada componente (en `CLAUDE.local.md`, que se crea si falta, para los que lo declaran como `seed_file`; copia en `bak/<alias>/`); (4) quita del `CLAUDE.md` de ARKANA la importación obsoleta `@.arkana/core/novedades.md`. Si falta un `CLAUDE.md` versionado **no lo crea** (`WARN`): eso lo hace `/arkana-workspace:fix`. Un bloque ya al día se deja igual.
+Hace, por este orden: (1) crea `.arkana/arkana-messaging/state/messages/`; (2) habilita `arkana-messaging@arkana` en `~/.claude/settings.json` (copia previa en `.arkana/arkana-messaging/bak/settings.json.<fecha>`; si ya está habilitado, no hace nada); (3) pone el bloque `<!-- arkana:messaging:start -->…<!-- arkana:messaging:end -->` en el `CLAUDE.md` de ARKANA y de cada componente (en `CLAUDE.local.md`, que se crea si falta, para los que lo declaran como `seed_file`; copia en `bak/<alias>/`). Si falta un `CLAUDE.md` versionado **no lo crea** (`WARN`): eso lo hace `/arkana-workspace:fix`. Un bloque ya al día se deja igual.
 
 **Pasos.** (1) `--dry-run` y enseñar qué cambiaría; pedir confirmación, porque modifica ficheros de varios repos y los ajustes del usuario. (2) Aplicar. (3) Avisar de que **los cambios en los repos no están commiteados** y de que hay que **recargar los plugins** (`/reload-plugins`) o reiniciar la sesión para que arranquen los hooks. (4) No hacer commit ni push.
 

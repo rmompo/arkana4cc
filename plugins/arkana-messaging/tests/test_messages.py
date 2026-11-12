@@ -290,29 +290,6 @@ class TestSyncReconcileAdopt(unittest.TestCase):
             self.assertIn("sync-reparar", r.stdout)
             self.assertEqual(lab.msg(a)["estado"], "reconciled")
 
-    def test_adopt_formato_antiguo_es_idempotente_y_no_toca_el_origen(self):
-        with Lab() as lab:
-            src = os.path.join(lab.arkana, "novedades")
-            os.makedirs(os.path.join(src, "shared")); os.makedirs(os.path.join(src, "app-web"))
-            leg = {"id": "N261030-1729-v7fb", "asunto": "Formato de commit cerrado", "tipo": "notice", "de": "shared", "autor": "x", "fecha": "2026-10-30T17:29:37Z",
-                   "rama": "develop", "prioridad": "normal", "historial": [{"fecha": "2026-10-30T17:29:37Z", "autor": "x", "accion": "created", "nota": ""}]}
-            tarea = dict(leg, id="N261030-1850-6stx", de="app-web", para="app", tipo="task", estado="done", instrucciones=["a"], criterios=["b"])
-            lab.jdump(os.path.join(src, "shared", leg["id"] + ".json"), leg)
-            lab.jdump(os.path.join(src, "app-web", tarea["id"] + ".json"), tarea)
-            lab.file(os.path.join("ws", "shared", "novedades", "LEEME.md"), "# LEEME")
-            lab.jdump(os.path.join(src, "shared", "roto.json"), {"id": "malo"})
-            r = lab.run("arkana", "adopt", "--dry-run")
-            self.assertEqual(r.returncode, 0, r.stdout)
-            self.assertFalse(os.path.isdir(lab.store("messages")))
-            r = lab.run("arkana", "adopt")
-            self.assertIn("2 adoptadas, 0 ya estaban", r.stdout)
-            self.assertIn("WARN|adopt:shared/roto.json", r.stdout)
-            a = lab.msg("N261030-1729-v7fb")
-            self.assertEqual((a["de"], a["para"]), ("arkana", ["api", "app", "app-web"]))     # sin destinatario = a todos los demás
-            self.assertEqual(lab.msg("N261030-1850-6stx")["para"], ["app"])
-            self.assertIn("0 adoptadas, 2 ya estaban", lab.run("arkana", "adopt").stdout)
-            self.assertTrue(os.path.exists(os.path.join(src, "shared", leg["id"] + ".json")))        # el origen no se toca
-
 
 class TestRepeatYDestinatarios(unittest.TestCase):
     def task(self, lab, who="arkana", to="api,app", extra=()):

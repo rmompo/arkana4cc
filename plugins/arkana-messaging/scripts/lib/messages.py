@@ -18,7 +18,6 @@
   reconcile candidates [--to C] [--json]                  grupos de mensajes abiertos con el mismo destinatario
   reconcile apply --origins "ID ID.." --subject T [--type T] [--priority P] [--body-file F] [--instructions-file F]
           [--criteria-file F] [--dry-run] [--json]        UN mensaje resumen; los originales pasan a `reconciled`
-  adopt   [--source DIR] [--dry-run] [--json]             adopta una sola vez las comunicaciones del formato antiguo (novedades/)
 
 Quién actúa lo decide el directorio de trabajo y el manifiesto (el componente que contiene el cwd, o ARKANA), nunca un argumento.
 Un componente publica solo como él mismo y solo ve lo dirigido a él o escrito por él; ARKANA lo ve todo y es la única que borra
@@ -427,7 +426,7 @@ def confirm(m, a, who, ws, accion, nota):
     if m["tipo"] == "notice":
         raise MessageError("put", f"{nid} es un notice: no tiene estado, no se puede marcar como {nuevo}")
     if is_repeat(m):
-        raise MessageError("put", f"{nid} es un repeat: no se cierra (se da de baja con delete y se sustituye con adopt/reconcile)")
+        raise MessageError("put", f"{nid} es un repeat: no se cierra (se da de baja con delete)")
     dest = recipients_of(m, ws)
     if a.para_alias:
         alias = manifest.canon(a.para_alias)
@@ -684,57 +683,6 @@ def cmd_reconcile(a, rep=None):
         rep.add("OK", "reconcile", f"{new['id']} resume {len(ids)} mensajes (pasan a reconciled; conserva origins)")
 
 
-def migrate_legacy(d, ws):
-    """Mensaje del formato antiguo (de/para sueltos, sin `updated`) → esquema actual; None si no es convertible."""
-    de = manifest.canon(d.get("de", ""))
-    if not RE_ID.match(str(d.get("id", ""))) or not ws.has(de) or not d.get("asunto") or d.get("tipo") not in TYPES:
-        return None
-    para = d.get("para")
-    para = [manifest.canon(p) for p in (para if isinstance(para, list) else [para] if para else [])]
-    para = sorted(p for p in (para or [x for x in ws.aliases() if x != de]) if p != de and ws.has(p))
-    if not para:
-        return None
-    m = dict(d, de=de, para=para)
-    hist = m.get("historial") or []
-    m["updated"] = (hist[-1].get("fecha") if hist else None) or m.get("fecha") or iso()
-    m.pop("_ruta", None)
-    return m
-
-
-def cmd_adopt(a, rep):
-    home, ws, store, who = ctx()
-    src = os.path.abspath(a.source or os.path.join(home, "novedades"))
-    if not os.path.isdir(src):
-        raise MessageError("adopt", f"no existe la carpeta de origen: {os.path.basename(src)}", 3)
-    n_new = n_old = 0
-    with store.lock():
-        for dp, dns, fns in os.walk(src):
-            dns.sort()
-            for f in sorted(fns):
-                rel = os.path.relpath(os.path.join(dp, f), src)
-                if f.endswith(".md"):
-                    if f != "LEEME.md":
-                        rep.add("WARN", f"adopt:{rel}", "formato .md antiguo: no se adopta (conviértela a mano o ignórala)")
-                    continue
-                if not f.endswith(".json"):
-                    continue
-                d = datafiles.read_json(os.path.join(dp, f))
-                m = migrate_legacy(d, ws) if isinstance(d, dict) else None
-                if not m or validate(m):
-                    rep.add("WARN", f"adopt:{rel}", "no convertible: " + ("; ".join(validate(m)) if m else "JSON o campos no válidos"))
-                    continue
-                if os.path.exists(store.path(m["id"])):
-                    n_old += 1
-                    continue
-                n_new += 1
-                rep.add("DRY" if a.dry_run else "OK", f"adopt:{m['id']}", f"{m['tipo']} {m['de']}→{','.join(m['para'])}: {shorten(m['asunto'], 60)}")
-                if not a.dry_run:
-                    store.save(m, touch=False)
-        if not a.dry_run:
-            store.reindex()
-    rep.add("DRY" if a.dry_run else "OK", "adopt", f"{n_new} adoptadas, {n_old} ya estaban en el almacén")
-
-
 def make_parser():
     p = argparse.ArgumentParser(prog="messaging.sh", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     s = p.add_subparsers(dest="cmd", required=True)
@@ -810,8 +758,6 @@ def make_parser():
     ra.add_argument("--priority", dest="prioridad", choices=PRIORITIES, default="normal")
     for f, k in (("body", "cuerpo"), ("instructions", "instrucciones"), ("criteria", "criterios")):
         ra.add_argument(f"--{f}-file", dest=k + "_file")
-    ad = common(s.add_parser("adopt"))
-    ad.add_argument("--source")
     return p
 
 
@@ -825,7 +771,7 @@ def main(argv):
     try:
         if a.cmd in ("get", "query") or (a.cmd == "reconcile" and a.sub == "candidates"):
             return {"get": cmd_get, "query": cmd_query}[a.cmd](a) if a.cmd != "reconcile" else cmd_reconcile(a)
-        {"put": cmd_put, "delete": cmd_delete, "sync": cmd_sync, "reconcile": cmd_reconcile, "adopt": cmd_adopt}[a.cmd](a, rep)
+        {"put": cmd_put, "delete": cmd_delete, "sync": cmd_sync, "reconcile": cmd_reconcile}[a.cmd](a, rep)
     except MessageError as e:
         rep.add("FAIL", e.donde, str(e))
         sys.stdout.write(rep.render(a.json))

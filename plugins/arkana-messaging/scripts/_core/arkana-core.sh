@@ -5,7 +5,7 @@
 #                            ~/.arkana-workspaces.json; sale con 1 (sin imprimir nada) si no hay workspace
 #   ac_state <home>          <home>/.arkana
 #   ac_root <home>           raíz del workspace (`root` de arkana.json, por defecto ..)
-#   ac_canon <alias>         alias canónico (minúsculas; el id histórico `shared` es `arkana`)
+#   ac_canon <alias>         alias canónico (minúsculas)
 #   ac_aliases <home>        arkana y los componentes, uno por línea
 #   ac_path <home> <alias>   ruta absoluta de una pieza (local.json manda sobre el manifiesto)
 #   ac_field <home> <alias> <campo>   campo del bloque de una pieza (p. ej. type, remote_host)
@@ -44,7 +44,7 @@ ac_root() {
   (cd "$r" 2>/dev/null && pwd -P) || printf '%s\n' "$r"
 }
 
-ac_canon() { local a="${1,,}"; [ "$a" = "shared" ] && a="arkana"; printf '%s\n' "$a"; }
+ac_canon() { printf '%s\n' "${1,,}"; }
 
 ac_aliases() { jq -r '["arkana"] + [.components[]?.alias] | .[]' "$(ac_state "$1")/core/workspace.json"; }
 
