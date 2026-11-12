@@ -21,7 +21,7 @@ import uuid
 from . import datafiles
 
 FILE = "arkana-project.json"
-LAYOUT_REQUIRED = 3                    # layout mínimo que esperan los plugins (la última migración numérica que necesitan)
+LAYOUT_REQUIRED = 4                    # layout mínimo que esperan los plugins (la última migración numérica que necesitan)
 UUID_RX = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 ALIAS_RX = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
