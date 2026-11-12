@@ -1,0 +1,21 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [{"type": "command", "command": "python3 -I \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks.py\" session-start", "timeout": 5}]
+      }
+    ],
+    "FileChanged": [
+      {
+        "matcher": ".*",
+        "hooks": [{"type": "command", "command": "python3 -I \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks.py\" file-changed", "timeout": 5}]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [{"type": "command", "command": "python3 -I \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks.py\" prompt-submit", "timeout": 5}]
+      }
+    ]
+  }
+}

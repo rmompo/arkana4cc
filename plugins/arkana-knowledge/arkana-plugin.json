@@ -1,7 +1,42 @@
 {
   "plugin": "arkana-knowledge",
   "contract": 1,
-  "provides": ["install", "check", "fix", "add", "query", "modify", "delete"],
+  "provides": [
+    "install",
+    "check",
+    "fix",
+    "add",
+    "query",
+    "modify",
+    "delete",
+    "ingest"
+  ],
+  "requires": [
+    {
+      "plugin": "arkana-workspace"
+    }
+  ],
   "check": "python3 scripts/lib/knowledge.py validate",
-  "data": []
+  "data": [
+    {
+      "path": "arkana-knowledge/index.json",
+      "class": "local",
+      "description": "índice derivado de notas y documentos (se reconstruye solo; vive en .arkana/)"
+    },
+    {
+      "path": "arkana-knowledge/pending.json",
+      "class": "local",
+      "description": "ficheros llegados a arkana-incoming/ (lo escribe el hook FileChanged)"
+    },
+    {
+      "path": "arkana-knowledge/sessions/",
+      "class": "local",
+      "description": "avisos de ingesta ya dados en cada sesión"
+    }
+  ],
+  "hooks": [
+    "SessionStart",
+    "FileChanged",
+    "UserPromptSubmit"
+  ]
 }

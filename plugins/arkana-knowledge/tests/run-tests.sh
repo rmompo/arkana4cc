@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pruebas de arkana-knowledge (add, modify, delete lógico, query, validate y migración con Changelog). Sin red ni API.
+# Pruebas de arkana-knowledge (notas con UUID, documentos, ingesta, validación, hooks). Sin red ni API. Sin red ni API.
 set -uo pipefail
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export PYTHONDONTWRITEBYTECODE=1
