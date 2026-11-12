@@ -18,7 +18,7 @@ def run(lab, cwd, env=None):
 
 def migrada(lab):
     """Marca la instalación del laboratorio como ya migrada (registro del proyecto en el layout que esperan los plugins)."""
-    wj(os.path.join(lab.arkana, "arkana-project.json"), {"schema_version": 1, "layout": 3, "workspace": {"id": "x", "name": "t"}, "components": []})
+    wj(os.path.join(lab.arkana, "arkana-project.json"), {"schema_version": 1, "layout": 4, "workspace": {"id": "x", "name": "t"}, "components": []})
 
 
 def wj(p, obj):
@@ -80,7 +80,7 @@ class TestAvisoDeMigracion(unittest.TestCase):
     def test_avisa_al_usuario_si_el_layout_es_anterior_y_no_si_esta_al_dia(self):
         with TC.CLab() as lab:
             m = json.loads(run(lab, os.path.join(lab.ws, "app")).stdout)["systemMessage"]
-            self.assertTrue(m.startswith("[ARKANA] ⚠ Instalación en layout 0; esta versión necesita 3. Ejecuta /arkana-evolve:apply."), m)
+            self.assertTrue(m.startswith("[ARKANA] ⚠ Instalación en layout 0; esta versión necesita 4. Ejecuta /arkana-evolve:apply."), m)
             migrada(lab)
             out = json.loads(run(lab, os.path.join(lab.ws, "app")).stdout)
             self.assertNotIn("Instalación en layout", out.get("systemMessage", ""))          # al día: sin aviso (el BRIEF normal sí puede salir)
