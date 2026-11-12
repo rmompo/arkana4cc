@@ -1,7 +1,7 @@
 ---
 name: stop
 description: Para la orquestación - suave (la tarea en curso termina y el plan queda pausado), pausa y reanudación, o forzosa (mata al worker, cancela la tarea y detiene el plan). Obedece de inmediato.
-version: 0
+version: 10
 ---
 
 # arkana-agentic:stop

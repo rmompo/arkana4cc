@@ -1,7 +1,7 @@
 ---
 name: fix
 description: Corrige la orquestación - limpia un worker.json obsoleto y recupera tras una caída las tareas interrumpidas preguntando al usuario si reintentar (descartando lo hecho a medias) o descartar. Nunca reintenta por su cuenta. Acepta --dry-run.
-version: 0
+version: 5
 ---
 
 # arkana-agentic:fix

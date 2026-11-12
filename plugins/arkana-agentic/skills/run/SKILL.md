@@ -1,7 +1,7 @@
 ---
 name: run
 description: Ejecuta el plan de orquestación actual, una tarea cada vez - lanza el worker en segundo plano, verifica su resultado con scripts, decide la acción siguiente y se detiene en las paradas obligatorias (gates). Solo desde arkana.
-version: 0
+version: 8
 ---
 
 # arkana-agentic:run
