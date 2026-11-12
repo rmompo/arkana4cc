@@ -39,6 +39,7 @@ Las `b*` son de **base**: convierten formatos antiguos y se ejecutan antes que l
 | `b004` | local + shared | Alias histórico `shared` → `arkana` en mensajes, planes, libro, tareas, `local.json` y notas. |
 | `0001` | shared + local | Crea `arkana-project.json` (registro compartido: UUID del workspace y de cada pieza —`arkana` incluida— con su alias, sello `layout`) y las carpetas fijas con `.gitkeep`: `arkana-incoming/` (cuyo `.gitignore` interno ignora todo salvo `.gitignore` y `.gitkeep`), `arkana-knowledge/`, `arkana-docs/` y `arkana-docs/md/`. Si el registro ya existe (otra persona migró) no regenera ningún UUID. |
 | `0002` | local + shared | Arkana deja de escribir en `CLAUDE.md` / `CLAUDE.local.md` de los repos: quita de ellos los bloques gestionados (`arkana:messaging`, `arkana:commits`, `arkana:agentic`), renombra `CLAUDE.local.md` a `ARKANA.local.md`, añade `.claude/`, `.claude-session/` y `ARKANA.local.md` a `.git/info/exclude` y retira `seed_file` del manifiesto. No toca un fichero versionado con cambios sin commitear. Las directrices las inyectan los hooks. |
+| `0003` | shared + local | Cada componente lleva su `id` (UUID del registro del proyecto) en el manifiesto local; da de alta en el registro lo que solo esté en el manifiesto; no reescribe ningún id y avisa si el registro llama de otro modo a un componente (renombrado por otra persona). |
 
 ## Pruebas
 

@@ -129,7 +129,7 @@ class TestApply0001(unittest.TestCase):
             r = lab.run("apply")
             self.assertEqual(r.returncode, 0, r.stdout)
             p = lab.project()
-            self.assertEqual((p["schema_version"], p["layout"]), (1, 2))                                     # 0001 crea el registro y 0002 sube el sello
+            self.assertEqual((p["schema_version"], p["layout"]), (1, 3))                                     # 0001 crea el registro y el motor sube el sello con cada migración
             self.assertTrue(UUID_RX.match(p["workspace"]["id"]))
             self.assertEqual([c["alias"] for c in p["components"]], ["arkana", "api"])
             ids = [c["id"] for c in p["components"]]
@@ -188,7 +188,9 @@ class TestApply0001(unittest.TestCase):
             self.assertEqual(r.returncode, 0, r.stdout)
             self.assertIn("no se regeneran UUID", r.stdout)
             self.assertIn("alias del manifiesto local que no están en el registro: docs", r.stdout)
-            self.assertEqual(lab.project(), antes)
+            ahora = lab.project()
+            self.assertEqual(ahora["components"][:len(antes["components"])], antes["components"])      # los UUID de siempre no cambian
+            self.assertEqual([c["alias"] for c in ahora["components"]][-1], "docs")                       # y la 0003 da de alta lo que faltaba
             self.assertIn("OK|0001|aplicada", lab.run("check").stdout)
 
     def test_to_limita_las_numericas_y_valida_el_argumento(self):
