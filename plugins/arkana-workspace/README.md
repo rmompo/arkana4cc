@@ -2,7 +2,7 @@
 
 Plugin base de Arkana para Claude Code. Gobierna el **workspace** (ARKANA, repositorio de conciliación y gobierno del proyecto y sus componentes, más el proyecto, que se compone de uno o más componentes, cada uno un repositorio): qué componentes lo forman, quién puede leer o escribir dónde, con qué credenciales, con qué herramientas, con qué convención de commits y en qué estado está cada repo. Es el único plugin del que dependen los demás para saber «dónde está todo».
 
-Versión del plugin: 5.1.0 (`.claude-plugin/plugin.json`). Contrato `arkana-plugin.json` versión 1. Solo biblioteca estándar de Python 3 (`python3`, `git`; `jq` lo usan el núcleo bash y la statusline). Visión de conjunto de los plugins: [`../README.md`](../README.md).
+Versión del plugin: 6.0.0 (`.claude-plugin/plugin.json`). Contrato `arkana-plugin.json` versión 1. Solo biblioteca estándar de Python 3 (`python3`, `git`; `jq` lo usan el núcleo bash y la statusline). Visión de conjunto de los plugins: [`../README.md`](../README.md).
 
 ## Índice
 
@@ -28,7 +28,7 @@ El **workspace** es ARKANA más el **proyecto**. ARKANA tiene su propio reposito
 | Que cada componente pueda tocar solo lo que debe | Modelo único de permisos R/E/W generado desde el manifiesto (`permissions.py`), visible con `rew-grants` y aplicado con `fix` |
 | Guardar secretos sin que lleguen a git, al manifiesto ni a un ZIP | `.credentials` (modo 600, solo nombres de clave en el manifiesto) y el asistente de credenciales de git |
 | Declarar las herramientas del proyecto (Node, JDK, Maven…, paquetes globales, registros, URL, puertos) | `config tools` y la comprobación dirigida por datos de `check` |
-| Una convención de commits por componente, también para ARKANA | `commit_format` y el bloque `arkana:commits` |
+| Una convención de commits por componente, también para ARKANA | `commit_format`; la convención se inyecta en la sesión de cada pieza |
 | Diagnosticar y reparar el estado del workspace | `check` (solo lectura, agregado) y `fix` (interactivo, con copia `.bak`) |
 | Ver el estado git de todo y refrescar lo que baja del remoto | `status` (local) y `sync` (`git fetch` acotado) |
 | Mover la configuración entre máquinas y traspasar el proyecto | `export` / `import` (ZIP verificable) y `handover` (informe sin secretos) |
@@ -48,8 +48,8 @@ Reglas transversales: ningún comando escribe fuera de `.arkana/` y de los fiche
 | **Permisos** | `permissions.py` es el generador único de `.claude/settings.local.json` de ARKANA y de cada componente, incluidas las reglas `Bash` del orquestador y el `deny` de `claude -p/--print/--bg` | `arkana-agentic` depende de estas reglas para que solo ARKANA lance workers y para proteger su estado |
 | **Herramientas** `tools.json` | Versión, ruta, paquetes globales y registros por ámbito | `arkana-agentic` pone `path` en el `PATH` (y `JAVA_HOME` si la herramienta es `jdk`) y escribe el `.npmrc` de sus verificaciones |
 | **Credenciales** `.credentials` | Resolvedor único de claves; `arkana-exec.sh` las pasa al entorno de un comando | Los demás plugins nunca leen `.credentials` directamente |
-| **Convención de commits** | `commit_format` por componente y bloque `arkana:commits` en su `CLAUDE.md` | Los commits locales de `arkana-agentic` (rama `arkana-worker/<plan>`) siguen el formato del manifiesto |
-| **Gestión de bloques** | `seedblock` (marcadores `<!-- arkana:NOMBRE:start/end -->`) | `arkana-messaging` (`arkana:messaging`), `arkana-agentic` (`arkana:agentic`) y este plugin (`arkana:commits`) |
+| **Convención de commits** | `commit_format` por componente; la convención la inyecta el hook de sesión, no se escribe en ningún fichero de los repos | Los commits locales de `arkana-agentic` (rama `arkana-worker/<plan>`) siguen el formato del manifiesto |
+| **Directrices de sesión** | El hook `SessionStart` (`scripts/lib/directives.py`) inyecta en el contexto del modelo, por pieza, la convención de commits, las reglas comunes y las notas locales `ARKANA.local.md` | Cada plugin inyecta las suyas con su propio hook (`arkana-messaging`, `arkana-agentic`): ningún fichero de instrucciones en los repos de trabajo |
 | **`check` agregado** | `checks/all.py` ejecuta, además de lo suyo, el `check` que cada plugin declare en su `arkana-plugin.json` | Un único `/arkana-workspace:check` revisa el conjunto |
 | **Exportar/importar** | Cada plugin declara en `arkana-plugin.json` la clase de sus datos (`config`, `data`, `local`, `secret`); `transfer.py` y `handover.py` solo leen esas declaraciones | Todos |
 | **BRIEF de sesión** | Hook `SessionStart` que resume git, mensajes y plan activo | Usa datos de `arkana-messaging` (índice y marcas de lectura) y de `arkana-agentic` (plan activo) solo si existen |
@@ -139,7 +139,6 @@ Campos de cada bloque (ARKANA y componentes comparten los marcados «ambos»):
 | `git.token_ref` | ambos | texto | Nombre de la clave del token en `.credentials`. `--token-ref` |
 | `git.username` | ambos | texto | Usuario con el que el asistente de git entrega el token (por defecto `oauth2`). `--git-username` |
 | `git.email_domains` | ambos | lista de texto (`^[A-Za-z0-9.-]+$`) | Dominios de correo que debe tener el autor de los commits; sin lista no hay regla. `--git-email-domain` (repetible) |
-| `seed_file` | ambos | `CLAUDE.md` \| `CLAUDE.local.md` | Fichero donde van los bloques gestionados; `CLAUDE.local.md` para los repos que no versionan su `CLAUDE.md`. `--seed-file` |
 | `vpn` | componente | booleano | Si requiere VPN. `--vpn` / `--no-vpn`; `handover` lo muestra |
 | `tools[]` | componente | lista `{tool, version}` | Herramientas y versiones que pide el componente. `--tool-version tool=ver` |
 | `statusline` | componente | booleano | Si `arkana-statusline` lo muestra (sin la marca se muestra salvo los de tipo `docs`). `--statusline` / `--no-statusline`; este plugin no lo lee |
@@ -156,7 +155,7 @@ Ejemplo mínimo:
              "branches": {"main": "main", "develop": "develop"}},
   "components": [
     {"alias": "app", "type": "node", "path": "app", "remote": "https://git.example.org/team/app.git",
-     "remote_host": "git.example.org", "commit_format": "conventional", "seed_file": "CLAUDE.local.md",
+     "remote_host": "git.example.org", "commit_format": "conventional",
      "git": {"token_ref": "GIT_TOKEN", "email_domains": ["example.org"]},
      "tools": [{"tool": "node", "version": "20"}]},
     {"alias": "app-web", "type": "node", "path": "app/app-web"},
@@ -220,7 +219,7 @@ La versión efectiva de una herramienta sale de `tools[]` de los componentes y d
 
 `export` incluye: `arkana.json`, `core/workspace.json` y `arkana-workspace/tools.json` sin `path`, más los datos de clase `config` de los demás plugins (y los de clase `data` con `--include-data`). No viaja nada de clase `local` ni `secret`, ni `.credentials`, `__pycache__`, `*.bak`, `.tmp-*` ni enlaces simbólicos.
 
-### 3.9 Convención de commits y bloque `arkana:commits`
+### 3.9 Convención de commits
 
 | Formato | Plantilla | Ejemplo |
 |---|---|---|
@@ -229,7 +228,7 @@ La versión efectiva de una herramienta sale de `tools[]` de los componentes y d
 
 Reglas comunes que lleva el bloque: inglés, ≤72 caracteres, sin punto final, un solo objetivo por commit; **nunca** `Co-Authored-By` ni otra línea de coautoría (no es configurable) y **nunca** `--no-verify`; solo se hace commit o push cuando el usuario lo pide; los commits locales de una orquestación siguen el mismo formato.
 
-El bloque se escribe entre `<!-- arkana:commits:start -->` y `<!-- arkana:commits:end -->`, con el encabezado «Convención de commits (arkana-workspace)». Se reemplaza entero al aplicarlo; lo de fuera no se toca. Destino: `<carpeta de Arkana>/CLAUDE.md` para ARKANA; para un componente, su `seed_file` (por defecto `CLAUDE.md`). El `scope` del ejemplo es el alias de la pieza.
+La convención **no se escribe en ningún fichero**: la compone `lib/directives.py` desde el manifiesto y la inyecta el hook de sesión en el contexto de cada pieza (junto con las reglas comunes y su `ARKANA.local.md`, si existe). Dentro de una pieza, `commit_format` decide cuál de los dos formatos se le da; el `scope` del ejemplo es el alias de la pieza.
 
 ---
 
@@ -249,7 +248,7 @@ Resumen:
 |---|---|---|---|
 | `install` | `.arkana/*`, `~/.arkana-workspaces.json`, permisos | no | `lib/layout.py init` |
 | `check` | nada | opcional (`--network`) | `checks/all.py` |
-| `fix` | `settings.local.json`, `CLAUDE.md`, `.gitignore`… del componente | no | `checks/component.py` + `permissions.py`/`commits.py apply` |
+| `fix` | `settings.local.json`, `.git/info/exclude`, `.gitignore`… del componente | no | `checks/component.py` + `permissions.py` / `excludes.py apply` |
 | `component` | manifiesto, `local.json` | no | `lib/components.py` |
 | `config` | manifiesto (`jira`), `tools.json` | no | `lib/config.py` |
 | `status` | nada | no | `lib/status.py` |
@@ -301,7 +300,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/layout.py" init --base /work/proyecto
 
 ### 4.2 `/arkana-workspace:check`
 
-**Para qué sirve.** Diagnóstico de **solo lectura** del workspace entero: cada pieza (permisos, `CLAUDE.md`, commits, git, `.gitignore`, identidad), herramientas y entorno, credenciales y el `check` que declare cada plugin de Arkana.
+**Para qué sirve.** Diagnóstico de **solo lectura** del workspace entero: cada pieza (permisos, commits, git, `.gitignore`, identidad), herramientas y entorno, credenciales y el `check` que declare cada plugin de Arkana.
 
 **Cuándo.** Al abrir una sesión, tras `install`/`fix`, antes de lanzar un plan, o cuando algo falle. Para corregir, `fix`; para el detalle de permisos, `rew-grants`.
 
@@ -336,10 +335,10 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/layout.py" init --base /work/proyecto
 | `carpeta` | Existe la carpeta | FAIL |
 | `arkana-presente`, `arkana-escribible` | Existe ARKANA y se puede escribir en ella | OK/FAIL |
 | `permisos` | `settings.local.json` frente al modelo (`permissions.diff`); FAIL si hay `missing`, `weaker` o `bash-missing`; WARN con el resto | OK/WARN/FAIL |
-| `claude-md` | Existe `CLAUDE.md` (o `CLAUDE.local.md` si el componente lo declara como `seed_file`) | OK/INFO/FAIL |
-| `commits` | El bloque `arkana:commits` está al día con `commit_format` | OK/WARN/FAIL (formato desconocido) |
+| `commits` | El `commit_format` del componente es válido (la convención la inyecta el hook) | OK/FAIL |
 | `git-repo` | Es un repo git; si no, `WARN` y termina | WARN |
-| `gitignore-env`, `gitignore-claude`, `gitignore-claude-session` | `.env`, `.claude/` y `.claude-session/` ignorados | OK/FAIL |
+| `gitignore-env` | `.env` ignorado | OK/FAIL |
+| `ignore-editor`, `ignore-editor-session`, `ignore-arkana-local` | `.claude/`, `.claude-session/` y `ARKANA.local.md` ignorados por cualquier vía (`.gitignore` o `.git/info/exclude`) | OK/FAIL |
 | `env-versionado`, `env-historial` | Ningún `.env*` (salvo `.env.example`) versionado ni en el historial | OK/FAIL |
 | `env-example` | Existe `.env.example` | OK/WARN |
 | `git-identidad` | `user.email` coherente con `git.email_domains` (sin regla: cualquiera; sin remoto: no se comprueba) | OK/WARN/FAIL |
@@ -411,7 +410,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/checks/all.py" --component app --componen
 | Herramienta | Opciones |
 |---|---|
 | `permissions.py apply` | `--component A` (repetible), `--home`, `--json`, `--dry-run`, `--prune` |
-| `commits.py apply` | `--component A` (repetible), `--home`, `--json`, `--dry-run` |
+| `excludes.py apply` | `--component A` (repetible), `--home`, `--json`, `--dry-run` |
 
 **Arreglos por ID:**
 
@@ -419,9 +418,8 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/checks/all.py" --component app --componen
 |---|---|
 | `arkana-presente` | No se arregla aquí: hay que clonar el repo de Arkana en la carpeta del workspace |
 | `permisos` | `permissions.py apply --component <alias>` (con `--dry-run` primero). Solo **añade** lo que falta y limpia duplicados, reglas `legacy` y `deny Write` redundantes; deja copia en `.arkana/arkana-workspace/bak/` y el fichero en modo 0600. Para **quitar** lo que concede de más, preguntar y usar `--prune`. Una regla nueva se añade al modelo (`lib/permissions.py`), nunca a mano en `settings.local.json` |
-| `commits` | `commits.py apply --component <alias>` (`--dry-run` primero). Si falta el `CLAUDE.md` versionado, arreglar antes `claude-md` |
-| `claude-md` | Copiar la plantilla como `CLAUDE.md` (`<carpeta de Arkana>/plantillas/CLAUDE.modulo.md` si el proyecto tiene la suya; si no, la del plugin, `templates/CLAUDE.modulo.md`) y sustituir `{{NOMBRE}}` y `{{DESCRIPCION}}` preguntando |
-| `gitignore-env`, `gitignore-claude`, `gitignore-claude-session` | Añadir al `.gitignore` lo que falte: `.env`, `.env.*`, `!.env.example`, `.claude/`, `.claude-session/`, `node_modules/` |
+| `gitignore-env` | Añadir al `.gitignore` lo que falte: `.env`, `.env.*`, `!.env.example`, `node_modules/` |
+| `ignore-editor`, `ignore-editor-session`, `ignore-arkana-local` | `excludes.py apply --component <alias>` (`--dry-run` primero): añade `.claude/`, `.claude-session/` y `ARKANA.local.md` a `.git/info/exclude` (fichero local, no versionado). **Nunca** al `.gitignore` del repo |
 | `gitattributes-eol` | Crear o ampliar `.gitattributes` con `* text=auto eol=lf` |
 | `env-example` | Crear `.env.example` con los **nombres** de las variables del `.env` real (nunca los valores) |
 | `env-versionado` | Explicar `git rm --cached <fichero>` y que hay que **rotar las credenciales**; ejecutarlo solo con confirmación. Sin commit |
@@ -435,7 +433,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/checks/all.py" --component app --componen
 
 Sin arreglo en el skill: `arkana-escribible` (permisos del sistema de ficheros) y `git-repo` (`git init` y remoto los decide el usuario).
 
-**Reglas.** Interactivo siempre (nunca varios cambios con una confirmación), no leer ni mostrar valores de `.env`/tokens, sin commit ni push, idempotente. **Escribe:** `settings.local.json` (0600), `CLAUDE.md`/`CLAUDE.local.md`, `.gitignore`, `.gitattributes`, `.env.example`, `.husky/*` (permisos), `git config` local, siempre con copia. **Red:** no (el check se lanza con `--no-network`).
+**Reglas.** Interactivo siempre (nunca varios cambios con una confirmación), no leer ni mostrar valores de `.env`/tokens, sin commit ni push, idempotente. **Escribe:** `settings.local.json` (0600), `.git/info/exclude`, `.gitignore`, `.gitattributes`, `.env.example`, `.husky/*` (permisos), `git config` local, siempre con copia. **Red:** no (el check se lanza con `--no-network`).
 
 **Ejemplo:**
 
@@ -480,13 +478,12 @@ Sin arreglo en el skill: `arkana-escribible` (permisos del sistema de ficheros) 
 | `--statusline` / `--no-statusline` | flags | sin definir | Guarda `statusline: true/false`: fuerza mostrar u ocultar el componente en la barra de `arkana-statusline`. Rechazado para ARKANA, que siempre se muestra |
 | `--tool-version tool=ver` | repetible | — | Añade o cambia `tools[]` del componente. Formato `nombre=valor` (si no, error). Rechazado para ARKANA |
 | `--tool-path tool=ruta` | repetible | — | Ruta local de la herramienta; va a `local.json` (`tool_paths[alias]`). Rechazado para ARKANA |
-| `--seed-file` | `CLAUDE.md`, `CLAUDE.local.md` | `CLAUDE.md` efectivo | Fichero de Claude Code donde van los bloques gestionados |
 | `--yes` | flag | no | Confirma `remove` (obligatorio salvo con `--dry-run`); solo quita del manifiesto, la carpeta y el repo no se tocan |
 | `--home` | ruta | localizada | Carpeta de Arkana |
 | `--dry-run` | flag | no | Valida y muestra sin escribir |
 | `--json` | flag | no | Salida estructurada |
 
-**Qué admite cada subcomando.** `list`: `--home`, `--json`. `add`: todo salvo `--yes`. `edit`: todo salvo `--yes` y, con `--alias arkana`, también `--type`, `--path`, `--vpn/--no-vpn`, `--statusline/--no-statusline`, `--tool-version`, `--tool-path` (error «no se aplica a ARKANA»); para ARKANA sí valen `--commit-format`, `--git-email-domain`, `--remote`, `--main`, `--develop`, `--token-ref`, `--git-username`, `--seed-file`, `--git-user`, `--git-email`. `remove`: `--alias`, `--yes`, `--dry-run`; ARKANA no se puede quitar.
+**Qué admite cada subcomando.** `list`: `--home`, `--json`. `add`: todo salvo `--yes`. `edit`: todo salvo `--yes` y, con `--alias arkana`, también `--type`, `--path`, `--vpn/--no-vpn`, `--statusline/--no-statusline`, `--tool-version`, `--tool-path` (error «no se aplica a ARKANA»); para ARKANA sí valen `--commit-format`, `--git-email-domain`, `--remote`, `--main`, `--develop`, `--token-ref`, `--git-username`, `--git-user`, `--git-email`. `remove`: `--alias`, `--yes`, `--dry-run`; ARKANA no se puede quitar.
 
 **Salida.** `list`: una línea `INFO|<alias>|<tipo> <ruta> <host>` por pieza (ARKANA con tipo `arkana`). `add`/`edit`/`remove`: `OK|<alias>|...` o `DRY|...`. Errores → `FAIL|<operación>|motivo`, salida 1; sin workspace, salida 3.
 
@@ -777,16 +774,24 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/handover.py" --format json --out hand
 
 ### 5.1 `scripts/lib/commits.py` (convención de commits)
 
-`commits.py <status|apply> [--component A]... [--home DIR] [--dry-run] [--json]` (`--dry-run` solo afecta a `apply`). Sin `--component` actúa sobre todas las piezas.
+`commits.py <status|show> [--component A]... [--home DIR] [--json]`. Sin `--component` actúa sobre todas las piezas. **No escribe nada.**
 
-- `status` (solo lectura): una línea `commits-<alias>` por pieza: `OK|…: al día (<formato>)` o `WARN|…: SIN-FICHERO | SIN-BLOQUE | DESACTUALIZADO`.
-- `apply`: pone o reemplaza el bloque `arkana:commits` con el formato del manifiesto. Resultado por pieza: `igual`, `creado`, `añadido` o `reemplazado` (`DRY` con `--dry-run`). Si falta el `CLAUDE.md` versionado → `WARN` «falta … (arkana-workspace:fix, `claude-md`)»; un `CLAUDE.local.md` sí se crea. Carpeta inexistente → `WARN`. Formato desconocido → `FAIL`. Copia previa en `.arkana/arkana-workspace/bak/<alias>/<fichero>.<hora>`.
-- Salida 0/1; 2 uso incorrecto; 3 sin workspace. No toca nada fuera de los marcadores. `check` lo refleja en el ID `commits`.
+- `status` (solo lectura): una línea `commits-<alias>` por pieza: `OK|…: formato <formato>` o `FAIL|…: commit_format desconocido`. `check` lo refleja en el ID `commits`.
+- `show`: imprime la convención que el hook inyecta en la sesión de cada pieza.
+- Salida 0/1; 2 uso incorrecto; 3 sin workspace. Ya no existe `apply`: la convención no vive en ficheros.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/commits.py" status
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/commits.py" apply --component app --dry-run
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/commits.py" show --component app
 ```
+
+### 5.1b `scripts/lib/excludes.py` (exclusiones locales de git)
+
+`excludes.py <status|apply> [--component A]... [--home DIR] [--dry-run] [--json]`. Lo que Arkana y el editor crean en un repo de trabajo (`.claude/`, `.claude-session/`, `ARKANA.local.md`) no debe versionarse ni mencionarse en el `.gitignore`: `apply` añade a `.git/info/exclude` (local, también en worktrees y submódulos) lo que `git check-ignore` no cubra ya por otra vía. `status` lo comprueba sin escribir. Idempotente; nunca toca el `.gitignore`.
+
+### 5.1c `scripts/lib/directives.py` (directrices de sesión)
+
+Módulo (sin CLI) que compone el texto que el hook inyecta para una pieza: reglas comunes (no instalar herramientas, no leer credenciales), la convención de commits y, si existe, `ARKANA.local.md` de la raíz de ese repo (opcional, local, hasta 8 000 caracteres). No hay ningún fichero de instrucciones que mantener en los repos de trabajo.
 
 ### 5.2 `scripts/lib/credentials.py` (credenciales)
 
@@ -825,7 +830,7 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 |---|---|---|---|
 | `SessionStart` | `startup\|resume\|clear\|compact` | `python3 -I "${CLAUDE_PLUGIN_ROOT}/scripts/hooks.py" session-status` | 10 s |
 
-**Qué hace.** Muestra al **usuario** (campo `systemMessage`; no se inyecta en el contexto del modelo) un BRIEF corto. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker), si no hay workspace, o si no hay nada que mostrar (todo limpio, sin plan activo y sin mensajes). Nunca falla (siempre sale con 0).
+**Qué hace.** (1) Muestra al **usuario** (campo `systemMessage`) un BRIEF corto, solo si hay algo que contar (cambios sin subir, mensajes, plan activo). (2) Inyecta en el contexto del **modelo** (`hookSpecificOutput.additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (la más específica; ARKANA incluida): reglas comunes, convención de commits y `ARKANA.local.md`. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker) ni si no hay workspace. Nunca falla (siempre sale con 0).
 
 **Formato del BRIEF** (secciones en este orden; cada una solo si tiene contenido):
 

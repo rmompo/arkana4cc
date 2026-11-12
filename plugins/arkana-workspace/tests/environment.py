@@ -14,14 +14,14 @@ def sh(cmd, cwd=None, env=None, entrada=None):
     return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, env=env, input=entrada)
 
 
-# Componentes de pruebas (alias neutros): alias, tipo, carpeta (relativa a la raíz del workspace), seed_file
+# Componentes de pruebas (alias neutros): alias, tipo, carpeta (relativa a la raíz del workspace)
 SEED_COMPONENTS = [
-    ("app", "node", "app", "CLAUDE.local.md"),
-    ("api", "maven", "api", "CLAUDE.local.md"),
-    ("app-web", "node", "app/src/web", "CLAUDE.local.md"),
-    ("app-ui", "node", "app/src/ui", "CLAUDE.local.md"),
-    ("docs", "docs", "docs", "CLAUDE.md"),
-    ("specs", "docs", "specs", "CLAUDE.md"),
+    ("app", "node", "app"),
+    ("api", "maven", "api"),
+    ("app-web", "node", "app/src/web"),
+    ("app-ui", "node", "app/src/ui"),
+    ("docs", "docs", "docs"),
+    ("specs", "docs", "specs"),
 ]
 
 
@@ -31,9 +31,9 @@ def seed(home, root, dry=False):
     sys.path.insert(0, os.path.join(SCRIPTS, "lib"))
     import layout
     data, _ = layout.build_manifest(home, root)
-    for alias, tipo, carpeta, seed_file in SEED_COMPONENTS:
+    for alias, tipo, carpeta in SEED_COMPONENTS:
         ap = os.path.join(root, carpeta)
-        c = {"alias": alias, "type": tipo, "path": carpeta, "seed_file": seed_file, "branches": {"main": "main", "develop": "develop"}}
+        c = {"alias": alias, "type": tipo, "path": carpeta, "branches": {"main": "main", "develop": "develop"}}
         remote = layout.strip_credentials(layout.git(ap, "remote", "get-url", "origin")) if os.path.isdir(ap) else ""
         if remote:
             c["remote"], c["remote_host"] = remote, layout.host_of(remote)

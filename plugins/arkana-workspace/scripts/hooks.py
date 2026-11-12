@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Hook de estado de Arkana al abrir, reanudar, limpiar o compactar una sesión (SessionStart: startup|resume|clear|compact). Solo local: git local, sin red.
 
-Muestra al USUARIO (`systemMessage`; no se inyecta en el contexto del modelo) un BRIEF corto: GIT (componentes con cambios o commits sin subir),
+Hace dos cosas. (1) Muestra al USUARIO (`systemMessage`) un BRIEF corto: GIT (componentes con cambios o commits sin subir),
 MESSAGING (por componente: tareas pendientes, directrices repeat y avisos sin leer), ORCHESTRATION (plan activo de arkana-agentic, con su coste) y QUICK START (comandos útiles según lo pendiente).
-No hace nada dentro de un worker (`ARKANA_WORKER=1`), fuera de un workspace, ni si todo está limpio y no hay plan ni mensajes. Nunca falla.
+(2) Inyecta en el contexto del MODELO (`additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (ver `lib/directives.py`: convención de commits,
+reglas comunes y, si existe, `ARKANA.local.md`): así no hace falta ningún fichero de instrucciones en los repos de trabajo.
+No hace nada dentro de un worker (`ARKANA_WORKER=1`) ni fuera de un workspace. Nunca falla.
 """
 import concurrent.futures
 import json
@@ -14,6 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "_core"))
 sys.path.insert(0, os.path.join(HERE, "lib"))
 from arkana_core import datafiles, locate, manifest  # noqa: E402
+import directives  # noqa: E402
 import gitstate  # noqa: E402
 
 
@@ -118,8 +121,14 @@ def main(argv):
         st = locate.state_dir(home)
         aliases = ws.aliases()
         text = brief(git_pending(ws, aliases), messaging_pending(st, aliases), active_plan(st))
+        out = {}
         if text:
-            sys.stdout.write(json.dumps({"systemMessage": text}, ensure_ascii=False))
+            out["systemMessage"] = text
+        actor = ws.owner_of(ev.get("cwd") or os.getcwd())                       # la pieza cuya carpeta contiene el cwd (ARKANA incluida)
+        if actor:
+            out["hookSpecificOutput"] = {"hookEventName": "SessionStart", "additionalContext": directives.render(ws, actor)}
+        if out:
+            sys.stdout.write(json.dumps(out, ensure_ascii=False))
     except Exception:
         return 0
     return 0

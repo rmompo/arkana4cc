@@ -192,7 +192,7 @@ class TestComponent(unittest.TestCase):
         with TC.CLab() as lab:
             r = run(lab, "component.py", "--component", "docs", "--no-network")
             e = estados(r)
-            self.assertEqual(e["permisos"], "FAIL"); self.assertEqual(e["claude-md"], "FAIL"); self.assertEqual(e["git-repo"], "WARN")
+            self.assertEqual(e["permisos"], "FAIL"); self.assertEqual(e["commits"], "OK"); self.assertNotIn("claude-md", e); self.assertEqual(e["git-repo"], "WARN")
             self.assertEqual(r.returncode, 1)
 
     def test_se_deduce_del_directorio_actual(self):

@@ -4,9 +4,9 @@
   components.py list   [--json]
   components.py add    --alias A --path RUTA [--type node|maven|docs|generic] [--remote URL] [--main M] [--develop D]
                       [--git-user U --git-email E] [--git-email-domain D]... [--commit-format F] [--token-ref CLAVE] [--git-username U] [--vpn|--no-vpn]
-                      [--statusline|--no-statusline] [--tool-version tool=ver]... [--tool-path tool=ruta]... [--seed-file CLAUDE.md|CLAUDE.local.md]
+                      [--statusline|--no-statusline] [--tool-version tool=ver]... [--tool-path tool=ruta]...
   components.py edit   --alias A  (mismas opciones que add; solo se cambia lo indicado). `--alias arkana` edita ARKANA: su `--commit-format`,
-                      `--git-email-domain`, remoto, ramas, `--token-ref`/`--git-username` y `--seed-file` (no admite --type, --path, --vpn, --statusline ni --tool-*)
+                      `--git-email-domain`, remoto, ramas, `--token-ref`/`--git-username` (no admite --type, --path, --vpn, --statusline ni --tool-*)
   components.py remove --alias A  [--yes]
   Opciones comunes: --home DIR  --dry-run  --json
 
@@ -77,8 +77,6 @@ def apply_options(block, a, root):
             g["email_domains"] = [d.lstrip("@") for d in a.git_email_domain]
     if a.vpn is not None:
         block["vpn"] = a.vpn
-    if a.seed_file:
-        block["seed_file"] = a.seed_file
     if a.statusline is not None:
         block["statusline"] = a.statusline
     tv, tp = _kv(a.tool_version, "--tool-version"), _kv(a.tool_path, "--tool-path")
@@ -148,7 +146,6 @@ def main(argv=None):
     ap.add_argument("--no-statusline", dest="statusline", action="store_false")
     ap.add_argument("--tool-version", action="append")
     ap.add_argument("--tool-path", action="append")
-    ap.add_argument("--seed-file", choices=["CLAUDE.md", "CLAUDE.local.md"])
     ap.add_argument("--yes", action="store_true")
     ap.add_argument("--home")
     ap.add_argument("--dry-run", action="store_true")

@@ -58,28 +58,19 @@ def check(ws, alias, network=True):
     else:
         graves = [k for k, _ in its if permissions.STATUS_OF[k] == "FAIL"]
         add("FAIL" if graves else "WARN", "permisos", f"{len(its)} desviaciones ({', '.join(sorted({k for k, _ in its}))}); ver arkana-workspace:rew-grants")
-    # 3. CLAUDE.md
-    cm = os.path.join(path, "CLAUDE.md")
-    seed_local = c.get("seed_file") == "CLAUDE.local.md"
-    if os.path.isfile(cm):
-        add("OK", "claude-md", "presente")
-    elif seed_local and os.path.isfile(os.path.join(path, "CLAUDE.local.md")):
-        add("INFO", "claude-md", "sin CLAUDE.md propio (el componente usa CLAUDE.local.md)")
-    else:
-        add("FAIL", "claude-md", "falta CLAUDE.md")
-    # 3b. Convención de commits (bloque arkana:commits generado desde el manifiesto)
-    try:
-        cs = commits.state(ws, alias)
-        add("OK" if cs == "OK" else "WARN", "commits", "bloque de convención de commits al día" if cs == "OK" else f"convención de commits: {cs} (arkana-workspace:fix)")
-    except ValueError as e:
-        add("FAIL", "commits", str(e))
+    # 3. Convención de commits (la inyecta el hook de sesión desde el manifiesto: aquí solo se valida el formato)
+    err = commits.check(ws, alias)
+    add("FAIL" if err else "OK", "commits", err or f"convención de commits: {commits.fmt_of(ws, alias)}")
     # 4. Git
     if git(path, "rev-parse", "--git-dir")[0] != 0:
         add("WARN", "git-repo", "no es un repositorio git (git init y remoto pendientes)")
         return rep
-    for pat, id_, label in ((".env", "gitignore-env", ".env"), (".claude/x", "gitignore-claude", ".claude/"), (".claude-session/x", "gitignore-claude-session", ".claude-session/")):
+    ok = git(path, "check-ignore", "-q", ".env")[0] == 0
+    add("OK" if ok else "FAIL", "gitignore-env", ".env ignorado" if ok else ".gitignore no cubre .env")
+    for pat, id_, label in ((".claude/x", "ignore-editor", ".claude/"), (".claude-session/x", "ignore-editor-session", ".claude-session/"),
+                            ("ARKANA.local.md", "ignore-arkana-local", "ARKANA.local.md")):
         ok = git(path, "check-ignore", "-q", pat)[0] == 0
-        add("OK" if ok else "FAIL", id_, f"{label} ignorado" if ok else f".gitignore no cubre {label}")
+        add("OK" if ok else "FAIL", id_, f"{label} ignorado" if ok else f"{label} sin ignorar: se añade a .git/info/exclude con fix (no se toca el .gitignore)")
     rc, tracked = git(path, "ls-files")
     envs = [f for f in tracked.splitlines() if (os.path.basename(f) == ".env" or os.path.basename(f).startswith(".env.")) and not f.endswith(".env.example")][:3]
     add("FAIL" if envs else "OK", "env-versionado", ("versionado: " + " ".join(envs)) if envs else "ningún .env versionado")

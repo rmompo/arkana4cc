@@ -5,7 +5,7 @@ description: Gestiona los componentes (repos) del workspace en el manifiesto cor
 
 # arkana-workspace:component
 
-Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directrices de ARKANA: commits, remoto, ramas, token, `--seed-file`; no admite `--type`, `--path`, `--vpn`, `--statusline` ni `--tool-*`). Herramienta: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/components.py" <list|add|edit|remove> [opciones]`.
+Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directrices de ARKANA: commits, remoto, ramas, token; no admite `--type`, `--path`, `--vpn`, `--statusline` ni `--tool-*`). Herramienta: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/components.py" <list|add|edit|remove> [opciones]`.
 
 | Opción | Significado |
 |---|---|
@@ -21,7 +21,6 @@ Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directric
 | `--vpn` / `--no-vpn` | Si requiere VPN |
 | `--statusline` / `--no-statusline` | Si `arkana-statusline` lo muestra. Sin la marca se muestra salvo los de tipo `docs`; `--statusline` fuerza mostrarlo y `--no-statusline` lo oculta. No se aplica a ARKANA, que siempre se muestra |
 | `--tool-version tool=ver`, `--tool-path tool=ruta` | Herramientas que pide (la ruta va a `local.json`) |
-| `--seed-file` | `CLAUDE.md` o `CLAUDE.local.md` (el de Claude Code que el repo no versiona) |
 | `--yes` | Confirma `remove` (solo quita del manifiesto; la carpeta no se toca) |
 
 ## Pasos

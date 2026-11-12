@@ -28,7 +28,7 @@ class Lab:
         os.makedirs(self.home_dir)
         os.makedirs(os.path.join(self.arkana, "plugins"))
         os.makedirs(os.path.join(self.arkana, ".arkana", "core"))
-        for alias, _t, carpeta, _s in E.SEED_COMPONENTS:
+        for alias, _t, carpeta in E.SEED_COMPONENTS:
             os.makedirs(os.path.join(self.ws, carpeta), exist_ok=True)
         self._env = dict(os.environ)
         os.environ.pop("ARKANA_HOME", None)

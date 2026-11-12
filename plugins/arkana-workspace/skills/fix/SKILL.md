@@ -1,6 +1,6 @@
 ---
 name: fix
-description: Corrige, de forma interactiva y paso a paso, lo que marcan los check de arkana-workspace en un componente - permisos (generador único), CLAUDE.md, .gitignore, .gitattributes, .env.example e identidad git. Pide confirmación en cada cambio y deja copia .bak.
+description: Corrige, de forma interactiva y paso a paso, lo que marcan los check de arkana-workspace en un componente - permisos (generador único), exclusiones locales de git, .gitignore, .gitattributes, .env.example e identidad git. Pide confirmación en cada cambio y deja copia .bak.
 ---
 
 # arkana-workspace:fix
@@ -26,9 +26,8 @@ Aplica, **uno a uno y con confirmación**, las correcciones de los `FAIL`/`WARN`
 |---|---|
 | `arkana-presente` | No se arregla aquí: hay que clonar el repo de Arkana en la carpeta del workspace |
 | `permisos` | `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/permissions.py" apply --component <alias>` (`--dry-run` primero; deja copia en `.arkana/arkana-workspace/bak/` y el fichero en modo 0600). Solo añade lo que falta y limpia duplicados y reglas legacy; para **quitar** lo que concede de más, pregunta y usa `--prune`. **Una regla nueva se añade al modelo (`lib/permissions.py`), nunca a mano en `settings.local.json`** |
-| `commits` | `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/commits.py" apply --component <alias>` (`--dry-run` primero): pone el bloque `arkana:commits` con el formato del manifiesto (`commit_format`: `conventional` por defecto o `ia4d`); copia en `.arkana/arkana-workspace/bak/`. Si falta el `CLAUDE.md` versionado, arréglalo antes (`claude-md`) |
-| `claude-md` | Copiar la plantilla como `CLAUDE.md` (`<arkana>/plantillas/CLAUDE.modulo.md` si el proyecto tiene la suya; si no, `${CLAUDE_PLUGIN_ROOT}/templates/CLAUDE.modulo.md`) y sustituir `{{NOMBRE}}` y `{{DESCRIPCION}}` preguntando al usuario |
-| `gitignore-env`, `gitignore-claude`, `gitignore-claude-session` | Añadir al `.gitignore` lo que falte: `.env`, `.env.*`, `!.env.example`, `.claude/`, `.claude-session/`, `node_modules/` |
+| `gitignore-env` | Añadir al `.gitignore` lo que falte: `.env`, `.env.*`, `!.env.example`, `node_modules/` |
+| `ignore-editor`, `ignore-editor-session`, `ignore-arkana-local` | `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/excludes.py" apply --component <alias>` (`--dry-run` primero): añade `.claude/`, `.claude-session/` y `ARKANA.local.md` a `.git/info/exclude` (local, no versionado). **Nunca** los pongas en el `.gitignore` del repo |
 | `gitattributes-eol` | Crear o ampliar `.gitattributes` con `* text=auto eol=lf` |
 | `env-example` | Crear `.env.example` con los **nombres** de las variables del `.env` real (nunca los valores), vacíos o `<pegar-aquí>` |
 | `env-versionado` | Explicar `git rm --cached <fichero>` y que hay que **rotar las credenciales**; ejecutarlo solo si el usuario lo confirma. Sin commit |
