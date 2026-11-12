@@ -20,13 +20,10 @@ class TestCarga(unittest.TestCase):
             self.assertEqual(w.path("api"), os.path.join(lab.ws, "md-backend"))
             self.assertEqual(w.path("arkana"), os.path.join(lab.ws, "shared"))
 
-    def test_id_historico_shared_es_arkana(self):
-        with common.Lab() as lab:
-            w = manifest.load(lab.arkana)
-            self.assertEqual(w.path("shared"), w.path("arkana"))
-            self.assertEqual(manifest.canon("SHARED"), "arkana")
-            self.assertEqual(manifest.display("shared"), "ARKANA")
-            self.assertEqual(manifest.display("App"), "app")
+    def test_display_y_canon(self):
+        self.assertEqual(manifest.canon(" APP "), "app")
+        self.assertEqual(manifest.display("arkana"), "ARKANA")
+        self.assertEqual(manifest.display("App"), "app")
 
     def test_alias_sin_distinguir_mayusculas(self):
         with common.Lab() as lab:
@@ -75,7 +72,7 @@ class TestValidacion(unittest.TestCase):
         base = {"type": "node", "path": "p"}
         e = self.errores(components=[dict(base, alias="a", path="1"), dict(base, alias="a", path="2")])
         self.assertTrue(any("repetido" in m for m in e), e)
-        for alias in ("arkana", "all", "shared"):
+        for alias in ("arkana", "all"):
             self.assertTrue(any("reservado" in m for m in self.errores(components=[dict(base, alias=alias)])), alias)
         self.assertTrue(any("alias" in m for m in self.errores(components=[dict(base, alias="Mal Nombre")])))
 

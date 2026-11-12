@@ -24,7 +24,7 @@ class TestParidad(unittest.TestCase):
         with common.Lab() as lab:
             w = manifest.load(lab.arkana)
             self.assertEqual(lab.bash(f'ac_aliases "{lab.arkana}"')[1].split(), w.aliases())
-            for a in w.aliases() + ["shared", "APP"]:
+            for a in w.aliases() + ["APP"]:
                 rc, out = lab.bash(f'ac_path "{lab.arkana}" "{a}"')
                 self.assertEqual((rc, out), (0, w.path(a)), a)
 
@@ -40,7 +40,7 @@ class TestParidad(unittest.TestCase):
             self.assertEqual(lab.bash(f'ac_field "{lab.arkana}" api type')[1], "maven")
             self.assertEqual(lab.bash(f'ac_field "{lab.arkana}" arkana alias')[1], "ARKANA")
             self.assertEqual(lab.bash(f'ac_path "{lab.arkana}" nada')[0], 1)
-            self.assertEqual(lab.bash("ac_canon Shared")[1], "arkana")
+            self.assertEqual(lab.bash("ac_canon Shared")[1], "shared")
 
     def test_emit(self):
         with common.Lab() as lab:
