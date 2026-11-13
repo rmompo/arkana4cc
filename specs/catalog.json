@@ -1153,10 +1153,14 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.23",
+      "version": "6.2.24",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.24",
+          "changes": "El BRIEF de sesión cambia el orden de las secciones: QUICK START, MESSAGING, TODO, GIT y ORCHESTRATION"
+        },
         {
           "version": "6.2.23",
           "changes": "El BRIEF de sesión añade la sección TODO (tareas abiertas de arkana-todo) y las líneas de arkana-knowledge:ingest y arkana-evolve:check en el QUICK START"
