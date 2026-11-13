@@ -837,25 +837,10 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 
 **Qué hace.** (1) Muestra al **usuario** (campo `systemMessage`) un BRIEF corto, solo si hay algo que contar (tareas abiertas, cambios sin subir, mensajes, plan activo), precedido de un aviso `⚠ Instalación en layout N; esta versión necesita M. Ejecuta /arkana-evolve:apply.` cuando el registro del proyecto está por debajo del layout que esperan los plugins. (2) Inyecta en el contexto del **modelo** (`hookSpecificOutput.additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (la más específica; ARKANA incluida): reglas comunes, convención de commits y `ARKANA.local.md`. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker) ni si no hay workspace. Nunca falla (siempre sale con 0).
 
-**Formato del BRIEF** (secciones en este orden; cada una solo si tiene contenido):
+**Formato del BRIEF** (secciones en este orden: QUICK START, MESSAGING, TODO, GIT y ORCHESTRATION; cada una solo si tiene contenido, salvo QUICK START, que sale siempre que haya BRIEF):
 
 ```text
 ****** [ARKANA] BRIEF ******
-
-### TODO:
-1. Revisar la migración [t-003] (⚠ vencida 2026-11-10)
-2. Actualizar el manifiesto [t-001] (high, vence 2026-11-20, api)
-3. Preparar la demo [t-002]
-
-### GIT (pending):
-1. app (develop)
-2. ARKANA (develop)
-
-### MESSAGING:
-1. api (2 tasks, 1 repeat)
-
-### ORCHESTRATION:
-- plan P2601011200-abcd (ejecutando, 0.42 USD)
 
 ### QUICK START
 - Use '/arkana-statusline:install' - show the Arkana status bar (git, plan, cost, usage)
@@ -869,15 +854,31 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 - Use '/arkana-todo:list' - open tasks with priority and due date
 - Use '/arkana-knowledge:ingest' - turn what is waiting in arkana-incoming/ into notes and documents
 - Use '/arkana-evolve:check' - check whether this installation needs migrations (then '/arkana-evolve:apply')
+
+### MESSAGING:
+1. api (2 tasks, 1 repeat)
+
+### TODO:
+1. Revisar la migración [t-003] (⚠ vencida 2026-11-10)
+2. Actualizar el manifiesto [t-001] (high, vence 2026-11-20, api)
+3. Preparar la demo [t-002]
+
+### GIT (pending):
+1. app (develop)
+2. ARKANA (develop)
+
+### ORCHESTRATION:
+- plan P2601011200-abcd (ejecutando, 0.42 USD)
+
 ```
 
 | Sección | Contenido y origen |
 |---|---|
+| `QUICK START` | Comandos en el orden **config → check → fix → uso diario**: primero la puesta a punto (`config`, `check`, `fix`), luego el trabajo del día. `/arkana-statusline:install` solo si `statusLine` de `~/.claude/settings.json` no apunta a `arkana-statusline`; `messaging query --unread` solo con mensajes; `sync` siempre; `status` solo con cambios git; `agentic:status` solo con plan |
+| `MESSAGING` | Por pieza, de `arkana-messaging/state/index.json` y `state/read/<actor>.json`: `N tasks` (task, review o question de una vez, abiertas y sin confirmar por ella), `N repeat` (directrices vigentes que le alcanzan; no las `propuesto`) y `N unread notices` (avisos sin leer, solo si los hay). Se excluyen borrados, reconciliados y propios |
 | `TODO` | Tareas abiertas de `arkana-todo/todos.json` (no hechas ni borradas), ordenadas como `list`: vencimiento, prioridad e id; hasta 5 y `... and N more`. Cada línea: título, `[id]` y entre paréntesis lo que no es el valor por defecto (prioridad distinta de `normal`, `vence`/`⚠ vencida`, componente) |
 | `GIT` | Piezas con cambios o commits sin subir (`gitstate`, hasta 8 repos en paralelo), con su rama |
-| `MESSAGING` | Por pieza, de `arkana-messaging/state/index.json` y `state/read/<actor>.json`: `N tasks` (task, review o question de una vez, abiertas y sin confirmar por ella), `N repeat` (directrices vigentes que le alcanzan; no las `propuesto`) y `N unread notices` (avisos sin leer, solo si los hay). Se excluyen borrados, reconciliados y propios |
 | `ORCHESTRATION` | Plan activo (`arkana-agentic/state/actual` y su `plan.json`, salvo `completado`, `archivado` o `cancelado`) con su estado y gasto |
-| `QUICK START` | Comandos en el orden **config → check → fix → uso diario**: primero la puesta a punto (`config`, `check`, `fix`), luego el trabajo del día. `/arkana-statusline:install` solo si `statusLine` de `~/.claude/settings.json` no apunta a `arkana-statusline`; `messaging query --unread` solo con mensajes; `sync` siempre; `status` solo con cambios git; `agentic:status` solo con plan |
 
 Los demás plugins llevan sus propios hooks (ver [`../README.md`](../README.md)).
 

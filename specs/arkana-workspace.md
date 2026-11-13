@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-workspace
 
-> **Estado:** `beta` | **Versión:** `6.2.23`
+> **Estado:** `beta` | **Versión:** `6.2.24`
 
 ---
 
@@ -32,6 +32,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 
 | Versión | Cambios |
 |---------|---------|
+| 6.2.24 | El BRIEF de sesión cambia el orden de las secciones: QUICK START, MESSAGING, TODO, GIT y ORCHESTRATION |
 | 6.2.23 | El BRIEF de sesión añade la sección TODO (tareas abiertas de arkana-todo) y las líneas de arkana-knowledge:ingest y arkana-evolve:check en el QUICK START |
 | 6.2.22 | sync: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
 | 6.2.21 | status: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |

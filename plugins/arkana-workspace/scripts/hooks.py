@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Hook de estado de Arkana al abrir, reanudar, limpiar o compactar una sesión (SessionStart: startup|resume|clear|compact). Solo local: git local, sin red.
 
-Hace dos cosas. (1) Muestra al USUARIO (`systemMessage`) un BRIEF corto: TODO (tareas abiertas de arkana-todo, hasta 5), GIT (componentes con cambios o commits sin subir),
-MESSAGING (por componente: tareas pendientes, directrices repeat y avisos sin leer), ORCHESTRATION (plan activo de arkana-agentic, con su coste) y QUICK START (comandos útiles según lo pendiente).
+Hace dos cosas. (1) Muestra al USUARIO (`systemMessage`) un BRIEF corto, por este orden: QUICK START (comandos útiles según lo pendiente),
+MESSAGING (por componente: tareas pendientes, directrices repeat y avisos sin leer), TODO (tareas abiertas de arkana-todo, hasta 5), GIT (componentes con cambios o commits sin subir) y ORCHESTRATION (plan activo de arkana-agentic, con su coste).
 (2) Inyecta en el contexto del MODELO (`additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (ver `lib/directives.py`: convención de commits,
 reglas comunes y, si existe, `ARKANA.local.md`): así no hace falta ningún fichero de instrucciones en los repos de trabajo.
 No hace nada dentro de un worker (`ARKANA_WORKER=1`) ni fuera de un workspace. Nunca falla.
@@ -107,21 +107,9 @@ def todo_line(i, t):
 
 
 def brief(git, msgs, plan, todos=()):
-    """Texto del BRIEF, o None si no hay nada pendiente."""
+    """Texto del BRIEF, o None si no hay nada pendiente. Orden de las secciones: QUICK START, MESSAGING, TODO, GIT y ORCHESTRATION."""
     if not (git or msgs or plan or todos):
         return None
-    out = ["****** [ARKANA] BRIEF ******"]
-    if todos:
-        out += ["", "### TODO:", *[todo_line(i, t) for i, t in enumerate(todos[:TODO_MAX], 1)]]
-        if len(todos) > TODO_MAX:
-            out.append(f"... and {len(todos) - TODO_MAX} more")
-    if git:
-        out += ["", "### GIT (pending):", *[f"{i}. {a} ({b})" for i, (a, b) in enumerate(git, 1)]]
-    if msgs:
-        out += ["", "### MESSAGING:", *[f"{i}. {a} ({', '.join(x for x in (f'{t} tasks' if t else '', f'{r} repeat' if r else '', f'{n} unread notices' if n else '') if x)})"
-                                          for i, (a, t, r, n) in enumerate(msgs, 1)]]
-    if plan:
-        out += ["", "### ORCHESTRATION:", f"- {plan}"]
     qs = []                                                                      # primero la puesta a punto (config → check → fix), luego el trabajo del día
     if not statusline_installed():
         qs.append("- Use '/arkana-statusline:install' - show the Arkana status bar (git, plan, cost, usage)")
@@ -139,7 +127,19 @@ def brief(git, msgs, plan, todos=()):
         qs.append("- Use '/arkana-todo:list' - open tasks with priority and due date")
     qs.append("- Use '/arkana-knowledge:ingest' - turn what is waiting in arkana-incoming/ into notes and documents")
     qs.append("- Use '/arkana-evolve:check' - check whether this installation needs migrations (then '/arkana-evolve:apply')")
-    return "\n".join(out + ["", "### QUICK START", *qs, ""])
+    out = ["****** [ARKANA] BRIEF ******", "", "### QUICK START", *qs]
+    if msgs:
+        out += ["", "### MESSAGING:", *[f"{i}. {a} ({', '.join(x for x in (f'{t} tasks' if t else '', f'{r} repeat' if r else '', f'{n} unread notices' if n else '') if x)})"
+                                          for i, (a, t, r, n) in enumerate(msgs, 1)]]
+    if todos:
+        out += ["", "### TODO:", *[todo_line(i, t) for i, t in enumerate(todos[:TODO_MAX], 1)]]
+        if len(todos) > TODO_MAX:
+            out.append(f"... and {len(todos) - TODO_MAX} more")
+    if git:
+        out += ["", "### GIT (pending):", *[f"{i}. {a} ({b})" for i, (a, b) in enumerate(git, 1)]]
+    if plan:
+        out += ["", "### ORCHESTRATION:", f"- {plan}"]
+    return "\n".join(out + [""])
 
 
 def main(argv):

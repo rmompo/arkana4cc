@@ -43,11 +43,26 @@ class TestSeccionTodo(unittest.TestCase):
             self.tareas(lab, [t("t-001", "Sin fecha"), t("t-002", "Urgente", prioridad="high", vence="2099-01-01", componente="api"),
                               t("t-003", "Atrasada", vence="2000-01-01"), t("t-004", "Hecha", estado="done"), t("t-005", "Borrada", estado="deleted")])
             m = self.brief(lab)
-            self.assertTrue(m.startswith("****** [ARKANA] BRIEF ******\n\n### TODO:\n"), m)                # la sección va justo debajo de la cabecera
+            self.assertIn("\n### TODO:\n", m)
             self.assertIn("1. Atrasada [t-003] (⚠ vencida 2000-01-01)\n2. Urgente [t-002] (high, vence 2099-01-01, api)\n3. Sin fecha [t-001]\n", m)
             self.assertNotIn("Hecha", m)
             self.assertNotIn("Borrada", m)
             self.assertIn("- Use '/arkana-todo:list'", m)
+
+    def test_orden_de_las_secciones(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            app = os.path.join(lab.ws, "app")
+            subprocess.run(["git", "init", "-q", app], check=True)
+            with open(os.path.join(app, "nuevo.txt"), "w") as f:
+                f.write("x")
+            self.tareas(lab, [{"id": "t-001", "titulo": "Algo", "estado": "open", "prioridad": "normal"}])
+            wj(os.path.join(lab.arkana, ".arkana", "arkana-messaging", "state", "index.json"), {"messages": {
+                "N1": {"de": "arkana", "para": ["app"], "tipo": "task", "estado": "open"}}})
+            m = self.brief(lab)
+            pos = [m.index(x) for x in ("### QUICK START", "### MESSAGING:", "### TODO:", "### GIT (pending):")]
+            self.assertEqual(pos, sorted(pos), m)                                               # QUICK START, MESSAGING, TODO y luego GIT
+            self.assertTrue(m.startswith("****** [ARKANA] BRIEF ******\n\n### QUICK START\n"), m)
 
     def test_recorta_a_cinco_y_dice_cuantas_faltan(self):
         with TC.CLab() as lab:
