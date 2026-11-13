@@ -52,7 +52,7 @@ Reglas transversales: ningún comando escribe fuera de `.arkana/` y de los fiche
 | **Directrices de sesión** | El hook `SessionStart` (`scripts/lib/directives.py`) inyecta en el contexto del modelo, por pieza, la convención de commits, las reglas comunes y las notas locales `ARKANA.local.md` | Cada plugin inyecta las suyas con su propio hook (`arkana-messaging`, `arkana-agentic`): ningún fichero de instrucciones en los repos de trabajo |
 | **`check` agregado** | `checks/all.py` ejecuta, además de lo suyo, el `check` que cada plugin declare en su `arkana-plugin.json` | Un único `/arkana-workspace:check` revisa el conjunto |
 | **Exportar/importar** | Cada plugin declara en `arkana-plugin.json` la clase de sus datos (`config`, `data`, `local`, `secret`); `transfer.py` y `handover.py` solo leen esas declaraciones | Todos |
-| **BRIEF de sesión** | Hook `SessionStart` que resume git, mensajes y plan activo | Usa datos de `arkana-messaging` (índice y marcas de lectura) y de `arkana-agentic` (plan activo) solo si existen |
+| **BRIEF de sesión** | Hook `SessionStart` que resume tareas, git, mensajes y plan activo | Usa datos de `arkana-todo` (tareas abiertas), `arkana-messaging` (índice y marcas de lectura) y `arkana-agentic` (plan activo) solo si existen |
 
 ### Qué usa de ellos
 
@@ -835,12 +835,17 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 |---|---|---|---|
 | `SessionStart` | `startup\|resume\|clear\|compact` | `python3 -I "${CLAUDE_PLUGIN_ROOT}/scripts/hooks.py" session-status` | 10 s |
 
-**Qué hace.** (1) Muestra al **usuario** (campo `systemMessage`) un BRIEF corto, solo si hay algo que contar (cambios sin subir, mensajes, plan activo), precedido de un aviso `⚠ Instalación en layout N; esta versión necesita M. Ejecuta /arkana-evolve:apply.` cuando el registro del proyecto está por debajo del layout que esperan los plugins. (2) Inyecta en el contexto del **modelo** (`hookSpecificOutput.additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (la más específica; ARKANA incluida): reglas comunes, convención de commits y `ARKANA.local.md`. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker) ni si no hay workspace. Nunca falla (siempre sale con 0).
+**Qué hace.** (1) Muestra al **usuario** (campo `systemMessage`) un BRIEF corto, solo si hay algo que contar (tareas abiertas, cambios sin subir, mensajes, plan activo), precedido de un aviso `⚠ Instalación en layout N; esta versión necesita M. Ejecuta /arkana-evolve:apply.` cuando el registro del proyecto está por debajo del layout que esperan los plugins. (2) Inyecta en el contexto del **modelo** (`hookSpecificOutput.additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (la más específica; ARKANA incluida): reglas comunes, convención de commits y `ARKANA.local.md`. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker) ni si no hay workspace. Nunca falla (siempre sale con 0).
 
 **Formato del BRIEF** (secciones en este orden; cada una solo si tiene contenido):
 
 ```text
 ****** [ARKANA] BRIEF ******
+
+### TODO:
+1. Revisar la migración [t-003] (⚠ vencida 2026-11-10)
+2. Actualizar el manifiesto [t-001] (high, vence 2026-11-20, api)
+3. Preparar la demo [t-002]
 
 ### GIT (pending):
 1. app (develop)
@@ -861,10 +866,14 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 - Use '/arkana-workspace:sync' - fetch the remotes so the commits to pull (⇣) are up to date
 - Use '/arkana-workspace:status' - git state of every component
 - Use '/arkana-agentic:status' - progress and cost of the active plan
+- Use '/arkana-todo:list' - open tasks with priority and due date
+- Use '/arkana-knowledge:ingest' - turn what is waiting in arkana-incoming/ into notes and documents
+- Use '/arkana-evolve:check' - check whether this installation needs migrations (then '/arkana-evolve:apply')
 ```
 
 | Sección | Contenido y origen |
 |---|---|
+| `TODO` | Tareas abiertas de `arkana-todo/todos.json` (no hechas ni borradas), ordenadas como `list`: vencimiento, prioridad e id; hasta 5 y `... and N more`. Cada línea: título, `[id]` y entre paréntesis lo que no es el valor por defecto (prioridad distinta de `normal`, `vence`/`⚠ vencida`, componente) |
 | `GIT` | Piezas con cambios o commits sin subir (`gitstate`, hasta 8 repos en paralelo), con su rama |
 | `MESSAGING` | Por pieza, de `arkana-messaging/state/index.json` y `state/read/<actor>.json`: `N tasks` (task, review o question de una vez, abiertas y sin confirmar por ella), `N repeat` (directrices vigentes que le alcanzan; no las `propuesto`) y `N unread notices` (avisos sin leer, solo si los hay). Se excluyen borrados, reconciliados y propios |
 | `ORCHESTRATION` | Plan activo (`arkana-agentic/state/actual` y su `plan.json`, salvo `completado`, `archivado` o `cancelado`) con su estado y gasto |

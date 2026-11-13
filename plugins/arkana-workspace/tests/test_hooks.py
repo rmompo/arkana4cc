@@ -27,6 +27,62 @@ def wj(p, obj):
         json.dump(obj, f)
 
 
+class TestSeccionTodo(unittest.TestCase):
+    def tareas(self, lab, tareas):
+        wj(os.path.join(lab.arkana, ".arkana", "arkana-todo", "todos.json"), {"version": 1, "next": 99, "tareas": tareas})
+
+    def brief(self, lab):
+        r = run(lab, os.path.join(lab.ws, "app"))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return json.loads(r.stdout).get("systemMessage", "")
+
+    def test_lista_las_abiertas_ordenadas_con_prioridad_vencimiento_y_componente(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            t = lambda i, titulo, **kw: dict({"id": i, "titulo": titulo, "estado": "open", "prioridad": "normal", "vence": "", "componente": ""}, **kw)
+            self.tareas(lab, [t("t-001", "Sin fecha"), t("t-002", "Urgente", prioridad="high", vence="2099-01-01", componente="api"),
+                              t("t-003", "Atrasada", vence="2000-01-01"), t("t-004", "Hecha", estado="done"), t("t-005", "Borrada", estado="deleted")])
+            m = self.brief(lab)
+            self.assertTrue(m.startswith("****** [ARKANA] BRIEF ******\n\n### TODO:\n"), m)                # la sección va justo debajo de la cabecera
+            self.assertIn("1. Atrasada [t-003] (⚠ vencida 2000-01-01)\n2. Urgente [t-002] (high, vence 2099-01-01, api)\n3. Sin fecha [t-001]\n", m)
+            self.assertNotIn("Hecha", m)
+            self.assertNotIn("Borrada", m)
+            self.assertIn("- Use '/arkana-todo:list'", m)
+
+    def test_recorta_a_cinco_y_dice_cuantas_faltan(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            self.tareas(lab, [{"id": f"t-{i:03d}", "titulo": f"Tarea {i}", "estado": "open", "prioridad": "normal"} for i in range(1, 9)])
+            m = self.brief(lab)
+            self.assertIn("5. Tarea 5 [t-005]\n... and 3 more\n", m)
+            self.assertNotIn("Tarea 6", m)
+
+    def test_sin_tareas_abiertas_no_hay_seccion_ni_brief(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            self.tareas(lab, [{"id": "t-001", "titulo": "Hecha", "estado": "done", "prioridad": "normal"}])
+            m = self.brief(lab)
+            self.assertNotIn("### TODO:", m)
+            self.assertNotIn("/arkana-todo:list", m)
+
+    def test_fichero_roto_o_ausente_no_rompe_el_hook(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            p = os.path.join(lab.arkana, ".arkana", "arkana-todo", "todos.json")
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, "w") as f:
+                f.write("{no es json")
+            self.assertNotIn("### TODO:", self.brief(lab))
+
+    def test_quick_start_incluye_ingest_y_evolve(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            self.tareas(lab, [{"id": "t-001", "titulo": "Algo", "estado": "open", "prioridad": "normal"}])
+            m = self.brief(lab)
+            self.assertIn("- Use '/arkana-knowledge:ingest'", m)
+            self.assertIn("- Use '/arkana-evolve:check'", m)
+
+
 class TestHookEstado(unittest.TestCase):
     def test_resumen_con_cambios_plan_y_mensajes_sin_inyectar_en_el_contexto(self):
         with TC.CLab() as lab:
