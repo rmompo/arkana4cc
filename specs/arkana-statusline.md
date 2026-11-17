@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-statusline
 
-> **Estado:** `beta` | **Versión:** `1.1.9`
+> **Estado:** `beta` | **Versión:** `1.1.10`
 
 ---
 
@@ -25,6 +25,7 @@ Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y esta
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.10 | Componente de referencia: oculto por defecto, muestra el ref y marca ≠ref si HEAD se mueve |
 | 1.1.9 | watch por componente, el componente actual oculto sigue viéndose y mensaje de esquema desconocido (núcleo 1.8.0) |
 | 1.1.8 | refresh: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
 | 1.1.7 | install: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |

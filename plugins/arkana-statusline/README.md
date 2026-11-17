@@ -79,7 +79,7 @@ Solo se muestran los indicadores distintos de cero y siempre en este orden: `◌
 
 ### Qué componentes se muestran
 
-La Ø (amarillo brillante, siempre) abre la línea 1, delante de ARKANA. ARKANA siempre, más los componentes del manifiesto con `statusline: true` (un componente oculto se ve mientras estás dentro de él, para que la barra siempre te ubique; con `watch: false` no cuentan sus cambios ◌ ✚ ● ni ⇣); si un componente no tiene la marca, se muestra salvo que sea de tipo `docs`. Con `statusline: false` se oculta. La marca se fija con `/arkana-workspace:component edit --alias <alias> --statusline` (o `--no-statusline`). El **orden** en la barra es el de `components` en el manifiesto, con ARKANA siempre primero.
+La Ø (amarillo brillante, siempre) abre la línea 1, delante de ARKANA. ARKANA siempre, más los componentes del manifiesto con `statusline: true` (un componente oculto se ve mientras estás dentro de él, para que la barra siempre te ubique; con `watch: false` no cuentan sus cambios ◌ ✚ ● ni ⇣; un componente `mode: reference` está oculto por defecto, y si se muestra, con `HEAD` en su `ref` aparece el nombre del `ref` y, si `HEAD ≠ ref`, el marcador `≠ref`, aunque no se vigile); si un componente no tiene la marca, se muestra salvo que sea de tipo `docs`. Con `statusline: false` se oculta. La marca se fija con `/arkana-workspace:component edit --alias <alias> --statusline` (o `--no-statusline`). El **orden** en la barra es el de `components` en el manifiesto, con ARKANA siempre primero.
 
 ### Plan activo (`arkana-agentic`)
 

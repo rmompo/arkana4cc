@@ -75,7 +75,20 @@ def fetch_age(path):
         return None
 
 
-def git_state(path, watch=True):
+def ref_commit(path, ref):
+    """Commit al que apunta `ref` (tag, rama o sha; también `origin/<ref>`), o None. Copia de `gitstate.ref_commit` de arkana-workspace."""
+    for cand in (ref, "origin/" + ref):
+        try:
+            p = subprocess.run(["git", "--no-optional-locks", "-C", path, "rev-parse", "--verify", "--quiet", cand + "^{commit}"], capture_output=True, text=True,
+                               timeout=4, env=dict(os.environ, GIT_TERMINAL_PROMPT="0", LC_ALL="C"), stdin=subprocess.DEVNULL)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        if p.returncode == 0 and p.stdout.strip():
+            return p.stdout.strip()
+    return None
+
+
+def git_state(path, watch=True, ref=None):
     """dict (branch, untracked, staged, modified, ahead, behind|None, has_remote) o None si no es un repo. Solo git local, sin red.
     Con `watch=False` no cuentan los cambios del árbol de trabajo (◌ ✚ ●) ni ⇣; sí ⇡ (copia de `gitstate.state` de arkana-workspace: un test comprueba que coinciden)."""
     try:
@@ -111,6 +124,17 @@ def git_state(path, watch=True):
     if not watch:
         s["untracked"] = s["staged"] = s["modified"] = 0
         s["behind"] = 0
+    s["ref"], s["ref_ok"] = ref or "", None
+    if ref:                                                              # componente de referencia: HEAD debe estar en su ref (también con watch=False)
+        want = ref_commit(path, ref)
+        try:
+            head = subprocess.run(["git", "--no-optional-locks", "-C", path, "rev-parse", "HEAD"], capture_output=True, text=True, timeout=4,
+                                  env=dict(os.environ, GIT_TERMINAL_PROMPT="0", LC_ALL="C"), stdin=subprocess.DEVNULL).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            head = ""
+        s["ref_ok"] = None if want is None else want == head
+        if s["ref_ok"] and s["branch"] == "(detached)":
+            s["branch"] = ref
     return s
 
 
@@ -122,13 +146,15 @@ def branch_parts(s, branch_max=None):
     for sym, key, col in (("◌", "untracked", B_RED), ("✚", "staged", B_YELLOW), ("●", "modified", B_YELLOW), ("⇡", "ahead", B_YELLOW)):
         if s[key]:
             parts.append((sym, str(s[key]), col))
-    if not (s["untracked"] or s["staged"] or s["modified"] or s["ahead"]):
+    if not (s["untracked"] or s["staged"] or s["modified"] or s["ahead"] or s.get("ref_ok") is False):
         parts.append(("", "✓", B_GREEN))
     if s["has_remote"]:
         if s["behind"] is None:
             parts.append(("⇣", "?", B_CYAN))
         elif s["behind"]:
             parts.append(("⇣", str(s["behind"]), B_YELLOW))
+    if s.get("ref_ok") is False:
+        parts.append(("≠", "ref", B_YELLOW))                             # HEAD se ha movido de la versión fijada
     return parts
 
 
@@ -368,7 +394,7 @@ def collect(inp):
         base = os.path.basename(cwd.rstrip("/")) or "~"
         aliases, paths, names, cur = [base], {base: cwd}, {base: base}, base
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
-        states = dict(zip(aliases, ex.map(lambda a: git_state(paths[a], flags[a]["watch"] if ws is not None else True) if os.path.isdir(paths[a]) else None, aliases)))
+        states = dict(zip(aliases, ex.map(lambda a: git_state(paths[a], flags[a]["watch"] if ws is not None else True, (flags[a]["ref"] or None) if ws is not None and flags[a]["mode"] == "reference" else None) if os.path.isdir(paths[a]) else None, aliases)))
     items = [{"alias": names[a], "current": a == cur, "state": states[a]} for a in aliases]
     sid = inp.get("session_id")
     linea = None

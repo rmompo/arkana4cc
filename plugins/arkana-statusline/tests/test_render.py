@@ -258,6 +258,24 @@ class TestVisibilidadYVigilancia(unittest.TestCase):
             self.manifiesto(lab, api={"watch": False}, _schema=2)
             self.assertIn("api@develop:✓", self.linea(lab))                                     # visible pero sin vigilar: sin ◌ ✚ ●
 
+    def test_referencia_en_su_ref_sin_indicadores_y_con_noref_si_se_mueve(self):
+        with L.Lab() as lab:
+            d = lab.path("api")
+            L.git(d, "tag", "v1")
+            L.git(d, "commit", "-q", "--allow-empty", "-m", "dos")
+            L.git(d, "checkout", "-q", "--detach", "v1")
+            with open(os.path.join(d, "angular.json"), "w") as f:
+                f.write("{}")                                                                   # lo reescribe el tooling del repo: no se vigila
+            self.manifiesto(lab, api={"mode": "reference", "ref": "v1", "statusline": True}, _schema=2)
+            t = self.linea(lab)
+            self.assertIn("api@v1:✓", t)                                                        # HEAD separado en el tag: se muestra el ref, sin ◌
+            self.assertNotIn("≠ref", t)
+            L.git(d, "checkout", "-q", "--detach", "HEAD~0")
+            L.git(d, "checkout", "-q", "develop")                                               # HEAD se ha movido del ref fijado
+            t = self.linea(lab)
+            self.assertIn("api@develop:≠ref", t)
+            self.assertNotIn("api@develop:✓", t)
+
     def test_un_manifiesto_de_esquema_futuro_dice_que_hay_que_actualizar(self):
         with L.Lab() as lab:
             self.manifiesto(lab, _schema=99)
