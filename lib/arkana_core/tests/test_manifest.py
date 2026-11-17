@@ -99,6 +99,77 @@ class TestValidacion(unittest.TestCase):
         self.assertTrue(manifest.validate(d))
 
 
+class TestCamposDeReferencia(unittest.TestCase):
+    """mode, ref, watch y checks_skip (esquema 2): resolución única `component_flags`, validación y aviso de esquema desconocido."""
+
+    def comp(self, **kw):
+        return dict({"alias": "shell", "type": "node", "path": "mova3-shell"}, **kw)
+
+    def errores(self, **kw):
+        d = common.manifiesto(componentes=[("app", "node", "app")])
+        d["components"].append(self.comp(**kw))
+        return manifest.validate(d)
+
+    def test_sin_campos_nuevos_todo_como_antes(self):
+        f = manifest.component_flags({"alias": "a", "type": "node", "path": "p"})
+        self.assertEqual(f, {"mode": "work", "ref": "", "statusline": True, "watch": True, "checks_skip": []})
+        self.assertFalse(manifest.component_flags({"type": "docs"})["statusline"])               # defecto por tipo, como hasta ahora
+
+    def test_reference_oculta_no_vigila_y_omite_checks_por_defecto(self):
+        f = manifest.component_flags({"type": "node", "mode": "reference", "ref": "v6.2.0"})
+        self.assertEqual((f["mode"], f["ref"], f["statusline"], f["watch"]), ("reference", "v6.2.0", False, False))
+        self.assertEqual(f["checks_skip"], list(manifest.REFERENCE_SKIP))
+
+    def test_lo_explicito_anula_el_defecto_del_modo(self):
+        f = manifest.component_flags({"mode": "reference", "statusline": True, "watch": True, "checks_skip": ["commits"]})
+        self.assertEqual((f["statusline"], f["watch"], f["checks_skip"]), (True, True, ["commits"]))
+        self.assertEqual(manifest.component_flags({"mode": "reference", "checks_skip": []})["checks_skip"], [])    # presente y vacío manda: ejecuta todo
+
+    def test_arkana_nunca_es_reference(self):
+        self.assertEqual(manifest.component_flags({"mode": "reference"}, is_arkana=True)["mode"], "work")
+
+    def test_workspace_flags_acepta_alias_o_id(self):
+        with common.Lab() as lab:
+            m = common.manifiesto()
+            m["components"][0].update(mode="reference", ref="v1", id="11111111-1111-4111-8111-111111111111")
+            lab.escribir(os.path.join("core", "workspace.json"), m)
+            w = manifest.load(lab.arkana)
+            self.assertEqual(w.flags("APP")["mode"], "reference")
+            self.assertEqual(w.flags("11111111-1111-4111-8111-111111111111")["ref"], "v1")
+            self.assertEqual(w.flags("arkana")["mode"], "work")
+
+    def test_validacion_de_los_campos_nuevos(self):
+        self.assertEqual(self.errores(mode="reference", ref="v6.2.0", watch=False, checks_skip=["commits", "anidado-*"]), [])
+        self.assertTrue(self.errores(mode="cobol"))
+        self.assertTrue(self.errores(watch="no"))
+        self.assertTrue(any("ref" in e for e in self.errores(ref="v1")))                         # ref sin mode: reference
+        self.assertTrue(any("no existen" in e and "gitignore_env" in e for e in self.errores(checks_skip=["gitignore_env"])))   # errata
+
+    def test_arkana_no_admite_mode(self):
+        d = common.manifiesto()
+        d["arkana"]["mode"] = "reference"
+        self.assertTrue(manifest.validate(d))
+
+    def test_esquema_mas_nuevo_dice_actualiza_el_plugin_antes_de_listar_claves(self):
+        with common.Lab() as lab:
+            m = common.manifiesto()
+            m["schema"] = manifest.KNOWN_SCHEMA + 1
+            m["components"][0]["campo_futuro"] = True
+            lab.escribir(os.path.join("core", "workspace.json"), m)
+            with self.assertRaises(manifest.ManifestError) as cm:
+                manifest.load(lab.arkana)
+            self.assertIn("actualiza el plugin", str(cm.exception))
+            self.assertNotIn("clave no permitida", str(cm.exception))
+
+    def test_clave_desconocida_con_esquema_conocido_sugiere_actualizar(self):
+        with common.Lab() as lab:
+            m = common.manifiesto()
+            m["components"][0]["campo_futuro"] = True
+            lab.escribir(os.path.join("core", "workspace.json"), m)
+            with self.assertRaisesRegex(manifest.ManifestError, "versión más reciente"):
+                manifest.load(lab.arkana)
+
+
 class TestErrores(unittest.TestCase):
     def test_sin_workspace(self):
         with common.Lab() as lab:
