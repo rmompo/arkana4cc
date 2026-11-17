@@ -18,6 +18,14 @@ LOCAL_JSON = os.path.join("arkana-workspace", "local.json")
 ALIAS_RX = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 RESERVED = ("arkana", "all")          # `all` es un destinatario de --to, no un componente
 TYPES = ("node", "maven", "docs", "generic")
+MODES = ("work", "reference")
+KNOWN_SCHEMA = 2                      # versión del manifiesto que esta instalación entiende (2 = campos mode, ref, watch y checks_skip)
+NEW_FIELDS = ("mode", "ref", "watch", "checks_skip")                      # campos de componente que exigen `schema: 2`
+CHECK_IDS = ("componente", "carpeta", "arkana-presente", "arkana-escribible", "permisos", "registro", "commits", "git-repo", "gitignore-env",
+             "ignore-editor", "ignore-editor-session", "ignore-arkana-local", "env-versionado", "env-historial", "env-example", "git-identidad",
+             "gitattributes-eol", "husky-hooks", "rama", "ref", "origin-accesible")        # IDs de `checks/component.py` que se pueden omitir (más `anidado-*`)
+REFERENCE_SKIP = ("gitignore-env", "ignore-editor", "ignore-editor-session", "ignore-arkana-local", "env-versionado", "env-historial", "env-example",
+                  "git-identidad", "gitattributes-eol", "husky-hooks", "commits")      # lo que no se exige a un repo de referencia (solo se descarga y se ejecuta)
 SCHEMA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schemas")
 
 
@@ -59,6 +67,12 @@ def validate(data):
             elif a in seen:
                 errs.append(f"componente {a!r}: alias repetido")
             seen.add(a)
+        if not es_arkana:
+            if b.get("ref") and b.get("mode", "work") != "reference":
+                errs.append(f"{alias}: `ref` solo se admite con mode: reference")
+            malos = [i for i in b.get("checks_skip", []) if not skip_ok(i)]
+            if malos:
+                errs.append(f"{alias}: checks_skip con IDs que no existen: {', '.join(malos)}")
         p = b.get("path", "")
         n = os.path.normpath(p) if p else ""
         if not p or os.path.isabs(p) or n.startswith("..") or p.startswith("~"):
@@ -68,6 +82,22 @@ def validate(data):
         else:
             paths[n] = alias
     return errs
+
+
+def skip_ok(check_id):
+    """¿Es `check_id` un ID de check válido para `checks_skip`? (los de `anidado-<alias>` se admiten con el comodín `anidado-*`)."""
+    return check_id in CHECK_IDS or check_id == "anidado-*"
+
+
+def component_flags(block, is_arkana=False):
+    """Valores efectivos de un componente: `mode`, `ref`, `statusline`, `watch` y `checks_skip`. Un único sitio para todos los plugins.
+    Orden: campo explícito del componente > defecto de su `mode` > defecto de su `type` (`docs` y `reference` se ocultan en la statusline).
+    Un campo explícito siempre manda, también `checks_skip: []` (ejecuta todos los checks aunque sea `reference`). ARKANA nunca es `reference`."""
+    reference = not is_arkana and block.get("mode", "work") == "reference"
+    statusline = bool(block["statusline"]) if "statusline" in block else not (reference or block.get("type") == "docs")
+    skip = list(block["checks_skip"]) if "checks_skip" in block else (list(REFERENCE_SKIP) if reference else [])
+    return {"mode": "reference" if reference else "work", "ref": block.get("ref") or "", "statusline": statusline,
+            "watch": bool(block["watch"]) if "watch" in block else not reference, "checks_skip": skip}
 
 
 class Workspace:
@@ -83,6 +113,11 @@ class Workspace:
         for c in data.get("components", []):
             self._blocks[c["alias"]] = c
         self._ids = {str(b["id"]).lower(): a for a, b in self._blocks.items() if b.get("id")}     # id → alias (los bloques pueden llevar el `id` del registro)
+
+    def flags(self, alias):
+        """`component_flags` de una pieza (alias o id)."""
+        k = self.key(alias)
+        return component_flags(self.get(k), k == "arkana")
 
     def key(self, x):
         """Alias canónico de una pieza dada por alias o por id (el valor tal cual si no se conoce)."""
@@ -147,9 +182,14 @@ def load(home=None, cwd=None):
         raise ManifestError(f"no se puede leer {path}: {e.strerror}")
     except ValueError as e:
         raise ManifestError(f"{path} no es JSON válido: {e}")
+    sc = data.get("schema") if isinstance(data, dict) else None
+    if isinstance(sc, int) and not isinstance(sc, bool) and sc > KNOWN_SCHEMA:             # lo ha escrito una versión más reciente: se dice antes de listar claves «no permitidas»
+        raise ManifestError(f"el manifiesto es de esquema {sc} y esta versión de Arkana conoce hasta {KNOWN_SCHEMA}: actualiza el plugin (/plugin) y repite")
     errs = validate(data)
     if errs:
         hint = " (parece una instalación anterior: ejecuta /arkana-evolve:apply para migrarla)" if any("seed_file" in e for e in errs) else ""
+        if not hint and all("clave no permitida" in e for e in errs):
+            hint = " (puede venir de una versión más reciente de Arkana: actualiza el plugin)"
         raise ManifestError("manifiesto no válido: " + "; ".join(errs[:5]) + hint)
     local = {}
     try:

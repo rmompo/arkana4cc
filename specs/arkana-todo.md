@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-todo
 
-> **Estado:** `beta` | **Versión:** `1.1.16`
+> **Estado:** `beta` | **Versión:** `1.1.17`
 
 ---
 
@@ -29,6 +29,7 @@ Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: loca
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.17 | Núcleo 1.8.0 vendorizado: campos mode, ref, watch y checks_skip del componente, esquema 2 del manifiesto y LAYOUT_KNOWN |
 | 1.1.16 | modify: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
 | 1.1.15 | list: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
 | 1.1.14 | install: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
