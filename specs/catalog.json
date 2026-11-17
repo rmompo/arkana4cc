@@ -823,10 +823,14 @@
       "description": "Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión",
       "category": "other",
       "status": "beta",
-      "version": "1.1.9",
+      "version": "1.1.10",
       "spec": "specs/arkana-statusline.md",
       "path": "plugins/arkana-statusline",
       "changelog": [
+        {
+          "version": "1.1.10",
+          "changes": "Componente de referencia: oculto por defecto, muestra el ref y marca ≠ref si HEAD se mueve"
+        },
         {
           "version": "1.1.9",
           "changes": "watch por componente, el componente actual oculto sigue viéndose y mensaje de esquema desconocido (núcleo 1.8.0)"
@@ -1177,10 +1181,30 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.25",
+      "version": "6.2.30",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.30",
+          "changes": "rew-grants: rew-grants: solo lectura para todos sobre un componente de referencia"
+        },
+        {
+          "version": "6.2.29",
+          "changes": "status: status: sección de referencias aparte y sin vigilar"
+        },
+        {
+          "version": "6.2.28",
+          "changes": "fix: fix: ref solo informa y lo omitido no se arregla"
+        },
+        {
+          "version": "6.2.27",
+          "changes": "check: check: el componente de referencia no recibe los checks de un repo de trabajo, se verifica contra su ref y lista lo omitido"
+        },
+        {
+          "version": "6.2.26",
+          "changes": "component: Componentes: --mode reference, --ref y --checks-skip (repos que solo se descargan y se ejecutan)"
+        },
         {
           "version": "6.2.25",
           "changes": "component: Componentes: --watch/--no-watch (esquema 2), watch en status y BRIEF, aviso de layout superior y de copia antigua de la statusline"
@@ -1289,8 +1313,12 @@
       "skills": [
         {
           "name": "check",
-          "version": 12,
+          "version": 27,
           "changelog": [
+            {
+              "version": 27,
+              "changes": "check: el componente de referencia no recibe los checks de un repo de trabajo, se verifica contra su ref y lista lo omitido"
+            },
             {
               "version": 12,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1307,8 +1335,12 @@
         },
         {
           "name": "component",
-          "version": 25,
+          "version": 26,
           "changelog": [
+            {
+              "version": 26,
+              "changes": "Componentes: --mode reference, --ref y --checks-skip (repos que solo se descargan y se ejecutan)"
+            },
             {
               "version": 25,
               "changes": "Componentes: --watch/--no-watch (esquema 2), watch en status y BRIEF, aviso de layout superior y de copia antigua de la statusline"
@@ -1365,8 +1397,12 @@
         },
         {
           "name": "fix",
-          "version": 16,
+          "version": 28,
           "changelog": [
+            {
+              "version": 28,
+              "changes": "fix: ref solo informa y lo omitido no se arregla"
+            },
             {
               "version": 16,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1437,8 +1473,12 @@
         },
         {
           "name": "rew-grants",
-          "version": 20,
+          "version": 30,
           "changelog": [
+            {
+              "version": 30,
+              "changes": "rew-grants: solo lectura para todos sobre un componente de referencia"
+            },
             {
               "version": 20,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1455,8 +1495,12 @@
         },
         {
           "name": "status",
-          "version": 21,
+          "version": 29,
           "changelog": [
+            {
+              "version": 29,
+              "changes": "status: sección de referencias aparte y sin vigilar"
+            },
             {
               "version": 21,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
