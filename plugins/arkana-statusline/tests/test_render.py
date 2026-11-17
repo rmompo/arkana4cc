@@ -1,4 +1,5 @@
 """Render de la statusline: funciones puras (colores, ancho estrecho, línea 2) y estado git real con repos locales. Sin red."""
+import json
 import os
 import re
 import subprocess
@@ -208,6 +209,67 @@ class TestGitReal(unittest.TestCase):
             self.assertIsNone(S.git_state(d)["behind"])                                         # fetch de hace una hora: desconocido
             self.assertIsNone(S.git_state(os.path.join(lab.root, "no-existe")))
             self.assertIsNone(S.git_state(lab.root))                                            # no es un repo
+
+
+class TestVisibilidadYVigilancia(unittest.TestCase):
+    """statusline y watch por componente (esquema 2): ocultar/mostrar, el cwd oculto sigue siendo «actual», sin vigilar no hay ◌ ✚ ●, esquema desconocido."""
+
+    def manifiesto(self, lab, **por_alias):
+        f = os.path.join(lab.arkana, ".arkana", "core", "workspace.json")
+        d = json.load(open(f, encoding="utf-8"))
+        for c in d["components"]:
+            c.update(por_alias.get(c["alias"], {}))
+        d["schema"] = por_alias.get("_schema", d["schema"])
+        L.wj(f, d)
+
+    def linea(self, lab, cwd="app"):
+        r = lab.run(cwd)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return S.ANSI.sub("", r.stdout)
+
+    def test_por_defecto_se_ve_todo_menos_docs_y_se_puede_ocultar_o_mostrar(self):
+        with L.Lab() as lab:
+            t = self.linea(lab)
+            self.assertIn("api@", t)
+            self.assertNotIn("docs@", t)                                                        # type docs: oculto por defecto (como siempre)
+            self.manifiesto(lab, api={"statusline": False}, docs={"statusline": True}, _schema=2)
+            t = self.linea(lab)
+            self.assertNotIn("api@", t)
+            self.assertIn("docs@", t)
+
+    def test_un_componente_de_referencia_se_oculta_salvo_que_se_active(self):
+        with L.Lab() as lab:
+            self.manifiesto(lab, api={"mode": "reference", "ref": "v1"}, _schema=2)
+            self.assertNotIn("api@", self.linea(lab))
+            self.manifiesto(lab, api={"statusline": True}, _schema=2)                           # explícito gana al defecto del modo
+            self.assertIn("api@", self.linea(lab))
+
+    def test_el_componente_oculto_donde_estas_sigue_viendose(self):
+        with L.Lab() as lab:
+            self.manifiesto(lab, api={"statusline": False}, _schema=2)
+            self.assertNotIn("api@", self.linea(lab, "app"))
+            self.assertIn("api@", self.linea(lab, "api"))                                       # estás dentro: la barra te ubica
+
+    def test_sin_vigilar_no_cuentan_los_cambios_locales(self):
+        with L.Lab() as lab:
+            with open(os.path.join(lab.path("api"), "nuevo.txt"), "w") as f:
+                f.write("x")
+            self.assertIn("api@develop:◌1", self.linea(lab))
+            self.manifiesto(lab, api={"watch": False}, _schema=2)
+            self.assertIn("api@develop:✓", self.linea(lab))                                     # visible pero sin vigilar: sin ◌ ✚ ●
+
+    def test_un_manifiesto_de_esquema_futuro_dice_que_hay_que_actualizar(self):
+        with L.Lab() as lab:
+            self.manifiesto(lab, _schema=99)
+            self.assertIn("actualiza el plugin", self.linea(lab))
+
+    def test_git_state_sin_watch_conserva_lo_sin_subir(self):
+        with L.Lab() as lab:
+            d = lab.path("app")
+            with open(os.path.join(d, "x.txt"), "w") as f:
+                f.write("x")
+            s = S.git_state(d, False)
+            self.assertEqual((s["untracked"], s["staged"], s["modified"], s["behind"]), (0, 0, 0, 0))
 
 
 if __name__ == "__main__":

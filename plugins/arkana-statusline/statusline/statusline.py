@@ -75,8 +75,9 @@ def fetch_age(path):
         return None
 
 
-def git_state(path):
-    """dict (branch, untracked, staged, modified, ahead, behind|None, has_remote) o None si no es un repo. Solo git local, sin red."""
+def git_state(path, watch=True):
+    """dict (branch, untracked, staged, modified, ahead, behind|None, has_remote) o None si no es un repo. Solo git local, sin red.
+    Con `watch=False` no cuentan los cambios del árbol de trabajo (◌ ✚ ●) ni ⇣; sí ⇡ (copia de `gitstate.state` de arkana-workspace: un test comprueba que coinciden)."""
     try:
         p = subprocess.run(["git", "--no-optional-locks", "-C", path, "status", "--porcelain=v2", "--branch", "-uall"], capture_output=True, text=True,
                            timeout=4, env=dict(os.environ, GIT_TERMINAL_PROMPT="0", LC_ALL="C"), stdin=subprocess.DEVNULL)
@@ -107,6 +108,9 @@ def git_state(path):
     s["has_remote"] = upstream
     if not upstream:
         s["ahead"] = 0
+    if not watch:
+        s["untracked"] = s["staged"] = s["modified"] = 0
+        s["behind"] = 0
     return s
 
 
@@ -356,14 +360,15 @@ def collect(inp):
         home = ws = None
     if ws is not None:
         cur = ws.owner_of(cwd)
-        aliases = ["arkana"] + [a for a in ws.aliases(False) if ws.get(a).get("statusline", ws.get(a).get("type") != "docs") is not False]
+        flags = {a: ws.flags(a) for a in ws.aliases()}
+        aliases = ["arkana"] + [a for a in ws.aliases(False) if flags[a]["statusline"] or a == cur]       # un componente oculto se ve mientras estás dentro: la barra siempre te ubica
         paths = {a: ws.path(a) for a in aliases}
         names = {a: manifest.display(a) for a in aliases}
     else:
         base = os.path.basename(cwd.rstrip("/")) or "~"
         aliases, paths, names, cur = [base], {base: cwd}, {base: base}, base
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
-        states = dict(zip(aliases, ex.map(lambda a: git_state(paths[a]) if os.path.isdir(paths[a]) else None, aliases)))
+        states = dict(zip(aliases, ex.map(lambda a: git_state(paths[a], flags[a]["watch"] if ws is not None else True) if os.path.isdir(paths[a]) else None, aliases)))
     items = [{"alias": names[a], "current": a == cur, "state": states[a]} for a in aliases]
     sid = inp.get("session_id")
     linea = None
