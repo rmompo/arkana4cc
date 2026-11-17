@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-workspace
 
-> **Estado:** `beta` | **Versión:** `6.2.24`
+> **Estado:** `beta` | **Versión:** `6.2.25`
 
 ---
 
@@ -15,7 +15,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 | Skill | Versión | Descripción |
 |-------|---------|-------------|
 | `check` | 12 | Diagnóstico de solo lectura de todo el workspace - cada componente (permisos, commits, git, .gitignore, identidad), herramientas y entorno (las declaradas con config tools, git, y Jira solo si está configurado), credenciales y los check que declara cada plugin de Arkana (statusline, mensajería, agentic…). Acepta --component, --network y --json. |
-| `component` | 13 | Gestiona los componentes (repos) del workspace en el manifiesto core/workspace.json - list, add, edit y remove - con alias, ruta, tipo, remoto, ramas, referencia de token, VPN y herramientas. Valida, hace copia .bak y acepta --dry-run y --json. La identidad git personal y las rutas absolutas van a local.json. |
+| `component` | 25 | Gestiona los componentes (repos) del workspace en el manifiesto core/workspace.json - list, add, edit y remove - con alias, ruta, tipo, remoto, ramas, referencia de token, VPN y herramientas. Valida, hace copia .bak y acepta --dry-run y --json. La identidad git personal y las rutas absolutas van a local.json. |
 | `config` | 14 | Configura el workspace - jira (extensión opcional: URL y nombre de la clave del token), tools (herramientas, versiones y rutas locales) y policy (políticas compartidas del proyecto). Los componentes se gestionan con component. Valida, hace copia .bak y acepta --dry-run y --json. |
 | `export` | 15 | Exporta la configuración del workspace (y con --include-data los datos de los plugins) a un ZIP con manifiesto y hashes sha256. Nunca incluye .credentials, identidad git personal ni rutas absolutas. Acepta --dry-run y --json. |
 | `fix` | 16 | Corrige, de forma interactiva y paso a paso, lo que marcan los check de arkana-workspace en un componente - permisos (generador único), exclusiones locales de git, .gitignore, .gitattributes, .env.example e identidad git. Pide confirmación en cada cambio y deja copia .bak. |
@@ -32,6 +32,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 
 | Versión | Cambios |
 |---------|---------|
+| 6.2.25 | component: Componentes: --watch/--no-watch (esquema 2), watch en status y BRIEF, aviso de layout superior y de copia antigua de la statusline |
 | 6.2.24 | El BRIEF de sesión cambia el orden de las secciones: QUICK START, MESSAGING, TODO, GIT y ORCHESTRATION |
 | 6.2.23 | El BRIEF de sesión añade la sección TODO (tareas abiertas de arkana-todo) y las líneas de arkana-knowledge:ingest y arkana-evolve:check en el QUICK START |
 | 6.2.22 | sync: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |

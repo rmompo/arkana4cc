@@ -2,12 +2,12 @@
 name: component
 description: Gestiona los componentes (repos) del workspace en el manifiesto core/workspace.json - list, add, edit y remove - con alias, ruta, tipo, remoto, ramas, referencia de token, VPN y herramientas. Valida, hace copia .bak y acepta --dry-run y --json. La identidad git personal y las rutas absolutas van a local.json. Also invoked explicitly as /arkana-workspace:component
 allowed-tools: [AskUserQuestion]
-version: 13
+version: 25
 ---
 
 # arkana-workspace:component
 
-Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directrices de ARKANA: commits, remoto, ramas, token; no admite `--type`, `--path`, `--vpn`, `--statusline` ni `--tool-*`). Herramienta: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/components.py" <list|add|edit|remove> [opciones]`.
+Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directrices de ARKANA: commits, remoto, ramas, token; no admite `--type`, `--path`, `--vpn`, `--statusline`, `--watch` ni `--tool-*`; en un componente, `edit` sí cambia `--statusline` y `--watch` en cualquier momento). Herramienta: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/components.py" <list|add|edit|remove> [opciones]`.
 
 | Opción | Significado |
 |---|---|
@@ -21,7 +21,8 @@ Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directric
 | `--commit-format` | Convención de commits: `conventional` (por defecto) o `ia4d` (opcional) |
 | `--git-email-domain` | Dominio de correo exigido al autor de los commits (repetible; sustituye la lista; sin él no hay regla) |
 | `--vpn` / `--no-vpn` | Si requiere VPN |
-| `--statusline` / `--no-statusline` | Si `arkana-statusline` lo muestra. Sin la marca se muestra salvo los de tipo `docs`; `--statusline` fuerza mostrarlo y `--no-statusline` lo oculta. No se aplica a ARKANA, que siempre se muestra |
+| `--statusline` / `--no-statusline` | Si `arkana-statusline` lo muestra. Sin la marca se muestra salvo los de tipo `docs`; `--statusline` fuerza mostrarlo y `--no-statusline` lo oculta (también con `edit`, en cualquier momento; un componente oculto se ve mientras estás dentro). No se aplica a ARKANA, que siempre se muestra |
+| `--watch` / `--no-watch` | Si cuentan sus cambios (◌ ✚ ● y ⇣) en la barra, `status` y el BRIEF; independiente de `--statusline`. Con `--no-watch` siguen contando los commits sin subir (⇡). Escribe `schema: 2` del manifiesto. No se aplica a ARKANA |
 | `--tool-version tool=ver`, `--tool-path tool=ruta` | Herramientas que pide (la ruta va a `local.json`) |
 | `--rename NUEVO` | Solo `edit`: cambia el alias (el id no cambia) en el manifiesto, `local.json`, el registro y los datos locales de los plugins; ensaya antes y no cambia nada si algún plugin no puede (plan activo). Los documentos compartidos referencian por id y no se tocan |
 | `--yes` | Confirma `remove` (solo quita del manifiesto; la carpeta no se toca) |

@@ -2,6 +2,7 @@
 """Estado git local de un repo, el mismo para `status`, el hook de estado y la statusline.
 
 Todo sale de git local (`--no-optional-locks`, sin red): `untracked` (◌), `staged` (✚), `modified` (●), `ahead` (⇡, commits sin subir).
+Con `watch=False` (componente que no se vigila) no cuentan los cambios del árbol de trabajo (◌ ✚ ●) ni `behind` (⇣); `ahead` (⇡) sí.
 Lo único que depende del remoto es `behind` (⇣): se conoce solo si el último `fetch` es reciente (`fresh`); si no, es None (se pinta `⇣?`).
 Sin remoto o sin rama remota no hay `ahead` ni `behind`.
 """
@@ -29,7 +30,7 @@ def fetch_age(path):
         return None
 
 
-def state(path):
+def state(path, watch=True):
     """dict: branch, untracked, staged, modified, ahead, behind (None = desconocido), has_remote, clean. None si no es un repo."""
     rc, out = _git(path, "status", "--porcelain=v2", "--branch", "-uall")
     if rc != 0:
@@ -57,6 +58,9 @@ def state(path):
     s["has_remote"] = upstream
     if not upstream:
         s["ahead"] = 0
+    if not watch:                                     # no vigilado: ni cambios locales ni commits por bajar (se conserva lo sin subir)
+        s["untracked"] = s["staged"] = s["modified"] = 0
+        s["behind"] = 0
     s["clean"] = not (s["untracked"] or s["staged"] or s["modified"] or s["ahead"])
     return s
 

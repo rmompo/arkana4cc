@@ -141,7 +141,8 @@ Campos de cada bloque (ARKANA y componentes comparten los marcados «ambos»):
 | `git.email_domains` | ambos | lista de texto (`^[A-Za-z0-9.-]+$`) | Dominios de correo que debe tener el autor de los commits; sin lista no hay regla. `--git-email-domain` (repetible) |
 | `vpn` | componente | booleano | Si requiere VPN. `--vpn` / `--no-vpn`; `handover` lo muestra |
 | `tools[]` | componente | lista `{tool, version}` | Herramientas y versiones que pide el componente. `--tool-version tool=ver` |
-| `statusline` | componente | booleano | Si `arkana-statusline` lo muestra (sin la marca se muestra salvo los de tipo `docs`). `--statusline` / `--no-statusline`; este plugin no lo lee |
+| `statusline` | componente | booleano | Si `arkana-statusline` lo muestra (sin la marca se muestra salvo los de tipo `docs`). `--statusline` / `--no-statusline`, **editable en cualquier momento**; un componente oculto se ve mientras estás dentro de él |
+| `watch` | componente | booleano | Si cuentan sus cambios (◌ ✚ ● y ⇣) en la barra, en `status` y en el BRIEF; sin la marca se vigilan. `--watch` / `--no-watch`, editable en cualquier momento. Es un eje **independiente** de `statusline` (puede estar oculto pero vigilado, o visible sin vigilar). Con `--no-watch` siguen contando los commits sin subir (⇡). **Esquema 2:** al guardarlo el manifiesto pasa a `schema: 2`, que las versiones anteriores de los plugins no entienden (avisan de actualizar) |
 | `id` | ambos | UUID v4 | **Identidad inmutable** de la pieza, la del registro compartido `arkana-project.json` (la escribe `/arkana-evolve:apply` y `component add`). El alias puede cambiar con `component edit --rename`; el id, nunca. Los documentos compartidos por git referencian por id |
 | `owner`, `label` | componente | texto | Admitidos por el esquema; ningún script de este plugin los lee ni hay opción para fijarlos |
 
@@ -477,7 +478,8 @@ Sin arreglo en el skill: `arkana-escribible` (permisos del sistema de ficheros) 
 | `--git-email-domain` | dominio (`^[A-Za-z0-9.-]+$`; se elimina un `@` inicial) | sin regla | **Repetible**. Fija `git.email_domains`: **sustituye** la lista entera por los dominios dados. `check` exige que `user.email` termine en uno de ellos. Sin la opción, no cambia lo que haya |
 | `--commit-format` | `conventional`, `ia4d` | `conventional` (efectivo si falta) | El CLI acepta cualquier texto; un valor distinto de los dos hace fallar `commits.py` y `check` (`commits`) con «commit_format desconocido» |
 | `--vpn` / `--no-vpn` | flags | sin definir | Guarda `vpn: true/false`. Rechazado para ARKANA |
-| `--statusline` / `--no-statusline` | flags | sin definir | Guarda `statusline: true/false`: fuerza mostrar u ocultar el componente en la barra de `arkana-statusline`. Rechazado para ARKANA, que siempre se muestra |
+| `--statusline` / `--no-statusline` | flags | sin definir | Guarda `statusline: true/false`: fuerza mostrar u ocultar el componente en la barra de `arkana-statusline`. Válido también con `edit` sobre un componente ya dado de alta. Rechazado para ARKANA, que siempre se muestra |
+| `--watch` / `--no-watch` | flags | sin definir | Guarda `watch: true/false`: que cuenten o no sus cambios locales y los commits por bajar. Válido con `add` y `edit`; rechazado para ARKANA. Escribe `schema: 2` y, si la copia de la statusline (`~/.claude/arkana-statusline/`) es anterior, avisa de ejecutar `/arkana-statusline:fix` |
 | `--rename NUEVO` | alias | — | Solo `edit`. Cambia el **alias** (el id no cambia): manifiesto, claves de `local.json`, registro del proyecto y, con el comando `rename` que declaren en su contrato, los datos locales de los plugins (mensajes, tareas, planes, libro). **Antes ensaya** todos los plugins con `--dry-run` y, si alguno no puede (p. ej. un plan activo), no cambia nada. Si el registro ya trae el alias nuevo (lo renombró otra persona y empujó), solo alinea tu copia. Rechazado para ARKANA |
 | `--plugins-dir DIR` | ruta | `<carpeta de Arkana>/plugins` | Dónde buscar los contratos con `rename` |
 | `--tool-version tool=ver` | repetible | — | Añade o cambia `tools[]` del componente. Formato `nombre=valor` (si no, error). Rechazado para ARKANA |
@@ -487,7 +489,7 @@ Sin arreglo en el skill: `arkana-escribible` (permisos del sistema de ficheros) 
 | `--dry-run` | flag | no | Valida y muestra sin escribir |
 | `--json` | flag | no | Salida estructurada |
 
-**Qué admite cada subcomando.** `list`: `--home`, `--json`. `add`: todo salvo `--yes`. `edit`: todo salvo `--yes` y, con `--alias arkana`, también `--type`, `--path`, `--vpn/--no-vpn`, `--statusline/--no-statusline`, `--tool-version`, `--tool-path` (error «no se aplica a ARKANA»); para ARKANA sí valen `--commit-format`, `--git-email-domain`, `--remote`, `--main`, `--develop`, `--token-ref`, `--git-username`, `--git-user`, `--git-email`. `remove`: `--alias`, `--yes`, `--dry-run`; ARKANA no se puede quitar.
+**Qué admite cada subcomando.** `list`: `--home`, `--json`. `add`: todo salvo `--yes`. `edit`: todo salvo `--yes` y, con `--alias arkana`, también `--type`, `--path`, `--vpn/--no-vpn`, `--statusline/--no-statusline`, `--watch/--no-watch`, `--tool-version`, `--tool-path` (error «no se aplica a ARKANA»); para ARKANA sí valen `--commit-format`, `--git-email-domain`, `--remote`, `--main`, `--develop`, `--token-ref`, `--git-username`, `--git-user`, `--git-email`. `remove`: `--alias`, `--yes`, `--dry-run`; ARKANA no se puede quitar.
 
 **Salida.** `list`: una línea `INFO|<alias>|<tipo> <ruta> <host>` por pieza (ARKANA con tipo `arkana`). `add`/`edit`/`remove`: `OK|<alias>|...` o `DRY|...`. Errores → `FAIL|<operación>|motivo`, salida 1; sin workspace, salida 3.
 

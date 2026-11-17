@@ -25,7 +25,7 @@ def git_pending(ws, aliases):
     """[(alias, rama)] de los componentes con cambios o commits sin subir, en el orden del manifiesto."""
     def one(a):
         p = ws.path(a)
-        return a, (gitstate.state(p) if os.path.isdir(p) else None)
+        return a, (gitstate.state(p, ws.flags(a)["watch"]) if os.path.isdir(p) else None)
     with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, len(aliases) or 1)) as ex:
         res = list(ex.map(one, aliases))
     return [(manifest.display(a), s["branch"]) for a, s in res if s is not None and not s["clean"]]
@@ -157,6 +157,9 @@ def main(argv):
         have = project.layout(home)
         if have < project.LAYOUT_REQUIRED:                                      # instalación sin migrar: lo primero que debe ver la persona usuaria
             aviso = f"[ARKANA] ⚠ Instalación en layout {have}; esta versión necesita {project.LAYOUT_REQUIRED}. Ejecuta /arkana-evolve:apply."
+            text = aviso + ("\n\n" + text if text else "\n")
+        elif have > project.LAYOUT_KNOWN:                                       # otra persona migró a un layout más nuevo: hay que actualizar el plugin, no aplicar nada
+            aviso = f"[ARKANA] ⚠ El repo está en layout {have} y esta instalación solo conoce hasta {project.LAYOUT_KNOWN}: actualiza el plugin (/plugin)."
             text = aviso + ("\n\n" + text if text else "\n")
         out = {}
         if text:

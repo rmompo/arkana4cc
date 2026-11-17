@@ -4,13 +4,18 @@
   components.py list   [--json]
   components.py add    --alias A --path RUTA [--type node|maven|docs|generic] [--remote URL] [--main M] [--develop D]
                       [--git-user U --git-email E] [--git-email-domain D]... [--commit-format F] [--token-ref CLAVE] [--git-username U] [--vpn|--no-vpn]
-                      [--statusline|--no-statusline] [--tool-version tool=ver]... [--tool-path tool=ruta]...
+                      [--statusline|--no-statusline] [--watch|--no-watch] [--tool-version tool=ver]... [--tool-path tool=ruta]...
   components.py edit   --alias A  (mismas opciones que add; solo se cambia lo indicado). `--alias arkana` edita ARKANA: su `--commit-format`,
-                      `--git-email-domain`, remoto, ramas, `--token-ref`/`--git-username` (no admite --type, --path, --vpn, --statusline ni --tool-*)
+                      `--git-email-domain`, remoto, ramas, `--token-ref`/`--git-username` (no admite --type, --path, --vpn, --statusline, --watch ni --tool-*; en un componente
+                      sí se pueden cambiar en cualquier momento, también `--statusline/--no-statusline` y `--watch/--no-watch`)
   components.py edit   --alias A --rename NUEVO   cambia el ALIAS de un componente (su id no cambia): manifiesto, `local.json`, registro del proyecto y los datos
                       locales de los plugins que declaren `rename` en su contrato. Los documentos compartidos referencian por id y no se tocan.
   components.py remove --alias A  [--yes]
   Opciones comunes: --home DIR  --dry-run  --json  [--plugins-dir DIR]
+
+`--statusline|--no-statusline` muestra u oculta el componente en la barra de estado; `--watch|--no-watch` hace que cuenten o no sus cambios (◌ ✚ ● y ⇣) en la barra, en `status` y en el
+BRIEF. Son ejes independientes: un componente puede estar oculto pero vigilado, o visible y sin vigilar. Al guardar cualquiera de los campos de esquema 2 (`watch`…) el manifiesto
+pasa a `schema: 2`; si la copia de la statusline (`~/.claude/arkana-statusline/`) es anterior, se avisa de que hay que ejecutar `/arkana-statusline:fix`.
 
 `--path` se da absoluta o relativa a la raíz del workspace y se guarda relativa. La identidad git (user/email) y las rutas absolutas van
 a `local.json`, no al manifiesto exportable. `--git-email-domain` (repetible) fija los dominios de correo que debe tener el autor de los commits del
@@ -83,6 +88,8 @@ def apply_options(block, a, root):
         block["vpn"] = a.vpn
     if a.statusline is not None:
         block["statusline"] = a.statusline
+    if a.watch is not None:
+        block["watch"] = a.watch
     tv, tp = _kv(a.tool_version, "--tool-version"), _kv(a.tool_path, "--tool-path")
     if tv:
         tools = {t["tool"]: t for t in block.get("tools", [])}
@@ -92,6 +99,15 @@ def apply_options(block, a, root):
     return tp
 
 
+def aviso_statusline(rep, a):
+    """WARN si ESTA llamada escribe campos de esquema 2 y la copia de la statusline instalada es anterior (no los entendería: «workspace no cargado»)."""
+    if a.watch is None:                                                  # (B añadirá aquí --mode, --ref y --checks-skip)
+        return
+    old = statusline_copy_outdated()
+    if old:
+        rep.add("WARN", "statusline", f"la copia de la statusline (~/.claude/arkana-statusline) lleva el núcleo {old} y no conoce los campos nuevos del manifiesto: ejecuta /arkana-statusline:fix")
+
+
 def _local(home):
     try:
         return json.loads(Path(os.path.join(locate.state_dir(home), manifest.LOCAL_JSON)).read_text(encoding="utf-8"))
@@ -99,7 +115,29 @@ def _local(home):
         return {}
 
 
+def stamp_schema(data):
+    """Un manifiesto que usa campos de esquema 2 lo declara (`schema: 2`): las versiones anteriores lo rechazan con un aviso claro en lugar de una lista de claves sobrantes."""
+    if any(k in c for c in data.get("components", []) for k in manifest.NEW_FIELDS) and data.get("schema", 1) < manifest.KNOWN_SCHEMA:
+        data["schema"] = manifest.KNOWN_SCHEMA
+
+
+def statusline_copy_outdated():
+    """Versión del núcleo de la copia de la statusline si es anterior a la de este plugin (o None): esa copia no conocería los campos nuevos del manifiesto."""
+    import re
+    f = os.path.join(os.path.expanduser("~"), ".claude", "arkana-statusline", "arkana_core", "__init__.py")
+    try:
+        m = re.search(r'CORE_VERSION\s*=\s*"([\d.]+)"', Path(f).read_text(encoding="utf-8"))
+    except OSError:
+        return None
+    if not m:
+        return None
+    ver = lambda v: tuple(int(x) for x in v.split("."))
+    from arkana_core import CORE_VERSION
+    return m.group(1) if ver(m.group(1)) < ver(CORE_VERSION) else None
+
+
 def save(home, path, data, dry):
+    stamp_schema(data)
     errs = manifest.validate(data)
     if errs:
         raise ValueError("; ".join(errs[:3]))
@@ -188,6 +226,8 @@ def main(argv=None):
     ap.add_argument("--no-vpn", dest="vpn", action="store_false")
     ap.add_argument("--statusline", dest="statusline", action="store_true", default=None)
     ap.add_argument("--no-statusline", dest="statusline", action="store_false")
+    ap.add_argument("--watch", dest="watch", action="store_true", default=None)
+    ap.add_argument("--no-watch", dest="watch", action="store_false")
     ap.add_argument("--tool-version", action="append")
     ap.add_argument("--tool-path", action="append")
     ap.add_argument("--rename")
@@ -227,9 +267,10 @@ def main(argv=None):
             if reg.present and not a.dry_run:
                 project.add_component(home, alias, cid=block["id"])
             rep.add("DRY" if a.dry_run else "OK", alias, f"componente añadido en {block['path']}" + (f" (id {block['id'][:8]}…)" if block.get("id") else ""), component=alias)
+            aviso_statusline(rep, a)
         elif a.cmd == "edit":
             if alias == "arkana":                                             # ARKANA también tiene sus directrices de commit, su remoto y su identidad git
-                solo_componentes = [o for o, v in (("--type", a.type), ("--path", a.path), ("--vpn/--no-vpn", a.vpn), ("--statusline/--no-statusline", a.statusline), ("--tool-version", a.tool_version), ("--tool-path", a.tool_path)) if v is not None]
+                solo_componentes = [o for o, v in (("--type", a.type), ("--path", a.path), ("--vpn/--no-vpn", a.vpn), ("--statusline/--no-statusline", a.statusline), ("--watch/--no-watch", a.watch), ("--tool-version", a.tool_version), ("--tool-path", a.tool_path)) if v is not None]
                 if solo_componentes:
                     raise ValueError(f"{', '.join(solo_componentes)} no se aplica a ARKANA (solo a los componentes)")
                 block = data["arkana"]
@@ -271,6 +312,7 @@ def main(argv=None):
                 rename_hooks(rep, os.path.realpath(a.plugins_dir) if a.plugins_dir else os.path.join(home, "plugins"), home, alias, new, a.dry_run)
             else:
                 rep.add("DRY" if a.dry_run else "OK", alias, "componente actualizado", component=alias)
+            aviso_statusline(rep, a)
         elif a.cmd == "remove":
             if not any(c["alias"] == alias for c in data["components"]):
                 raise ValueError(f"no existe el componente {a.alias!r}")

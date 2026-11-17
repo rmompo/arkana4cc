@@ -21,7 +21,7 @@ def build(ws, components=None):
         if not os.path.isdir(p):
             rep.add("WARN", a, "la carpeta no existe", component=a)
             continue
-        s = gitstate.state(p)
+        s = gitstate.state(p, ws.flags(a)["watch"])
         if s is None:
             rep.add("WARN", a, "no es un repositorio git", component=a)
             continue

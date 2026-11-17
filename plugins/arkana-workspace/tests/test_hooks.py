@@ -27,6 +27,43 @@ def wj(p, obj):
         json.dump(obj, f)
 
 
+class TestVigilanciaYLayoutEnElBrief(unittest.TestCase):
+    def sesion(self, lab):
+        r = run(lab, os.path.join(lab.ws, "app"))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return json.loads(r.stdout).get("systemMessage", "")
+
+    def test_un_componente_sin_vigilar_no_sale_en_git_pending(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            app = os.path.join(lab.ws, "app")
+            subprocess.run(["git", "init", "-q", app], check=True)
+            with open(os.path.join(app, "nuevo.txt"), "w") as f:
+                f.write("x")
+            self.assertRegex(self.sesion(lab), r"\d\. app \(")
+            f = os.path.join(lab.arkana, ".arkana", "core", "workspace.json")
+            d = json.load(open(f, encoding="utf-8"))
+            for c in d["components"]:
+                if c["alias"] == "app":
+                    c["watch"] = False
+            d["schema"] = 2
+            wj(f, d)
+            self.assertNotRegex(self.sesion(lab), r"\d\. app \(")                       # sin vigilar: sus cambios no cuentan
+
+    def test_repo_en_un_layout_mas_nuevo_dice_que_hay_que_actualizar_el_plugin(self):
+        with TC.CLab() as lab:
+            wj(os.path.join(lab.arkana, "arkana-project.json"), {"schema_version": 1, "layout": 99, "workspace": {"id": "x", "name": "t"}, "components": []})
+            m = self.sesion(lab)
+            self.assertIn("layout 99", m)
+            self.assertIn("actualiza el plugin", m)
+            self.assertNotIn("/arkana-evolve:apply", m.split("\n")[0])                       # el aviso no manda aplicar nada: manda actualizar
+
+    def test_en_el_layout_conocido_no_hay_aviso(self):
+        with TC.CLab() as lab:
+            wj(os.path.join(lab.arkana, "arkana-project.json"), {"schema_version": 1, "layout": 5, "workspace": {"id": "x", "name": "t"}, "components": []})
+            self.assertNotIn("layout", self.sesion(lab))
+
+
 class TestSeccionTodo(unittest.TestCase):
     def tareas(self, lab, tareas):
         wj(os.path.join(lab.arkana, ".arkana", "arkana-todo", "todos.json"), {"version": 1, "next": 99, "tareas": tareas})

@@ -186,5 +186,95 @@ class TestAll(unittest.TestCase):
             self.assertEqual(r.returncode, 1)
 
 
+class TestVigilanciaYVisibilidad(unittest.TestCase):
+    """`--watch/--no-watch` y `--statusline/--no-statusline` en cualquier momento; `schema: 2` solo con campos nuevos; aviso de la copia antigua de la statusline."""
+
+    def esquema(self, lab):
+        return json.loads(Path(lab.arkana + "/.arkana/core/workspace.json").read_text())["schema"]
+
+    def copia_statusline(self, lab, version):
+        d = os.path.join(lab.home_dir, ".claude", "arkana-statusline", "arkana_core")
+        os.makedirs(d, exist_ok=True)
+        Path(d, "__init__.py").write_text(f'CORE_VERSION = "{version}"\n')
+
+    def test_edit_cambia_watch_y_statusline_de_un_componente_ya_dado_de_alta(self):
+        with TC.CLab() as lab:
+            self.assertEqual(self.esquema(lab), 1)
+            r = cli(lab, "components.py", "edit", "--alias", "api", "--no-watch", "--no-statusline")
+            self.assertEqual(r.returncode, 0, r.stdout)
+            b = ws(lab).get("api")
+            self.assertEqual((b["watch"], b["statusline"]), (False, False))
+            self.assertEqual(self.esquema(lab), 2)                                       # usa un campo de esquema 2: lo declara
+            self.assertEqual(cli(lab, "components.py", "edit", "--alias", "api", "--watch", "--statusline").returncode, 0)
+            self.assertEqual((ws(lab).get("api")["watch"], ws(lab).get("api")["statusline"]), (True, True))
+            self.assertEqual(ws(lab).flags("api")["watch"], True)
+
+    def test_add_acepta_watch(self):
+        with TC.CLab() as lab:
+            os.makedirs(lab.ws + "/nuevo")
+            r = cli(lab, "components.py", "add", "--alias", "nuevo", "--path", lab.ws + "/nuevo", "--no-watch")
+            self.assertEqual(r.returncode, 0, r.stdout)
+            self.assertFalse(ws(lab).flags("nuevo")["watch"])
+
+    def test_arkana_no_admite_watch(self):
+        with TC.CLab() as lab:
+            r = cli(lab, "components.py", "edit", "--alias", "arkana", "--no-watch")
+            self.assertEqual(r.returncode, 1)
+            self.assertIn("--watch", r.stdout)
+
+    def test_sin_campos_nuevos_el_manifiesto_sigue_en_esquema_1(self):
+        with TC.CLab() as lab:
+            self.assertEqual(cli(lab, "components.py", "edit", "--alias", "api", "--develop", "dev2", "--no-statusline").returncode, 0)
+            self.assertEqual(self.esquema(lab), 1)
+
+    def test_avisa_si_la_copia_de_la_statusline_es_anterior(self):
+        with TC.CLab() as lab:
+            self.copia_statusline(lab, "1.7.0")
+            r = cli(lab, "components.py", "edit", "--alias", "api", "--no-watch")
+            self.assertEqual(r.returncode, 0, r.stdout)                                  # es un aviso, no un fallo
+            self.assertIn("WARN|statusline|", r.stdout)
+            self.assertIn("/arkana-statusline:fix", r.stdout)
+
+    def test_no_avisa_con_la_copia_al_dia_ausente_o_si_no_se_toca_un_campo_nuevo(self):
+        from arkana_core import CORE_VERSION
+        with TC.CLab() as lab:
+            self.assertNotIn("WARN|statusline", cli(lab, "components.py", "edit", "--alias", "api", "--no-watch").stdout)      # sin copia instalada
+            self.copia_statusline(lab, CORE_VERSION)
+            self.assertNotIn("WARN|statusline", cli(lab, "components.py", "edit", "--alias", "api", "--watch").stdout)          # al día
+            self.copia_statusline(lab, "1.0.0")
+            self.assertNotIn("WARN|statusline", cli(lab, "components.py", "edit", "--alias", "api", "--develop", "d3").stdout)  # no toca campos nuevos
+
+
+class TestGitstateSinVigilar(unittest.TestCase):
+    def repo(self, d):
+        subprocess.run(["git", "init", "-q", "-b", "develop", d], check=True)
+        subprocess.run(["git", "-C", d, "-c", "user.name=t", "-c", "user.email=t@x", "commit", "-q", "--allow-empty", "-m", "i"], check=True)
+        Path(d, "nuevo.txt").write_text("x")
+        Path(d, "otro.txt").write_text("x")
+        subprocess.run(["git", "-C", d, "add", "otro.txt"], check=True)
+
+    def test_sin_vigilar_no_cuentan_los_cambios_del_arbol_ni_los_pendientes_de_bajar(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as t:
+            self.repo(t)
+            s = gitstate.state(t)
+            self.assertEqual((s["untracked"], s["staged"], s["clean"]), (1, 1, False))
+            s = gitstate.state(t, False)
+            self.assertEqual((s["untracked"], s["staged"], s["modified"], s["behind"], s["clean"]), (0, 0, 0, 0, True))
+            self.assertEqual(gitstate.badge(s).strip(), "develop ✓")
+
+    def test_paridad_con_la_copia_de_la_statusline(self):
+        """El estado git se calcula en dos sitios (gitstate.py y statusline.py): con y sin watch tienen que coincidir."""
+        import tempfile
+        sys.path.insert(0, os.path.join(E.SCRIPTS, "..", "..", "arkana-statusline", "statusline"))
+        import statusline
+        keys = ("branch", "untracked", "staged", "modified", "ahead", "behind", "has_remote")
+        with tempfile.TemporaryDirectory() as t:
+            self.repo(t)
+            for watch in (True, False):
+                a, b = gitstate.state(t, watch), statusline.git_state(t, watch)
+                self.assertEqual({k: a[k] for k in keys}, {k: b[k] for k in keys}, watch)
+
+
 if __name__ == "__main__":
     unittest.main()
