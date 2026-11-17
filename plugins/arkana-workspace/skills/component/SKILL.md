@@ -2,7 +2,7 @@
 name: component
 description: Gestiona los componentes (repos) del workspace en el manifiesto core/workspace.json - list, add, edit y remove - con alias, ruta, tipo, remoto, ramas, referencia de token, VPN y herramientas. Valida, hace copia .bak y acepta --dry-run y --json. La identidad git personal y las rutas absolutas van a local.json. Also invoked explicitly as /arkana-workspace:component
 allowed-tools: [AskUserQuestion]
-version: 25
+version: 26
 ---
 
 # arkana-workspace:component
@@ -22,6 +22,9 @@ Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directric
 | `--git-email-domain` | Dominio de correo exigido al autor de los commits (repetible; sustituye la lista; sin él no hay regla) |
 | `--vpn` / `--no-vpn` | Si requiere VPN |
 | `--statusline` / `--no-statusline` | Si `arkana-statusline` lo muestra. Sin la marca se muestra salvo los de tipo `docs`; `--statusline` fuerza mostrarlo y `--no-statusline` lo oculta (también con `edit`, en cualquier momento; un componente oculto se ve mientras estás dentro). No se aplica a ARKANA, que siempre se muestra |
+| `--mode work\|reference` | `reference` = repo que solo se descarga y se ejecuta: oculto en la barra, sin vigilar, `check` no le exige identidad git, `.gitignore`, `.env`…, permisos solo de lectura para todos. `--mode work` lo devuelve a repo de trabajo (y quita su `ref`). No se aplica a ARKANA |
+| `--ref REF` | Versión (tag, rama o sha) en la que debe estar `HEAD`; solo con `mode: reference`. `check` avisa si se mueve |
+| `--checks-skip ID` / `--reset-checks-skip` | Checks que no se exigen a este componente (repetible); `--reset-checks-skip` vuelve al defecto del modo; una lista vacía explícita ejecuta todos. Lo explícito (`--statusline`, `--watch`, `--checks-skip`) siempre gana al defecto del modo |
 | `--watch` / `--no-watch` | Si cuentan sus cambios (◌ ✚ ● y ⇣) en la barra, `status` y el BRIEF; independiente de `--statusline`. Con `--no-watch` siguen contando los commits sin subir (⇡). Escribe `schema: 2` del manifiesto. No se aplica a ARKANA |
 | `--tool-version tool=ver`, `--tool-path tool=ruta` | Herramientas que pide (la ruta va a `local.json`) |
 | `--rename NUEVO` | Solo `edit`: cambia el alias (el id no cambia) en el manifiesto, `local.json`, el registro y los datos locales de los plugins; ensaya antes y no cambia nada si algún plugin no puede (plan activo). Los documentos compartidos referencian por id y no se tocan |

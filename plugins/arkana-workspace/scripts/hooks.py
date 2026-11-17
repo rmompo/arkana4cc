@@ -25,7 +25,7 @@ def git_pending(ws, aliases):
     """[(alias, rama)] de los componentes con cambios o commits sin subir, en el orden del manifiesto."""
     def one(a):
         p = ws.path(a)
-        return a, (gitstate.state(p, ws.flags(a)["watch"]) if os.path.isdir(p) else None)
+        return a, (gitstate.state(p, ws.flags(a)["watch"], ws.flags(a)["ref"] or None) if os.path.isdir(p) else None)
     with concurrent.futures.ThreadPoolExecutor(max_workers=min(8, len(aliases) or 1)) as ex:
         res = list(ex.map(one, aliases))
     return [(manifest.display(a), s["branch"]) for a, s in res if s is not None and not s["clean"]]

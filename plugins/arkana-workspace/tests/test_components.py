@@ -276,5 +276,119 @@ class TestGitstateSinVigilar(unittest.TestCase):
                 self.assertEqual({k: a[k] for k in keys}, {k: b[k] for k in keys}, watch)
 
 
+class TestReferenciaEnComponents(unittest.TestCase):
+    def bloque(self, lab, alias="api"):
+        return json.loads(Path(lab.arkana + "/.arkana/core/workspace.json").read_text())["components"][[c["alias"] for c in json.loads(Path(lab.arkana + "/.arkana/core/workspace.json").read_text())["components"]].index(alias)]
+
+    def test_mode_ref_y_checks_skip_en_add_y_edit(self):
+        with TC.CLab() as lab:
+            r = cli(lab, "components.py", "edit", "--alias", "api", "--mode", "reference", "--ref", "v6.2.0", "--checks-skip", "commits", "--checks-skip", "rama")
+            self.assertEqual(r.returncode, 0, r.stdout)
+            b = self.bloque(lab)
+            self.assertEqual((b["mode"], b["ref"], b["checks_skip"]), ("reference", "v6.2.0", ["commits", "rama"]))
+            self.assertEqual(json.loads(Path(lab.arkana + "/.arkana/core/workspace.json").read_text())["schema"], 2)
+            self.assertEqual(ws(lab).flags("api")["checks_skip"], ["commits", "rama"])
+            self.assertEqual(cli(lab, "components.py", "edit", "--alias", "api", "--reset-checks-skip").returncode, 0)
+            self.assertNotIn("checks_skip", self.bloque(lab))
+            self.assertEqual(ws(lab).flags("api")["checks_skip"], list(manifest.REFERENCE_SKIP))          # vuelve al defecto del modo
+            os.makedirs(lab.ws + "/dep")
+            self.assertEqual(cli(lab, "components.py", "add", "--alias", "dep", "--path", lab.ws + "/dep", "--mode", "reference", "--ref", "main").returncode, 0)
+            self.assertEqual(ws(lab).flags("dep")["mode"], "reference")
+
+    def test_mode_work_devuelve_a_repo_de_trabajo_y_quita_el_ref(self):
+        with TC.CLab() as lab:
+            cli(lab, "components.py", "edit", "--alias", "api", "--mode", "reference", "--ref", "v1")
+            self.assertEqual(cli(lab, "components.py", "edit", "--alias", "api", "--mode", "work").returncode, 0)
+            b = self.bloque(lab)
+            self.assertNotIn("mode", b)
+            self.assertNotIn("ref", b)
+            self.assertEqual(ws(lab).flags("api")["mode"], "work")
+
+    def test_rechaza_ref_sin_reference_id_inexistente_y_arkana(self):
+        with TC.CLab() as lab:
+            r = cli(lab, "components.py", "edit", "--alias", "api", "--ref", "v1")
+            self.assertEqual(r.returncode, 1)
+            self.assertIn("mode: reference", r.stdout)
+            r = cli(lab, "components.py", "edit", "--alias", "api", "--mode", "reference", "--checks-skip", "gitignore_env")
+            self.assertEqual(r.returncode, 1)
+            self.assertIn("no existen", r.stdout)
+            for opcion in (["--mode", "reference"], ["--ref", "v1"], ["--checks-skip", "commits"]):
+                self.assertEqual(cli(lab, "components.py", "edit", "--alias", "arkana", *opcion).returncode, 1, opcion)
+
+    def test_los_campos_nuevos_avisan_si_la_statusline_instalada_es_antigua(self):
+        d = None
+        with TC.CLab() as lab:
+            d = os.path.join(lab.home_dir, ".claude", "arkana-statusline", "arkana_core")
+            os.makedirs(d)
+            Path(d, "__init__.py").write_text('CORE_VERSION = "1.7.0"\n')
+            r = cli(lab, "components.py", "edit", "--alias", "api", "--mode", "reference")
+            self.assertIn("WARN|statusline|", r.stdout)
+
+
+class TestGitstateConRef(unittest.TestCase):
+    GIT = dict(os.environ, GIT_AUTHOR_NAME="x", GIT_AUTHOR_EMAIL="x@x", GIT_COMMITTER_NAME="x", GIT_COMMITTER_EMAIL="x@x")
+
+    def repo(self, d):
+        for a in (["init", "-q", "-b", "main"], ["commit", "-q", "--allow-empty", "-m", "i"], ["tag", "v1"], ["commit", "-q", "--allow-empty", "-m", "dos"],
+                  ["checkout", "-q", "--detach", "v1"]):
+            subprocess.run(["git", "-C", d, *a], check=True, env=self.GIT)
+
+    def test_en_el_ref_la_rama_es_el_ref_y_fuera_de_el_marca_noref_aunque_no_se_vigile(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as t:
+            self.repo(t)
+            s = gitstate.state(t, False, "v1")
+            self.assertEqual((s["branch"], s["ref_ok"], s["clean"]), ("v1", True, True))
+            self.assertEqual(gitstate.badge(s).strip(), "v1 ✓")
+            subprocess.run(["git", "-C", t, "checkout", "-q", "main"], check=True, env=self.GIT)
+            s = gitstate.state(t, False, "v1")
+            self.assertEqual((s["ref_ok"], s["clean"]), (False, False))                    # HEAD ≠ ref se avisa aunque watch sea False
+            self.assertIn("≠ref", gitstate.badge(s))
+            self.assertIsNone(gitstate.state(t, True, "no-existe")["ref_ok"])               # el ref no existe: ni ok ni mal
+            self.assertEqual(gitstate.state(t)["ref_ok"], None)                            # sin ref no hay comprobación
+
+    def test_paridad_con_la_statusline_con_ref(self):
+        import tempfile
+        sys.path.insert(0, os.path.join(E.SCRIPTS, "..", "..", "arkana-statusline", "statusline"))
+        import statusline
+        with tempfile.TemporaryDirectory() as t:
+            self.repo(t)
+            for ref in (None, "v1", "main", "nada"):
+                a, b = gitstate.state(t, False, ref), statusline.git_state(t, False, ref)
+                for k in ("branch", "ref_ok", "untracked", "behind"):
+                    self.assertEqual(a[k], b[k], (ref, k))
+
+
+class TestReferenciasEnStatusYHandover(unittest.TestCase):
+    def test_status_los_agrupa_aparte_y_handover_lleva_los_campos(self):
+        import status as ST
+        with TC.CLab() as lab:
+            d = lab.path("api") if hasattr(lab, "path") else os.path.join(lab.ws, "api")
+            env = dict(os.environ, GIT_AUTHOR_NAME="x", GIT_AUTHOR_EMAIL="x@x", GIT_COMMITTER_NAME="x", GIT_COMMITTER_EMAIL="x@x")
+            for a in (["commit", "-q", "--allow-empty", "-m", "i"], ["tag", "v1"], ["checkout", "-q", "--detach", "v1"]):
+                subprocess.run(["git", "-C", d, *a], check=True, env=env)
+            Path(d, "ensuciado.txt").write_text("x")
+            cli(lab, "components.py", "edit", "--alias", "api", "--mode", "reference", "--ref", "v1")
+            r = cli(lab, "status.py")
+            lineas = r.stdout.splitlines()
+            ids = [l.split("|")[1] for l in lineas if l.count("|") >= 2 and not l.startswith("RESUMEN")]
+            self.assertIn("ref:api", ids)
+            self.assertNotIn("api", ids)                                                    # no aparece entre los repos de trabajo
+            self.assertEqual(ids[-1], "ref:api")                    # la sección Referencias va después de los repos de trabajo
+            self.assertIn("INFO|ref:api|api [v1] en su ref", r.stdout)                      # sin ◌: no se vigila
+            h = json.loads(cli(lab, "handover.py", "--format", "json").stdout)
+            c = next(x for x in h["components"] if x["alias"] == "api")
+            self.assertEqual((c["mode"], c["ref"], c["watch"]), ("reference", "v1", False))
+            md = cli(lab, "handover.py", "--format", "md").stdout
+            self.assertIn("referencia (v1)", md)
+
+    def test_el_check_agregado_resume_las_referencias(self):
+        with TC.CLab() as lab:
+            cli(lab, "components.py", "edit", "--alias", "api", "--mode", "reference", "--ref", "v1")
+            r = subprocess.run([sys.executable, "-I", os.path.join(E.SCRIPTS, "checks", "all.py"), "--home", lab.arkana, "--component", "api"], capture_output=True, text=True,
+                               env=lab.env, stdin=subprocess.DEVNULL, timeout=120)
+            self.assertIn("INFO|referencias|1 componentes de referencia", r.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -2,12 +2,12 @@
 name: check
 description: Diagnóstico de solo lectura de todo el workspace - cada componente (permisos, commits, git, .gitignore, identidad), herramientas y entorno (las declaradas con config tools, git, y Jira solo si está configurado), credenciales y los check que declara cada plugin de Arkana (statusline, mensajería, agentic…). Acepta --component, --network y --json. Also invoked explicitly as /arkana-workspace:check
 allowed-tools: []
-version: 12
+version: 27
 ---
 
 # arkana-workspace:check
 
-Comprueba el workspace entero. **No modifica nada** (`all.py` no acepta `--dry-run`: no lo pases). Para corregir: `/arkana-workspace:fix`.
+Comprueba el workspace entero. **No modifica nada** (`all.py` no acepta `--dry-run`: no lo pases). Para corregir: `/arkana-workspace:fix`. Un componente `mode: reference` no recibe los checks de un repo de trabajo (una línea `INFO omitidos` los lista) y se verifica contra su `ref`; el resumen incluye una línea `referencias`.
 
 ## Pasos
 

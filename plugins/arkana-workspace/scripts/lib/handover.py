@@ -46,10 +46,11 @@ def build(home):
     for al in ws.aliases():
         b = ws.get(al)
         p = ws.path(al)
-        s = gitstate.state(p) if os.path.isdir(p) else None
+        s = gitstate.state(p, ws.flags(al)["watch"], ws.flags(al)["ref"] or None) if os.path.isdir(p) else None
         comps.append({
             "alias": manifest.display(al), "type": b.get("type", "arkana"), "path": clean(os.path.relpath(p, root)),
             "remote_host": b.get("remote_host"), "branches": b.get("branches"), "vpn": b.get("vpn"),
+            "mode": ws.flags(al)["mode"], "ref": ws.flags(al)["ref"], "watch": ws.flags(al)["watch"], "checks_skip": b.get("checks_skip"),
             "tools": b.get("tools", []), "token_ref": (b.get("git") or {}).get("token_ref"),
             "git": None if s is None else {k: s[k] for k in ("branch", "untracked", "staged", "modified", "ahead", "behind", "has_remote", "clean")}})
     plans = []
@@ -79,11 +80,12 @@ def ws_name(home):
 def to_md(h):
     L = [f"# Traspaso del workspace {h['workspace']}", "", f"Generado: {h['generated']}. Sin secretos ni rutas absolutas.", "", "## Plugins", ""]
     L += [f"- `{p}` {v}" for p, v in h["plugins"].items()] or ["- (ninguno)"]
-    L += ["", "## Componentes", "", "| Alias | Tipo | Ruta | Host | Rama | Estado git |", "|---|---|---|---|---|---|"]
+    L += ["", "## Componentes", "", "| Alias | Tipo | Modo | Ruta | Host | Rama | Estado git |", "|---|---|---|---|---|---|---|"]
     for c in h["components"]:
         g = c["git"]
         est = "sin repositorio" if g is None else ("limpio" if g["clean"] else f"◌{g['untracked']} ✚{g['staged']} ●{g['modified']}") + (f" ⇡{g['ahead']}" if g["ahead"] else "")
-        L.append(f"| {c['alias']} | {c['type']} | `{c['path']}` | {c['remote_host'] or '-'} | {g['branch'] if g else '-'} | {est} |")
+        modo = "referencia" + (f" ({c['ref']})" if c.get("ref") else "") if c.get("mode") == "reference" else "trabajo"
+        L.append(f"| {c['alias']} | {c['type']} | {modo} | `{c['path']}` | {c['remote_host'] or '-'} | {g['branch'] if g else '-'} | {est} |")
     L += ["", "## Herramientas requeridas", ""]
     tl = [f"- {c['alias']}: " + ", ".join(f"{t['tool']} {t['version']}" for t in c["tools"]) for c in h["components"] if c["tools"]]
     L += tl or ["- (ninguna declarada)"]

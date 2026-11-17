@@ -76,6 +76,9 @@ def main(argv=None):
             merge(rep, comp_check.check(ws, c, a.network), c)
         else:
             rep.add("WARN", f"{c}:carpeta", "no existe", component=c)
+    refs = [c for c in comps if ws.flags(c)["mode"] == "reference"]
+    if refs:                                                              # sección «Referencias»: los repos que solo se descargan y se ejecutan, aparte de los de trabajo
+        rep.add("INFO", "referencias", f"{len(refs)} componentes de referencia (solo lectura, sin vigilar): " + ", ".join(f"{manifest.display(c)} [{ws.flags(c)['ref'] or 'sin ref'}]" for c in refs))
     merge(rep, tools.check(ws, a.network), "tools")
     merge(rep, credentials.check(ws.home), "credenciales")
     plugin_checks(rep, os.path.realpath(a.plugins_dir) if a.plugins_dir else os.path.join(ws.home, "plugins"), ws.home)

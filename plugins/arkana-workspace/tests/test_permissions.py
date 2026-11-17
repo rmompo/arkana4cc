@@ -172,5 +172,41 @@ class TestCli(unittest.TestCase):
             self.assertEqual(self.run_cli(lab, "matrix", "--component", "nada").returncode, 3)
 
 
+class TestReferenciaSoloLectura(unittest.TestCase):
+    def referencia(self, lab, alias="api", **extra):
+        f = os.path.join(lab.arkana, ".arkana", "core", "workspace.json")
+        d = json.loads(Path(f).read_text())
+        next(c for c in d["components"] if c["alias"] == alias).update(mode="reference", **extra)
+        d["schema"] = 2
+        Path(f).write_text(json.dumps(d))
+        lab.w = manifest.load(lab.arkana)
+
+    def test_sobre_un_componente_de_referencia_solo_lectura_para_todos_incluidos_arkana_y_el(self):
+        with PLab() as lab:
+            self.referencia(lab)
+            m = P.matrix(lab.w)
+            for actor, row in m.items():
+                self.assertEqual(row["api"], "Rxx", actor)                   # ARKANA, él mismo y los demás: R con deny Edit
+            self.assertEqual(m["api"]["arkana"], "REW")                      # lo que él puede hacer sobre los demás no cambia
+            self.assertEqual(m["app"]["app"], "REW")
+
+    def test_lo_que_no_es_referencia_no_cambia(self):
+        with PLab() as lab:
+            antes = P.matrix(lab.w)
+            self.referencia(lab, "docs")
+            despues = P.matrix(lab.w)
+            for actor in antes:
+                for dest in antes[actor]:
+                    if dest != "docs":
+                        self.assertEqual(antes[actor][dest], despues[actor][dest], (actor, dest))
+
+    def test_el_diff_pide_regenerar_los_permisos_al_cambiar_de_modo(self):
+        with PLab() as lab:
+            lab.put("arkana", P.expected(lab.w, "arkana"))                    # permisos del modelo antiguo (api escribible)
+            self.referencia(lab)
+            kinds = {k for k, _ in P.diff(lab.w, "arkana")}
+            self.assertIn("stronger", kinds)                                  # dan más de lo esperado: `apply --prune` los ajusta
+
+
 if __name__ == "__main__":
     unittest.main()

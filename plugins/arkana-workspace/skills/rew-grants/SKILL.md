@@ -2,7 +2,7 @@
 name: rew-grants
 description: Muestra la matriz de permisos R/E/W entre ARKANA y los componentes - la esperada (del manifiesto) y la efectiva (de cada .claude/settings.local.json) - y sus desviaciones (missing, extra, weaker, stronger, legacy, duplicate, mode). Solo lectura; sirve también para regenerar la tabla de organizacion-proyecto.md. Also invoked explicitly as /arkana-workspace:rew-grants
 allowed-tools: []
-version: 20
+version: 30
 ---
 
 # arkana-workspace:rew-grants
@@ -19,7 +19,7 @@ Herramienta: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/permissions.py" <subcom
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/permissions.py" matrix --expected
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/permissions.py" matrix --effective
    ```
-   Celda = las letras de lo que se puede hacer: **R**ead, **E**dit, **W**rite; mayúscula = concedido, minúscula = pregunta (`ask`) (`REW`, `RE`, `R`, `Re`). **Lo que no aparece, no se puede**: está denegado o no tiene regla (una celda vacía = sin ningún acceso). La diagonal es `REW` para todos, también ARKANA. Con `--component <alias>` (repetible) se limita a esas filas; con `--json` sale estructurado y **conserva las tres posiciones** (`Rxx` denegado, `R··` sin regla), que es lo que usa `diff`; con `--format md` en tabla Markdown.
+   Celda = las letras de lo que se puede hacer: **R**ead, **E**dit, **W**rite; mayúscula = concedido, minúscula = pregunta (`ask`) (`REW`, `RE`, `R`, `Re`). **Lo que no aparece, no se puede**: está denegado o no tiene regla (una celda vacía = sin ningún acceso). La diagonal es `REW` para todos, también ARKANA, **salvo en los componentes `mode: reference`**: la columna de un componente de referencia es `Rxx` (solo lectura, `deny Edit`) para todos los actores, también ARKANA y él mismo. Con `--component <alias>` (repetible) se limita a esas filas; con `--json` sale estructurado y **conserva las tres posiciones** (`Rxx` denegado, `R··` sin regla), que es lo que usa `diff`; con `--format md` en tabla Markdown.
 
 2. Desviaciones (`diff`, o `status`, que es lo mismo):
 

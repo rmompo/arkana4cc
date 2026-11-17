@@ -16,16 +16,26 @@ import gitstate  # noqa: E402
 
 def build(ws, components=None):
     rep = output.Report("arkana-workspace", "status")
+    ref_rows = []
     for a in (components or ws.aliases()):
         p = ws.path(a)
         if not os.path.isdir(p):
             rep.add("WARN", a, "la carpeta no existe", component=a)
             continue
-        s = gitstate.state(p, ws.flags(a)["watch"])
+        fl = ws.flags(a)
+        s = gitstate.state(p, fl["watch"], fl["ref"] or None)
         if s is None:
             rep.add("WARN", a, "no es un repositorio git", component=a)
             continue
+        if fl["mode"] == "reference":                                    # sección «Referencias»: separada de los repos de trabajo y sin contar como pendiente
+            ref_rows.append((a, fl, s))
+            continue
         rep.add("OK" if s["clean"] else "INFO", a, f"{manifest.display(a)}{gitstate.badge(s)}".rstrip(), component=a)
+        rep.items[-1]["git"] = {k: s[k] for k in ("branch", "untracked", "staged", "modified", "ahead", "behind", "has_remote")}
+    for a, fl, s in ref_rows:
+        estado = {True: "en su ref", False: "≠ref: HEAD se ha movido", None: "ref no encontrado" if fl["ref"] else "sin ref declarado"}[s["ref_ok"]]
+        b = ws.get(a)
+        rep.add("WARN" if s["ref_ok"] is False else "INFO", f"ref:{a}", f"{manifest.display(a)} [{fl['ref'] or '-'}] {estado} · {os.path.relpath(ws.path(a), ws.root)} · {b.get('remote_host', '-')}", component=a)
         rep.items[-1]["git"] = {k: s[k] for k in ("branch", "untracked", "staged", "modified", "ahead", "behind", "has_remote")}
     return rep
 

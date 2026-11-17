@@ -2,7 +2,7 @@
 name: fix
 description: Corrige, de forma interactiva y paso a paso, lo que marcan los check de arkana-workspace en un componente - permisos (generador único), exclusiones locales de git, .gitignore, .gitattributes, .env.example e identidad git. Pide confirmación en cada cambio y deja copia .bak. Also invoked explicitly as /arkana-workspace:fix
 allowed-tools: [AskUserQuestion]
-version: 16
+version: 28
 ---
 
 # arkana-workspace:fix
@@ -41,6 +41,9 @@ Aplica, **uno a uno y con confirmación**, las correcciones de los `FAIL`/`WARN`
 | `jira-env-proyecto` | Mueve las variables `JIRA_*` del `.env` del proyecto a `~/.ia4d/.env` (el conector solo lee ese); sin mostrar valores |
 | `husky-hooks` | `chmod +x` de los hooks listados |
 | `rama`, `origin-accesible` | Solo informar (dependen del usuario o de la red/VPN) |
+| `ref` | Solo informar: `HEAD` se movió de la versión fijada de un componente de referencia (volver al `ref`, o `component edit --mode work` si se va a trabajar ahí) |
+
+Lo que no aparece en el check (los IDs de `checks_skip`, por defecto lo propio de un repo de trabajo en un componente `mode: reference`) **no se arregla**: `omitidos` es solo informativo.
 | `carpeta`, `git-repo`, `arkana-escribible` | Solo informar (la carpeta, el `git init`/remoto y los permisos del sistema de ficheros los decide el usuario) |
 
 ## Reglas

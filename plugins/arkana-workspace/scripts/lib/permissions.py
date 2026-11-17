@@ -126,7 +126,7 @@ def expected(ws, actor):
         p = ws.path(a)
         if a != me and mine.startswith(p.rstrip("/") + "/"):
             allow.append(fmt("Read", p))            # carpeta que contiene a la mía (app para app-web): solo lectura, sin deny (taparía lo mío)
-        elif a in nested:
+        elif a in nested or ws.flags(a)["mode"] == "reference":    # un repo de referencia se lee y no se edita, lo mire quien lo mire (también él mismo y ARKANA)
             allow.append(fmt("Read", p)); deny.append(fmt("Edit", p))
         elif a == me or me == "arkana" or a == "arkana":
             allow += [fmt(t, p) for t in TOOLS]

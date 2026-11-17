@@ -4,9 +4,10 @@
   components.py list   [--json]
   components.py add    --alias A --path RUTA [--type node|maven|docs|generic] [--remote URL] [--main M] [--develop D]
                       [--git-user U --git-email E] [--git-email-domain D]... [--commit-format F] [--token-ref CLAVE] [--git-username U] [--vpn|--no-vpn]
-                      [--statusline|--no-statusline] [--watch|--no-watch] [--tool-version tool=ver]... [--tool-path tool=ruta]...
+                      [--statusline|--no-statusline] [--watch|--no-watch] [--mode work|reference] [--ref REF] [--checks-skip ID]...
+                      [--tool-version tool=ver]... [--tool-path tool=ruta]...
   components.py edit   --alias A  (mismas opciones que add; solo se cambia lo indicado). `--alias arkana` edita ARKANA: su `--commit-format`,
-                      `--git-email-domain`, remoto, ramas, `--token-ref`/`--git-username` (no admite --type, --path, --vpn, --statusline, --watch ni --tool-*; en un componente
+                      `--git-email-domain`, remoto, ramas, `--token-ref`/`--git-username` (no admite --type, --path, --vpn, --statusline, --watch, --mode, --ref, --checks-skip ni --tool-*; en un componente
                       sí se pueden cambiar en cualquier momento, también `--statusline/--no-statusline` y `--watch/--no-watch`)
   components.py edit   --alias A --rename NUEVO   cambia el ALIAS de un componente (su id no cambia): manifiesto, `local.json`, registro del proyecto y los datos
                       locales de los plugins que declaren `rename` en su contrato. Los documentos compartidos referencian por id y no se tocan.
@@ -16,6 +17,11 @@
 `--statusline|--no-statusline` muestra u oculta el componente en la barra de estado; `--watch|--no-watch` hace que cuenten o no sus cambios (◌ ✚ ● y ⇣) en la barra, en `status` y en el
 BRIEF. Son ejes independientes: un componente puede estar oculto pero vigilado, o visible y sin vigilar. Al guardar cualquiera de los campos de esquema 2 (`watch`…) el manifiesto
 pasa a `schema: 2`; si la copia de la statusline (`~/.claude/arkana-statusline/`) es anterior, se avisa de que hay que ejecutar `/arkana-statusline:fix`.
+
+`--mode reference` declara un repo de **referencia**: se descarga y se ejecuta pero no se mantiene (código del cliente, un shell, una librería fijada a un tag). Por defecto no se muestra en la
+barra, no se vigilan sus cambios, `check` no le exige identidad git, `.gitignore`, `.env`… (`--checks-skip ID` repetible fija otra lista; `--reset-checks-skip` vuelve al defecto del modo; una lista vacía
+explícita ejecuta todos los checks) y los permisos sobre él son solo de lectura para todos. `--ref` (tag, rama o sha) es la versión en la que debe estar `HEAD`; `check` avisa si se ha movido. Lo explícito
+(`--statusline`, `--watch`, `--checks-skip`) siempre gana al defecto del modo. `--mode work` lo devuelve a repo de trabajo (y quita su `ref`).
 
 `--path` se da absoluta o relativa a la raíz del workspace y se guarda relativa. La identidad git (user/email) y las rutas absolutas van
 a `local.json`, no al manifiesto exportable. `--git-email-domain` (repetible) fija los dominios de correo que debe tener el autor de los commits del
@@ -90,6 +96,18 @@ def apply_options(block, a, root):
         block["statusline"] = a.statusline
     if a.watch is not None:
         block["watch"] = a.watch
+    if a.mode is not None:
+        if a.mode == "reference":
+            block["mode"] = "reference"
+        else:
+            block.pop("mode", None)                                           # work es el defecto: el manifiesto queda sin el campo
+            block.pop("ref", None)                                            # y sin la versión fijada, que solo vale en un repo de referencia
+    if a.ref:
+        block["ref"] = a.ref
+    if a.reset_checks_skip:
+        block.pop("checks_skip", None)
+    if a.checks_skip:
+        block["checks_skip"] = list(dict.fromkeys(a.checks_skip))
     tv, tp = _kv(a.tool_version, "--tool-version"), _kv(a.tool_path, "--tool-path")
     if tv:
         tools = {t["tool"]: t for t in block.get("tools", [])}
@@ -101,7 +119,7 @@ def apply_options(block, a, root):
 
 def aviso_statusline(rep, a):
     """WARN si ESTA llamada escribe campos de esquema 2 y la copia de la statusline instalada es anterior (no los entendería: «workspace no cargado»)."""
-    if a.watch is None:                                                  # (B añadirá aquí --mode, --ref y --checks-skip)
+    if a.watch is None and a.mode is None and not a.ref and not a.checks_skip and not a.reset_checks_skip:
         return
     old = statusline_copy_outdated()
     if old:
@@ -228,6 +246,10 @@ def main(argv=None):
     ap.add_argument("--no-statusline", dest="statusline", action="store_false")
     ap.add_argument("--watch", dest="watch", action="store_true", default=None)
     ap.add_argument("--no-watch", dest="watch", action="store_false")
+    ap.add_argument("--mode", choices=list(manifest.MODES))
+    ap.add_argument("--ref")
+    ap.add_argument("--checks-skip", dest="checks_skip", action="append")
+    ap.add_argument("--reset-checks-skip", dest="reset_checks_skip", action="store_true")
     ap.add_argument("--tool-version", action="append")
     ap.add_argument("--tool-path", action="append")
     ap.add_argument("--rename")
@@ -270,7 +292,7 @@ def main(argv=None):
             aviso_statusline(rep, a)
         elif a.cmd == "edit":
             if alias == "arkana":                                             # ARKANA también tiene sus directrices de commit, su remoto y su identidad git
-                solo_componentes = [o for o, v in (("--type", a.type), ("--path", a.path), ("--vpn/--no-vpn", a.vpn), ("--statusline/--no-statusline", a.statusline), ("--watch/--no-watch", a.watch), ("--tool-version", a.tool_version), ("--tool-path", a.tool_path)) if v is not None]
+                solo_componentes = [o for o, v in (("--type", a.type), ("--path", a.path), ("--vpn/--no-vpn", a.vpn), ("--statusline/--no-statusline", a.statusline), ("--watch/--no-watch", a.watch), ("--mode", a.mode), ("--ref", a.ref), ("--checks-skip", a.checks_skip), ("--reset-checks-skip", a.reset_checks_skip or None), ("--tool-version", a.tool_version), ("--tool-path", a.tool_path)) if v is not None]
                 if solo_componentes:
                     raise ValueError(f"{', '.join(solo_componentes)} no se aplica a ARKANA (solo a los componentes)")
                 block = data["arkana"]

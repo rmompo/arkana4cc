@@ -3,6 +3,8 @@
 
 Todo sale de git local (`--no-optional-locks`, sin red): `untracked` (◌), `staged` (✚), `modified` (●), `ahead` (⇡, commits sin subir).
 Con `watch=False` (componente que no se vigila) no cuentan los cambios del árbol de trabajo (◌ ✚ ●) ni `behind` (⇣); `ahead` (⇡) sí.
+Con `ref` (versión fijada de un componente de referencia) se comprueba además que `HEAD` resuelva a ese `ref` (`ref_ok`: True/False, None si el `ref` no existe en el repo):
+`HEAD ≠ ref` cuenta como «no limpio» y se pinta `≠ref`, **aunque `watch` sea False**; con `HEAD` separado en el `ref` la rama que se muestra es el propio `ref`.
 Lo único que depende del remoto es `behind` (⇣): se conoce solo si el último `fetch` es reciente (`fresh`); si no, es None (se pinta `⇣?`).
 Sin remoto o sin rama remota no hay `ahead` ni `behind`.
 """
@@ -30,7 +32,16 @@ def fetch_age(path):
         return None
 
 
-def state(path, watch=True):
+def ref_commit(path, ref):
+    """Commit al que apunta `ref` (tag, rama o sha; también `origin/<ref>`), o None."""
+    for cand in (ref, f"origin/{ref}"):
+        rc, out = _git(path, "rev-parse", "--verify", "--quiet", f"{cand}^{{commit}}")
+        if rc == 0 and out:
+            return out
+    return None
+
+
+def state(path, watch=True, ref=None):
     """dict: branch, untracked, staged, modified, ahead, behind (None = desconocido), has_remote, clean. None si no es un repo."""
     rc, out = _git(path, "status", "--porcelain=v2", "--branch", "-uall")
     if rc != 0:
@@ -61,7 +72,13 @@ def state(path, watch=True):
     if not watch:                                     # no vigilado: ni cambios locales ni commits por bajar (se conserva lo sin subir)
         s["untracked"] = s["staged"] = s["modified"] = 0
         s["behind"] = 0
-    s["clean"] = not (s["untracked"] or s["staged"] or s["modified"] or s["ahead"])
+    s["ref"], s["ref_ok"] = ref or "", None
+    if ref:
+        want, head = ref_commit(path, ref), _git(path, "rev-parse", "HEAD")[1]
+        s["ref_ok"] = None if want is None else want == head
+        if s["ref_ok"] and s["branch"] == "(detached)":
+            s["branch"] = ref                                  # HEAD separado en el ref fijado: el nombre útil es el ref
+    s["clean"] = not (s["untracked"] or s["staged"] or s["modified"] or s["ahead"] or s["ref_ok"] is False)
     return s
 
 
@@ -78,6 +95,8 @@ def badge(s):
             parts.append("⇣?")
         elif s["behind"]:
             parts.append(f"⇣{s['behind']}")
+    if s.get("ref_ok") is False:
+        parts.append("≠ref")
     if len(parts) == 1:
         parts.append("✓")
     return " " + " ".join(parts) + " "

@@ -142,6 +142,9 @@ Campos de cada bloque (ARKANA y componentes comparten los marcados «ambos»):
 | `vpn` | componente | booleano | Si requiere VPN. `--vpn` / `--no-vpn`; `handover` lo muestra |
 | `tools[]` | componente | lista `{tool, version}` | Herramientas y versiones que pide el componente. `--tool-version tool=ver` |
 | `statusline` | componente | booleano | Si `arkana-statusline` lo muestra (sin la marca se muestra salvo los de tipo `docs`). `--statusline` / `--no-statusline`, **editable en cualquier momento**; un componente oculto se ve mientras estás dentro de él |
+| `mode` | componente | `work` \| `reference` | `reference` declara un repo que solo se descarga y se ejecuta (código del cliente, un shell, una librería fijada a un tag). Por defecto `work`. Defectos de `reference`: no se muestra en la barra, no se vigila, `check` omite lo propio de un repo de trabajo y los permisos sobre él son solo de lectura para todos. `--mode reference` / `--mode work`; ARKANA nunca es `reference`. **Esquema 2** |
+| `ref` | componente | texto | Versión en la que debe estar `HEAD` (tag, rama o sha), solo con `mode: reference`. `check` da `OK` si coincide, `WARN` si se ha movido, `INFO` si no hay `ref` (nunca se inventa). Con `HEAD` separado en el `ref` la barra muestra el propio `ref`, y si `HEAD ≠ ref` pinta `≠ref` aunque no se vigile. `--ref`. **Esquema 2** |
+| `checks_skip` | componente | lista de IDs | Checks de `component.py` que no se exigen a este componente. **Ausente** = el defecto del modo (en `reference`: `gitignore-env`, `ignore-editor`, `ignore-editor-session`, `ignore-arkana-local`, `env-versionado`, `env-historial`, `env-example`, `git-identidad`, `gitattributes-eol`, `husky-hooks`, `commits`); **presente, incluso `[]`**, manda (`[]` ejecuta todos). Los IDs se validan (más `anidado-*`); `check` lista lo omitido en una línea `INFO omitidos`. `--checks-skip ID` (repetible), `--reset-checks-skip`. **Esquema 2** |
 | `watch` | componente | booleano | Si cuentan sus cambios (◌ ✚ ● y ⇣) en la barra, en `status` y en el BRIEF; sin la marca se vigilan. `--watch` / `--no-watch`, editable en cualquier momento. Es un eje **independiente** de `statusline` (puede estar oculto pero vigilado, o visible sin vigilar). Con `--no-watch` siguen contando los commits sin subir (⇡). **Esquema 2:** al guardarlo el manifiesto pasa a `schema: 2`, que las versiones anteriores de los plugins no entienden (avisan de actualizar) |
 | `id` | ambos | UUID v4 | **Identidad inmutable** de la pieza, la del registro compartido `arkana-project.json` (la escribe `/arkana-evolve:apply` y `component add`). El alias puede cambiar con `component edit --rename`; el id, nunca. Los documentos compartidos por git referencian por id |
 | `owner`, `label` | componente | texto | Admitidos por el esquema; ningún script de este plugin los lee ni hay opción para fijarlos |
@@ -347,7 +350,9 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/layout.py" init --base /work/proyecto
 | `git-identidad` | `user.email` coherente con `git.email_domains` (sin regla: cualquiera; sin remoto: no se comprueba) | OK/WARN/FAIL |
 | `gitattributes-eol` | `.gitattributes` con `eol=lf` | OK/WARN |
 | `husky-hooks` | Los ficheros de `.husky/` son ejecutables | OK/FAIL |
-| `rama` | Rama actual es la `develop` o la `main` esperadas | OK/WARN |
+| `rama` | Rama actual es la `develop` o la `main` esperadas (en un componente de referencia se sustituye por `ref`) | OK/WARN |
+| `ref` | Solo en `mode: reference`: `HEAD` resuelve al `ref` declarado (también `origin/<ref>`); `WARN` si se ha movido o el `ref` no existe, `INFO` sin `ref` | OK/WARN/INFO |
+| `omitidos` | Solo con checks omitidos (`checks_skip`): lista cuáles no se exigen a este componente | INFO |
 | `origin-accesible` | `git ls-remote` a `origin` (solo con red) | OK/WARN |
 | `anidado-<alias>` | Remoto e identidad git de cada componente anidado | OK/WARN/FAIL |
 
@@ -433,6 +438,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/checks/all.py" --component app --componen
 | `jira-env-proyecto` | Mover las variables `JIRA_*` del `.env` del proyecto a `~/.ia4d/.env`, sin mostrar valores |
 | `husky-hooks` | `chmod +x` de los hooks listados |
 | `rama`, `origin-accesible` | Solo informar (dependen del usuario o de la red/VPN) |
+| `ref` | Solo informar: si `HEAD` se movió, o se vuelve a la versión fijada o, si se va a trabajar ahí, `component edit --mode work`. No hay arreglo automático |
 
 Sin arreglo en el skill: `arkana-escribible` (permisos del sistema de ficheros) y `git-repo` (`git init` y remoto los decide el usuario).
 
@@ -479,6 +485,7 @@ Sin arreglo en el skill: `arkana-escribible` (permisos del sistema de ficheros) 
 | `--commit-format` | `conventional`, `ia4d` | `conventional` (efectivo si falta) | El CLI acepta cualquier texto; un valor distinto de los dos hace fallar `commits.py` y `check` (`commits`) con «commit_format desconocido» |
 | `--vpn` / `--no-vpn` | flags | sin definir | Guarda `vpn: true/false`. Rechazado para ARKANA |
 | `--statusline` / `--no-statusline` | flags | sin definir | Guarda `statusline: true/false`: fuerza mostrar u ocultar el componente en la barra de `arkana-statusline`. Válido también con `edit` sobre un componente ya dado de alta. Rechazado para ARKANA, que siempre se muestra |
+| `--mode work\|reference`, `--ref REF`, `--checks-skip ID`, `--reset-checks-skip` | opciones | sin definir | Ver los campos `mode`, `ref` y `checks_skip`. `--ref` solo vale con `mode: reference`; `--mode work` quita el `ref`; ARKANA los rechaza. Al guardarlos, igual que `--watch`, el manifiesto pasa a `schema: 2` y se avisa si la copia de la statusline es anterior |
 | `--watch` / `--no-watch` | flags | sin definir | Guarda `watch: true/false`: que cuenten o no sus cambios locales y los commits por bajar. Válido con `add` y `edit`; rechazado para ARKANA. Escribe `schema: 2` y, si la copia de la statusline (`~/.claude/arkana-statusline/`) es anterior, avisa de ejecutar `/arkana-statusline:fix` |
 | `--rename NUEVO` | alias | — | Solo `edit`. Cambia el **alias** (el id no cambia): manifiesto, claves de `local.json`, registro del proyecto y, con el comando `rename` que declaren en su contrato, los datos locales de los plugins (mensajes, tareas, planes, libro). **Antes ensaya** todos los plugins con `--dry-run` y, si alguno no puede (p. ej. un plan activo), no cambia nada. Si el registro ya trae el alias nuevo (lo renombró otra persona y empujó), solo alinea tu copia. Rechazado para ARKANA |
 | `--plugins-dir DIR` | ruta | `<carpeta de Arkana>/plugins` | Dónde buscar los contratos con `rename` |
@@ -563,7 +570,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/config.py" policy --key versioned_env
 
 **Cuándo.** Antes de empezar a trabajar o de lanzar un plan, o para localizar repos con cambios.
 
-**Orden exacta:** `python3 scripts/lib/status.py [--component A]... [--json]`; el skill presenta la tabla tal cual y resalta las piezas con cambios sin subir o por bajar.
+**Orden exacta:** `python3 scripts/lib/status.py [--component A]... [--json]`; el skill presenta la tabla tal cual y resalta las piezas con cambios sin subir o por bajar. Los componentes `mode: reference` salen **al final y aparte** (id `ref:<alias>`: alias, `[ref]`, si está en su ref, ruta y host), y no cuentan como pendientes; los de `watch: false` no cuentan sus cambios locales ni `⇣`.
 
 | Opción | Efecto |
 |---|---|
@@ -615,6 +622,7 @@ Si algo está por bajar, se informa al usuario y se le pregunta; integrar es dec
 **Modelo esperado** (`permissions.expected`):
 
 - ARKANA: R/E/W sobre sí misma y sobre todos los componentes.
+- **Componentes de referencia (`mode: reference`):** sobre ellos, `R` y `deny Edit` para **todos los actores**, ARKANA y él mismo incluidos (lo que su propio tooling escribe corre por Bash y no lo gobiernan estas reglas de ruta). Lo que él pueda hacer sobre los demás no cambia. Un componente de trabajo anidado en su carpeta no debería existir: el `deny` de ruta lo cubriría. Tras cambiar `mode`, `/arkana-workspace:fix` (o `permissions.py apply --prune`) regenera los permisos
 - Cada componente: R/E/W sobre sí mismo y sobre ARKANA; solo R sobre los demás, con `deny Edit` explícito; sobre los anidados en su carpeta: R y `deny Edit`; sobre la carpeta que lo contiene: solo R, sin `deny` (taparía lo suyo).
 - Para todos: `deny Read` y `deny Edit` de `.arkana/.credentials`; `deny Edit` de `.arkana/arkana-agentic/` (lo escribe `agentic.sh`); `allow Read` de `~/.claude/settings.json` (los check de herramientas lo leen).
 - Solo ARKANA: `allow Bash(<ruta>/agentic.sh *)` en las dos ubicaciones del plugin (copia de trabajo y caché), `ask` para las decisiones humanas (`plan approve`, `approve`, `reject`, `policy set`, `integrate merge`, `integrate discard`) y `deny Bash(claude -p *)`, `claude --print *` y `claude --bg *`.

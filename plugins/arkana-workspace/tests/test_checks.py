@@ -187,6 +187,112 @@ class TestVpn(unittest.TestCase):
             self.assertIn("INFO|repo-arkana|", r.stdout); self.assertIn("omitido", r.stdout)
 
 
+class TestReferencia(unittest.TestCase):
+    """Componente `mode: reference`: una dependencia fijada a un tag (HEAD separado) con el árbol modificado por su propio tooling."""
+    GIT = dict(os.environ, GIT_AUTHOR_NAME="x", GIT_AUTHOR_EMAIL="x@x", GIT_COMMITTER_NAME="x", GIT_COMMITTER_EMAIL="x@x")
+
+    def git(self, repo, *a):
+        return subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True, check=True, env=self.GIT)
+
+    def con_registro(self, lab):
+        """El proyecto ya migrado: registro compartido con el id de cada pieza y los mismos ids en el manifiesto local."""
+        f = os.path.join(lab.arkana, ".arkana", "core", "workspace.json")
+        d = json.loads(Path(f).read_text())
+        ids = {}
+        for n, b in enumerate([d["arkana"]] + d["components"], 1):
+            b["id"] = ids[b.get("alias", "ARKANA").lower()] = "%08d-0000-4000-8000-000000000000" % n
+        Path(f).write_text(json.dumps(d))
+        Path(lab.arkana, "arkana-project.json").write_text(json.dumps({"schema_version": 1, "layout": 5, "workspace": {"id": "x", "name": "t"},
+                                                                       "components": [{"id": i, "alias": a} for a, i in ids.items()]}))
+
+    def preparar(self, lab, *opciones, alias="api"):
+        repo = os.path.join(lab.ws, alias)
+        if not os.path.isdir(os.path.join(repo, ".git")):
+            os.makedirs(repo, exist_ok=True)
+            subprocess.run(["git", "init", "-q", "-b", "main", repo], check=True)
+        self.con_registro(lab)
+        self.git(repo, "commit", "-q", "--allow-empty", "-m", "i")
+        self.git(repo, "tag", "v6.2.0")
+        Path(repo, "angular.json").write_text("{}\n")
+        self.git(repo, "add", "angular.json")
+        self.git(repo, "commit", "-q", "-m", "otro")
+        self.git(repo, "checkout", "-q", "--detach", "v6.2.0")                      # lo correcto para una dependencia: HEAD separado en el tag
+        Path(repo, "angular.json").write_text('{"baseHref": "/x/"}\n')              # el tooling del repo lo reescribe cada vez
+        r = subprocess.run([sys.executable, "-I", os.path.join(E.SCRIPTS, "lib", "components.py"), "edit", "--alias", alias, *opciones, "--home", lab.arkana],
+                           capture_output=True, text=True, env=lab.env, stdin=subprocess.DEVNULL)
+        assert r.returncode == 0, r.stdout
+        subprocess.run([sys.executable, "-I", os.path.join(E.SCRIPTS, "lib", "permissions.py"), "apply", "--prune", "--home", lab.arkana],
+                       capture_output=True, text=True, env=lab.env, stdin=subprocess.DEVNULL, check=True)     # los permisos se regeneran del modelo (lo hace `fix`)
+        return repo
+
+    def check(self, lab, alias="api"):
+        return run(lab, "component.py", "--component", alias, "--no-network")
+
+    def test_en_su_ref_y_con_el_arbol_modificado_da_cero_fallos_y_cero_avisos(self):
+        with TC.CLab() as lab:
+            self.preparar(lab, "--mode", "reference", "--ref", "v6.2.0")
+            r = self.check(lab)
+            e = estados(r)
+            self.assertIn("RESUMEN|0 FAIL|0 WARN", r.stdout, r.stdout)
+            self.assertEqual(e["ref"], "OK")
+            self.assertEqual(e["omitidos"], "INFO")
+            for omitido in ("gitignore-env", "ignore-editor", "env-versionado", "env-example", "git-identidad", "gitattributes-eol", "husky-hooks", "commits", "rama"):
+                self.assertNotIn(omitido, e)
+            self.assertIn("gitignore-env", r.stdout.split("INFO|omitidos|")[1])               # la línea lista lo que no se exige
+            for mantenido in ("componente", "arkana-presente", "arkana-escribible", "registro", "permisos"):
+                self.assertIn(mantenido, e)
+
+    def test_si_se_mueve_el_head_avisa_con_warn_ref(self):
+        with TC.CLab() as lab:
+            repo = self.preparar(lab, "--mode", "reference", "--ref", "v6.2.0")
+            self.git(repo, "checkout", "-q", "--force", "-B", "main", "HEAD")
+            self.git(repo, "commit", "-q", "--allow-empty", "-m", "trabajo local")
+            r = self.check(lab)
+            self.assertEqual(estados(r)["ref"], "WARN")
+            self.assertIn("component edit --mode work", r.stdout)
+
+    def test_sin_ref_declarado_solo_informa_y_con_ref_inexistente_avisa(self):
+        with TC.CLab() as lab:
+            self.preparar(lab, "--mode", "reference")
+            self.assertEqual(estados(self.check(lab))["ref"], "INFO")
+        with TC.CLab() as lab:
+            self.preparar(lab, "--mode", "reference", "--ref", "v9.9.9")
+            r = self.check(lab)
+            self.assertEqual(estados(r)["ref"], "WARN")
+            self.assertIn("git fetch --tags", r.stdout)
+
+    def test_checks_skip_vacio_ejecuta_todos_y_uno_explicito_sustituye_al_defecto(self):
+        with TC.CLab() as lab:
+            self.preparar(lab, "--mode", "reference", "--ref", "v6.2.0", "--checks-skip", "commits")
+            e = estados(self.check(lab))
+            self.assertIn("gitignore-env", e)                                                   # ya no está en el conjunto: se ejecuta
+            self.assertNotIn("commits", e)
+        with TC.CLab() as lab:
+            self.preparar(lab, "--mode", "reference", "--ref", "v6.2.0")
+            f = os.path.join(lab.arkana, ".arkana", "core", "workspace.json")
+            d = json.loads(Path(f).read_text())
+            next(c for c in d["components"] if c["alias"] == "api")["checks_skip"] = []
+            Path(f).write_text(json.dumps(d))
+            e = estados(self.check(lab))
+            self.assertNotIn("omitidos", e)                                                     # presente y vacío manda: se ejecuta todo
+            for i in ("gitignore-env", "git-identidad", "commits"):
+                self.assertIn(i, e)
+
+    def test_otro_alias_cualquiera_puede_ser_referencia_sin_tocar_codigo(self):
+        with TC.CLab() as lab:
+            repo = self.preparar(lab, "--mode", "reference", "--ref", "v6.2.0", alias="docs")
+            r = self.check(lab, "docs")
+            self.assertEqual(estados(r)["ref"], "OK")
+
+    def test_un_componente_de_trabajo_se_comporta_como_siempre(self):
+        with TC.CLab() as lab:
+            e = estados(self.check(lab))
+            for i in ("gitignore-env", "ignore-editor", "env-versionado", "git-identidad", "commits", "rama"):
+                self.assertIn(i, e)
+            self.assertNotIn("omitidos", e)
+            self.assertNotIn("ref", e)
+
+
 class TestComponent(unittest.TestCase):
     def test_componente_sin_git_y_permisos_faltantes(self):
         with TC.CLab() as lab:

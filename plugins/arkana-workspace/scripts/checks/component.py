@@ -35,12 +35,38 @@ def email_ok(email, doms):
     return not doms or any(email.lower().endswith("@" + d.lower()) for d in doms)
 
 
+def resolve_ref(path, ref):
+    """Commit al que apunta `ref` (tag, rama o sha; también `origin/<ref>`), o None si no existe en este repo."""
+    for cand in (ref, f"origin/{ref}"):
+        rc, out = git(path, "rev-parse", "--verify", "--quiet", f"{cand}^{{commit}}")
+        if rc == 0 and out:
+            return out
+    return None
+
+
 def check(ws, alias, network=True):
+    """Checks de un componente. Los IDs de su `checks_skip` efectivo (por defecto, los de un repo de referencia) no se emiten y se listan en una línea INFO."""
+    omitted = []
+    rep = _check(ws, alias, network, omitted)
+    if omitted:
+        rep.add("INFO", "omitidos", f"no se exigen a este componente ({ws.flags(alias)['mode']}): {', '.join(omitted)}", component=alias)
+    return rep
+
+
+def _check(ws, alias, network, omitted):
     rep = output.Report("arkana-workspace", "check-component")
     path = ws.path(alias)
     c = ws.get(alias)
     ark = ws.path("arkana")
-    add = lambda st, i, d: rep.add(st, i, d, component=alias)
+    fl = ws.flags(alias)
+    skip = set(fl["checks_skip"])
+
+    def add(st, i, d):
+        if i in skip or (i.startswith("anidado-") and "anidado-*" in skip):
+            if i not in omitted:
+                omitted.append(i)
+            return
+        rep.add(st, i, d, component=alias)
     add("INFO", "componente", f"{manifest.display(alias)} {path}")
     if not os.path.isdir(path):
         add("FAIL", "carpeta", f"no existe {path}")
@@ -112,7 +138,18 @@ def check(ws, alias, network=True):
         add("FAIL" if bad else "OK", "husky-hooks", ("sin permiso de ejecución: " + " ".join(bad)) if bad else "hooks ejecutables")
     br = git(path, "branch", "--show-current")[1]
     exp = c.get("branches", {}) if alias != "arkana" else ws.get("arkana").get("branches", {})
-    if br in (exp.get("develop", "develop"), exp.get("main", "main")):
+    if fl["mode"] == "reference":                                  # una dependencia fijada: lo esperado es HEAD en su `ref` (un tag deja HEAD separado)
+        if not fl["ref"]:
+            add("INFO", "ref", "sin `ref` declarado: no se verifica la versión fijada (--ref lo declara)")
+        else:
+            want, head = resolve_ref(path, fl["ref"]), git(path, "rev-parse", "HEAD")[1]
+            if want is None:
+                add("WARN", "ref", f"{fl['ref']} no existe en el repo (¿falta `git fetch --tags`?)")
+            elif want == head:
+                add("OK", "ref", f"HEAD en {fl['ref']} ({head[:8]})")
+            else:
+                add("WARN", "ref", f"HEAD {head[:8]} no es {fl['ref']} ({want[:8]}): la dependencia se ha movido (si se trabaja aquí, `component edit --mode work`)")
+    elif br in (exp.get("develop", "develop"), exp.get("main", "main")):
         add("OK", "rama", br)
     else:
         add("WARN", "rama", f"{br or 'HEAD desacoplado'} (se esperaba {exp.get('develop', 'develop')} o {exp.get('main', 'main')})")
