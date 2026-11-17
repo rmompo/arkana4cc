@@ -1,6 +1,6 @@
 {
   "name": "arkana-knowledge",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "description": "Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y documentos de origen con su versión en Markdown, ingesta desde arkana-incoming y consulta (add, query, modify, delete, ingest)",
   "author": {
     "name": "R. Mompó Pavesi"
