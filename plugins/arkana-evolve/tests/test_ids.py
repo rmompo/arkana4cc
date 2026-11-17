@@ -31,8 +31,8 @@ class TestMigracion0003(unittest.TestCase):
             self.assertEqual(mf["arkana"]["id"], ids["arkana"])
             self.assertEqual({c["alias"]: c["id"] for c in mf["components"]}, {"api": ids["api"], "app": ids["app"]})
             self.assertTrue(all(UUID_RX.match(i) for i in ids.values()))
-            self.assertEqual(reg["layout"], 4)
-            self.assertEqual([h["id"] for h in reg["history"]], ["0001", "0002", "0003", "0004"])
+            self.assertEqual(reg["layout"], 5)
+            self.assertEqual([h["id"] for h in reg["history"]], ["0001", "0002", "0003", "0004", "0005"])
             self.assertIn("nada que hacer", lab.run("apply").stdout)
             self.assertNotIn("WARN|", lab.run("check").stdout)
 

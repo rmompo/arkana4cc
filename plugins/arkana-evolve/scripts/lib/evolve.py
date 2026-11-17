@@ -114,12 +114,15 @@ def stamp(ctx, mod):
         datafiles.atomic_write_json(ctx.project_path, p)
 
 
-def settle(ctx, mods):
+def settle(ctx, mods, before=None):
     """Sube el sello a toda migración numérica que ya no está pendiente aunque no haya tenido nada que hacer en esta instalación (su `detect` es falso).
-    Se detiene en la primera pendiente: el sello nunca salta una migración sin aplicar."""
+    Se detiene en la primera pendiente (el sello nunca salta una migración sin aplicar) y, con `before`, en la migración con ese número o mayor
+    (así el historial recoge las intermedias antes de estampar la que se acaba de aplicar, y `--to N` no pasa de N)."""
     for m in mods:
         if is_baseline(m):
             continue
+        if before is not None and int(m.ID) >= before:
+            return
         if m.detect(ctx):
             return
         stamp(ctx, m)
@@ -211,7 +214,7 @@ def cmd_apply(a, ctx, rep):
     pending = pendientes([])
     if not pending:
         if not ctx.dry:
-            settle(ctx, mods)
+            settle(ctx, mods, before=None if hasta is None else hasta + 1)
         rep.add("OK", "apply", f"nada que hacer: layout {project_layout(ctx)}, sin migraciones pendientes")
         return
     done, backed = [], False
@@ -222,6 +225,8 @@ def cmd_apply(a, ctx, rep):
             rep.add("OK", "copia", f"copia de .arkana en {os.path.relpath(backup(ctx), ctx.home)}")
             backed = True
         for m in pending:
+            if not ctx.dry and not is_baseline(m):
+                settle(ctx, mods, before=int(m.ID))                 # las intermedias sin nada que hacer quedan en el historial antes que ésta
             rep.add("INFO", m.ID, f"{m.TITLE} (ámbito {'+'.join(m.SCOPE)})")
             antes = rep.count("FAIL")
             m.apply(ctx, rep)
@@ -238,8 +243,8 @@ def cmd_apply(a, ctx, rep):
                 stamp(ctx, m)
         # una migración puede dejar listo el terreno de otra (la de base mueve ficheros que luego migra una numérica): se vuelve a mirar
         pending = [] if ctx.dry else pendientes(done)
-    if not ctx.dry and hasta is None:
-        settle(ctx, mods)
+    if not ctx.dry:
+        settle(ctx, mods, before=None if hasta is None else hasta + 1)
     if ctx.dry:
         rep.add("DRY", "apply", f"{len(done)} migraciones se aplicarían; no se ha escrito nada")
     else:

@@ -43,8 +43,8 @@ class TestMigracion0004(unittest.TestCase):
             self.assertIn("- v1.2 ", lab.read("arkana-knowledge/decision/usar-json.md"))
             self.assertEqual(meta(lab.read("arkana-knowledge/lesson/cuidado.md"))["components"], "[all]")
             self.assertFalse(os.path.exists(os.path.join(lab.arkana, "arkana-knowledge", "catalog.json")))
-            self.assertEqual(reg["layout"], 4)
-            self.assertEqual(reg["history"][-1]["id"], "0004")
+            self.assertEqual(reg["layout"], 5)
+            self.assertEqual([h["id"] for h in reg["history"]][-2:], ["0004", "0005"])
 
     def test_nota_suelta_se_mueve_con_git_mv(self):
         with Lab() as lab:

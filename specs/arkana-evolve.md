@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-evolve
 
-> **Estado:** `beta` | **Versión:** `0.5.4`
+> **Estado:** `beta` | **Versión:** `0.5.5`
 
 ---
 
@@ -23,6 +23,7 @@ Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y 
 
 | Versión | Cambios |
 |---------|---------|
+| 0.5.5 | Migración 0005 (layout 5, solo sello) y el sello recoge las migraciones intermedias sin cambios (núcleo 1.8.0) |
 | 0.5.4 | check: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
 | 0.5.3 | apply: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
 | 0.5.2 | check: Se añade version al frontmatter del skill (modelo de versiones de p4cc) |

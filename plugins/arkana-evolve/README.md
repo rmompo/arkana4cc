@@ -41,6 +41,7 @@ Las `b*` son de **base**: convierten formatos antiguos y se ejecutan antes que l
 | `0002` | local + shared | Arkana deja de escribir en `CLAUDE.md` / `CLAUDE.local.md` de los repos: quita de ellos los bloques gestionados (`arkana:messaging`, `arkana:commits`, `arkana:agentic`), renombra `CLAUDE.local.md` a `ARKANA.local.md`, añade `.claude/`, `.claude-session/` y `ARKANA.local.md` a `.git/info/exclude` y retira `seed_file` del manifiesto. No toca un fichero versionado con cambios sin commitear. Las directrices las inyectan los hooks. |
 | `0003` | shared + local | Cada componente lleva su `id` (UUID del registro del proyecto) en el manifiesto local; da de alta en el registro lo que solo esté en el manifiesto; no reescribe ningún id y avisa si el registro llama de otro modo a un componente (renombrado por otra persona). |
 | `0004` | shared | Conocimiento con identidad UUID: cada nota recibe un `id` UUID (el identificador antiguo pasa a `slug`), sus `components` pasan de alias a ids del registro, gana `fuentes`, las notas sueltas se mueven a `arkana-knowledge/<topic>/` (con `git mv`) y se retira el `catalog.json` versionado (el índice ahora es local y derivado). No cambia versiones ni Changelogs. |
+| `0005` | shared | Layout 5: solo estampa el sello. El manifiesto admite los campos de componente de esquema 2 (`watch` y los de referencia) y los plugins nuevos avisan, ante un layout superior al que conocen, de que hay que actualizar el plugin. No cambia ningún dato. |
 
 ## Pruebas
 
