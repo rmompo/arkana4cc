@@ -2,7 +2,7 @@
 name: component
 description: Gestiona los componentes (repos) del workspace en el manifiesto core/workspace.json - list, add, edit y remove - con alias, ruta, tipo, remoto, ramas, referencia de token, VPN y herramientas. Valida, hace copia .bak y acepta --dry-run y --json. La identidad git personal y las rutas absolutas van a local.json. Also invoked explicitly as /arkana-workspace:component
 allowed-tools: [AskUserQuestion]
-version: 26
+version: 33
 ---
 
 # arkana-workspace:component
@@ -11,14 +11,15 @@ Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directric
 
 | Opción | Significado |
 |---|---|
-| `--alias` | Identificador (`^[a-z0-9][a-z0-9-]*$`; `arkana` y `all` están reservados) |
+| `--alias` | Identificador (`^[a-z0-9][a-z0-9-]*$`; `arkana` y `all` están reservados). Se acepta en cualquier caso y **se muestra siempre en MAYÚSCULAS** (`WEBAPP`). En `edit` y `remove` vale también la carpeta real o el nombre-módulo del componente (`dir:<carpeta>`, `mod:<módulo>`, `alias:<alias>` fuerzan el tipo) |
+| `--module NOMBRE` | Nombre-módulo (la aplicación; minúsculas, `.`, `_`, `-`). **Compartido**: va en `arkana-project.json` (registro del proyecto, versionado), no en el manifiesto local; exige `/arkana-evolve:apply`. `--module ""` lo quita. Alias, carpeta y módulo **no pueden repetirse entre componentes** (se rechaza el cambio que lo provoque) |
 | `--path` | Carpeta del repo; absoluta o relativa a la raíz del workspace (se guarda relativa) |
 | `--type` | `node`, `maven`, `docs` o `generic` |
 | `--remote` | URL del remoto, **sin usuario ni contraseña** (se rechaza si los lleva) |
 | `--main`, `--develop` | Ramas principal y de integración |
 | `--git-user`, `--git-email` | Identidad personal (va a `local.json`, no se exporta) |
 | `--git-username`, `--token-ref` | Usuario para git y **nombre** de la clave del token en `.credentials` (nunca el valor) |
-| `--commit-format` | Convención de commits: `conventional` (por defecto) o `ia4d` (opcional) |
+| `--commit-format` | Convención de commits: `conventional` (por defecto) o `ia4d` (opcional). Con `conventional({module})` o `ia4d({module})` el scope del commit es el módulo del componente (sin módulo, el alias) |
 | `--git-email-domain` | Dominio de correo exigido al autor de los commits (repetible; sustituye la lista; sin él no hay regla) |
 | `--vpn` / `--no-vpn` | Si requiere VPN |
 | `--statusline` / `--no-statusline` | Si `arkana-statusline` lo muestra. Sin la marca se muestra salvo los de tipo `docs`; `--statusline` fuerza mostrarlo y `--no-statusline` lo oculta (también con `edit`, en cualquier momento; un componente oculto se ve mientras estás dentro). No se aplica a ARKANA, que siempre se muestra |

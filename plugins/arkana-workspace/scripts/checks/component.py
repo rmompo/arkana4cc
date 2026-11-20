@@ -99,7 +99,9 @@ def _check(ws, alias, network, omitted):
         add("OK", "registro", f"id {bid[:8]}… en el registro compartido")
     # 3. Convención de commits (la inyecta el hook de sesión desde el manifiesto: aquí solo se valida el formato)
     err = commits.check(ws, alias)
-    add("FAIL" if err else "OK", "commits", err or f"convención de commits: {commits.fmt_of(ws, alias)}")
+    add("FAIL" if err else "OK", "commits", err or f"convención de commits: {commits.fmt_of(ws, alias)}, scope {commits.scope_of(ws, alias)}")
+    if not err and commits.wants_module(ws, alias) and not ws.module(alias):
+        add("WARN", "commits", f"el formato pide ({{module}}) pero {manifest.display(alias)} no tiene módulo: se usa el alias (component edit --module)")
     # 4. Git
     if git(path, "rev-parse", "--git-dir")[0] != 0:
         add("WARN", "git-repo", "no es un repositorio git (git init y remoto pendientes)")
@@ -182,7 +184,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     try:
         ws = manifest.load(os.path.realpath(a.home) if a.home else None)
-        alias = manifest.canon(a.component) if a.component else ws.owner_of(os.getcwd())
+        alias = ws.key(a.component) if a.component else ws.owner_of(os.getcwd())
         if not alias:
             raise manifest.ManifestError("el directorio actual no pertenece a ningún componente: usa --component")
         ws.get(alias)

@@ -64,7 +64,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     try:
         ws = manifest.load(os.path.realpath(a.home) if a.home else None)
-        comps = [manifest.canon(c) for c in a.component] if a.component else ws.aliases()
+        comps = [ws.key(c) for c in a.component] if a.component else ws.aliases()
         for c in comps:
             ws.get(c)
     except (manifest.ManifestError, KeyError) as e:
@@ -76,6 +76,11 @@ def main(argv=None):
             merge(rep, comp_check.check(ws, c, a.network), c)
         else:
             rep.add("WARN", f"{c}:carpeta", "no existe", component=c)
+    conflictos = ws.name_conflicts()
+    for c in conflictos:                                                  # alias, carpeta y módulo son únicos entre componentes: si no, no se sabe a quién se refiere un nombre
+        rep.add("FAIL", "nombres", c)
+    if not conflictos:
+        rep.add("OK", "nombres", "alias, carpeta y módulo de cada componente no se repiten")
     refs = [c for c in comps if ws.flags(c)["mode"] == "reference"]
     if refs:                                                              # sección «Referencias»: los repos que solo se descargan y se ejecutan, aparte de los de trabajo
         rep.add("INFO", "referencias", f"{len(refs)} componentes de referencia (solo lectura, sin vigilar): " + ", ".join(f"{manifest.display(c)} [{ws.flags(c)['ref'] or 'sin ref'}]" for c in refs))

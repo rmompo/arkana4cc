@@ -375,9 +375,9 @@ class TestReferenciasEnStatusYHandover(unittest.TestCase):
             self.assertIn("ref:api", ids)
             self.assertNotIn("api", ids)                                                    # no aparece entre los repos de trabajo
             self.assertEqual(ids[-1], "ref:api")                    # la sección Referencias va después de los repos de trabajo
-            self.assertIn("INFO|ref:api|api [v1] en su ref", r.stdout)                      # sin ◌: no se vigila
+            self.assertIn("INFO|ref:api|API [v1] en su ref", r.stdout)                      # sin ◌: no se vigila
             h = json.loads(cli(lab, "handover.py", "--format", "json").stdout)
-            c = next(x for x in h["components"] if x["alias"] == "api")
+            c = next(x for x in h["components"] if x["alias"] == "API")
             self.assertEqual((c["mode"], c["ref"], c["watch"]), ("reference", "v1", False))
             md = cli(lab, "handover.py", "--format", "md").stdout
             self.assertIn("referencia (v1)", md)

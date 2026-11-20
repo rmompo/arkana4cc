@@ -64,7 +64,7 @@ def main(argv=None):
         return 2 if e.code else 0
     try:
         ws = manifest.load(os.path.realpath(a.home) if a.home else None)
-        comps = [manifest.canon(c) for c in a.component] if a.component else None
+        comps = [ws.key(c) for c in a.component] if a.component else None
         for c in comps or []:
             ws.get(c)
     except (manifest.ManifestError, KeyError) as e:

@@ -40,7 +40,7 @@ def render(ws, alias):
     from arkana_core import manifest
     parts = [f"[Arkana] Directrices para {manifest.display(alias)}", RULES]
     try:
-        parts.append(commits.body(alias, commits.fmt_of(ws, alias)))
+        parts.append(commits.body(alias, commits.fmt_of(ws, alias), commits.scope_of(ws, alias)))
     except ValueError as e:
         parts.append(f"## Convención de commits\n\n(sin convención: {e})")
     notes = read_notes(ws, alias)

@@ -74,7 +74,7 @@ def main(argv=None):
         return 2 if e.code else 0
     try:
         ws = manifest.load(os.path.realpath(a.home) if a.home else None)
-        al = [manifest.canon(c) for c in a.component] if a.component else ws.aliases()
+        al = [ws.key(c) for c in a.component] if a.component else ws.aliases()
         for c in al:
             ws.get(c)
     except (manifest.ManifestError, KeyError) as e:

@@ -135,7 +135,7 @@ Campos de cada bloque (ARKANA y componentes comparten los marcados «ambos»):
 | `remote` | ambos | texto | URL del remoto **sin usuario ni contraseña**. `--remote` |
 | `remote_host` | ambos | texto | Host del remoto; se deriva de `--remote`. Lo usan `sync`, `check` y el asistente de git |
 | `branches.main`, `branches.develop` | ambos | texto | Ramas principal y de integración (por defecto `main` y `develop`). `--main`, `--develop` |
-| `commit_format` | ambos | texto | `conventional` (por defecto) o `ia4d` (opcional). `--commit-format` |
+| `commit_format` | ambos | texto | `conventional` (por defecto) o `ia4d` (opcional); con `({module})` (`ia4d({module})`, `conventional({module})`) el scope del commit es el nombre-módulo del componente y, si no lo tiene, el alias. `--commit-format` |
 | `git.token_ref` | ambos | texto | Nombre de la clave del token en `.credentials`. `--token-ref` |
 | `git.username` | ambos | texto | Usuario con el que el asistente de git entrega el token (por defecto `oauth2`). `--git-username` |
 | `git.email_domains` | ambos | lista de texto (`^[A-Za-z0-9.-]+$`) | Dominios de correo que debe tener el autor de los commits; sin lista no hay regla. `--git-email-domain` (repetible) |
@@ -233,7 +233,9 @@ La versión efectiva de una herramienta sale de `tools[]` de los componentes y d
 
 Reglas comunes que lleva el bloque: inglés, ≤72 caracteres, sin punto final, un solo objetivo por commit; **nunca** `Co-Authored-By` ni otra línea de coautoría (no es configurable) y **nunca** `--no-verify`; solo se hace commit o push cuando el usuario lo pide; los commits locales de una orquestación siguen el mismo formato.
 
-La convención **no se escribe en ningún fichero**: la compone `lib/directives.py` desde el manifiesto y la inyecta el hook de sesión en el contexto de cada pieza (junto con las reglas comunes y su `ARKANA.local.md`, si existe). Dentro de una pieza, `commit_format` decide cuál de los dos formatos se le da; el `scope` del ejemplo es el alias de la pieza.
+La convención **no se escribe en ningún fichero**: la compone `lib/directives.py` desde el manifiesto y la inyecta el hook de sesión en el contexto de cada pieza (junto con las reglas comunes y su `ARKANA.local.md`, si existe). Dentro de una pieza, `commit_format` decide cuál de los dos formatos se le da; el `scope` del ejemplo es el alias de la pieza, o su nombre-módulo con `({module})`.
+
+**Tres nombres por componente.** Además del `id` (UUID), un componente tiene: el **alias** (el normal: lo que se guarda y lo que muestran la barra, `status`, el BRIEF y los mensajes, **siempre en MAYÚSCULAS**; se acepta en cualquier caso), la **carpeta real** (último tramo de su `path`) y el **nombre-módulo** (`--module`; dato compartido que vive en `arkana-project.json`, junto al `id`; opcional). Cualquiera de los tres sirve en `--alias`, `--component`, `--to`… (sin prefijo se prueba alias, carpeta y módulo, por ese orden; `alias:`, `dir:` y `mod:` fuerzan el tipo y, si no coincide, es un error: nunca se adivina). **No pueden repetirse entre componentes**, sin distinguir mayúsculas: `component add|edit` rechaza el cambio que lo provoque y `check` da `FAIL|nombres`. Lo que se guarda en los datos es siempre el alias, así que renombrar el módulo no reescribe nada.
 
 ---
 
@@ -353,6 +355,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/layout.py" init --base /work/proyecto
 | `rama` | Rama actual es la `develop` o la `main` esperadas (en un componente de referencia se sustituye por `ref`) | OK/WARN |
 | `ref` | Solo en `mode: reference`: `HEAD` resuelve al `ref` declarado (también `origin/<ref>`); `WARN` si se ha movido o el `ref` no existe, `INFO` sin `ref` | OK/WARN/INFO |
 | `omitidos` | Solo con checks omitidos (`checks_skip`): lista cuáles no se exigen a este componente | INFO |
+| `nombres` | (una vez, no por componente) alias, carpeta y módulo no se repiten entre componentes | OK/FAIL |
 | `origin-accesible` | `git ls-remote` a `origin` (solo con red) | OK/WARN |
 | `anidado-<alias>` | Remoto e identidad git de cada componente anidado | OK/WARN/FAIL |
 
