@@ -13,8 +13,10 @@ from arkana_core import locate, manifest, project  # noqa: E402
 TOPICS = ["decision", "lesson", "pending", "contract", "reference", "methodology"]
 STATES = ["active", "deleted"]
 ROOT = "arkana-knowledge"                          # notas: decisiones, lecciones, metodología…
-DOCS = "arkana-docs"                               # documentos de origen
-MD = os.path.join(DOCS, "md")                      # su versión en Markdown (lo que Arkana lee), con el mismo árbol que los originales
+DOCS = "arkana-docs"                               # carpeta de documentos; su contenido va en tres subcarpetas
+SRC = os.path.join(DOCS, "src")                    # los originales, intactos y de solo lectura (0444)
+MD = os.path.join(DOCS, "md")                      # su versión en Markdown (lo que Arkana lee), con el MISMO árbol que src/
+OUT = os.path.join(DOCS, "out")                    # documentos elaborados a petición de la persona usuaria (estructura libre)
 INCOMING = "arkana-incoming"                       # cola local de entrada
 NOTE_FIELDS = ["id", "slug", "titulo", "topic", "version", "fecha", "autor", "components", "etiquetas", "fuentes", "resumen", "state"]
 DOC_FIELDS = ["id", "titulo", "kind", "original", "sha256", "mime", "bytes", "conversion", "cobertura", "resumen", "etiquetas", "components", "fecha", "autor", "state"]

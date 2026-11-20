@@ -1,8 +1,9 @@
-"""Documentos de origen (`arkana-docs/`) y su versión en Markdown (`arkana-docs/md/`, mismo árbol), e ingesta desde `arkana-incoming/`.
+"""Documentos de `arkana-docs/`: los originales (`src/`, de solo lectura), su versión en Markdown (`md/`, mismo árbol que `src/`) y los elaborados a petición (`out/`),
+e ingesta desde `arkana-incoming/`.
 
   scan      [--from DIR]            lista lo que hay por ingerir: hash, tipo, si está estable, duplicados y cómo se puede convertir
   convert   --file F [--out MD]     convierte con lo que hay en el equipo (md, txt, docx, pptx; pdf con `pdftotext`); si no se puede, avisa
-  add       --file F --title T --summary S [...]     ingiere: el original va a arkana-docs/, su Markdown a arkana-docs/md/ y se quita de la cola
+  add       --file F --title T --summary S [...]     ingiere: el original va a arkana-docs/src/ (solo lectura), su Markdown a arkana-docs/md/ y se quita de la cola
   reconvert --id REF                regenera el Markdown de un documento con una herramienta (p. ej. tras instalar `pdftotext`)
 
 El Markdown es la fuente que Arkana lee y consulta: su frontmatter lleva el UUID, el sha256 del original, cómo y cuánto se convirtió (`conversion`: herramienta |
@@ -22,7 +23,7 @@ import xml.etree.ElementTree as ET
 
 import common as C  # noqa: E402  (añade el núcleo al sys.path)
 from arkana_core import datafiles  # noqa: E402
-from common import DOCS, INCOMING, KError, MD  # noqa: E402
+from common import DOCS, INCOMING, KError, MD, SRC  # noqa: E402
 
 STABLE_SECONDS = float(os.environ.get("ARKANA_STABLE_SECONDS", "5"))      # un fichero que cambió hace menos es posible que aún se esté copiando
 SKIP = (".part", ".crdownload", ".tmp", ".swp", ".download")
@@ -181,7 +182,7 @@ def _safe_subdir(d):
     if n.startswith("..") or os.path.isabs(d) or n == ".":
         n = "" if n == "." else n
     if n.startswith("..") or os.path.isabs(d):
-        raise KError(f"--dest-dir no puede salir de {DOCS}: {d!r}", 2)
+        raise KError(f"--dest-dir no puede salir de {SRC}: {d!r}", 2)
     return n
 
 
@@ -195,6 +196,14 @@ def _move(home, src, dst):
     if _tracked(home, rs) and subprocess.run(["git", "-C", home, "mv", "--", rs, rd], capture_output=True, text=True).returncode == 0:
         return
     shutil.move(src, dst)
+
+
+def read_only(path):
+    """Quita los permisos de escritura al original. Es una ayuda local (git no versiona ese bit y un sync desde Windows lo pierde): la garantía real es el sha256 que valida `validate`."""
+    try:
+        os.chmod(path, stat.S_IMODE(os.stat(path).st_mode) & ~0o222)
+    except OSError:
+        pass
 
 
 def cmd_add(a, home, rep):
@@ -231,11 +240,11 @@ def cmd_add(a, home, rep):
     sub = _safe_subdir(a.dest_dir)
     did = str(uuid.uuid4())
     nombre = os.path.basename(src)
-    dst = os.path.join(home, DOCS, sub, nombre)
+    dst = os.path.join(home, SRC, sub, nombre)
     if os.path.exists(dst):
         stem, ext = os.path.splitext(nombre)
         nombre = f"{stem}-{did[:8]}{ext}"
-        dst = os.path.join(home, DOCS, sub, nombre)
+        dst = os.path.join(home, SRC, sub, nombre)
     mdp = os.path.join(home, MD, sub, nombre + ".md")
     original = os.path.join(sub, nombre) if sub else nombre
     meta = {"id": did, "titulo": a.titulo, "kind": "document", "original": original, "sha256": sha, "mime": mimetypes.guess_type(nombre)[0] or "application/octet-stream",
@@ -249,6 +258,7 @@ def cmd_add(a, home, rep):
         shutil.copy2(src, dst)
     else:
         _move(home, src, dst)                              # el original solo sale de la cola cuando su Markdown ya está escrito
+    read_only(dst)                                         # el original es la prueba: solo lectura (0444)
     rep.add("OK", "ingest", f"{did} ingerido: {os.path.relpath(dst, home)} (Markdown en {os.path.relpath(mdp, home)}; conversión {conversion}, {cobertura})")
     return did
 
@@ -258,7 +268,7 @@ def cmd_reconvert(a, home, rep):
     if not f:
         raise KError(f"no existe el documento '{a.id}'")
     ruta, meta, body = f
-    original = os.path.join(home, DOCS, meta["original"])
+    original = os.path.join(home, SRC, meta["original"])
     if not os.path.isfile(original):
         raise KError(f"falta el original {meta['original']}")
     r = convert(original)

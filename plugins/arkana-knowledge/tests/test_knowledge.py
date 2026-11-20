@@ -1,6 +1,7 @@
 """arkana-knowledge: notas con UUID, documentos con Markdown, ingesta, validación e índice local. Sin red."""
 import json
 import os
+import stat
 import subprocess
 import sys
 import tempfile
@@ -59,7 +60,7 @@ class Base(unittest.TestCase):
 
 class Notas(Base):
     def test_install_crea_carpetas_fijas(self):
-        for d in ("arkana-incoming", "arkana-knowledge", "arkana-docs", os.path.join("arkana-docs", "md")):
+        for d in ("arkana-incoming", "arkana-knowledge", "arkana-docs", os.path.join("arkana-docs", "src"), os.path.join("arkana-docs", "md"), os.path.join("arkana-docs", "out")):
             self.assertTrue(os.path.isfile(self.path(d, ".gitkeep")), d)
         self.assertIn("!.gitkeep", read(self.path("arkana-incoming", ".gitignore")))
         self.assertEqual(self.kn("install").returncode, 0)
@@ -146,8 +147,9 @@ class Documentos(Base):
         f = self.incoming("manual.md")
         r = self.ingest(f)
         self.assertEqual(r.returncode, 0, r.stdout)
-        self.assertTrue(os.path.isfile(self.path("arkana-docs", "manual.md")))
+        self.assertTrue(os.path.isfile(self.path("arkana-docs", "src", "manual.md")))
         self.assertTrue(os.path.isfile(self.path("arkana-docs", "md", "manual.md.md")))
+        self.assertFalse(os.path.exists(self.path("arkana-docs", "manual.md")))                       # ya no cuelga de arkana-docs/
         self.assertFalse(os.path.exists(self.path(f)))
         self.assertEqual(self.kn("validate").returncode, 0)
         self.assertIn("doc", self.kn("query", "--q", "manual", "--kind", "document").stdout)
@@ -155,7 +157,7 @@ class Documentos(Base):
     def test_ingest_dest_dir_refleja_arbol(self):
         r = self.ingest(self.incoming("a.md"), "--dest-dir", "cliente/specs")
         self.assertEqual(r.returncode, 0, r.stdout)
-        self.assertTrue(os.path.isfile(self.path("arkana-docs", "cliente", "specs", "a.md")))
+        self.assertTrue(os.path.isfile(self.path("arkana-docs", "src", "cliente", "specs", "a.md")))
         self.assertTrue(os.path.isfile(self.path("arkana-docs", "md", "cliente", "specs", "a.md.md")))
 
     def test_duplicado_por_sha256(self):
@@ -173,8 +175,9 @@ class Documentos(Base):
 
     def test_sha_alterado_y_huerfano(self):
         self.ingest(self.incoming("a.md"))
-        write(self.path("arkana-docs", "a.md"), "cambiado")
-        write(self.path("arkana-docs", "suelto.pdf"), "x")
+        os.chmod(self.path("arkana-docs", "src", "a.md"), 0o644)                                       # el original es de solo lectura: para alterarlo hay que forzarlo
+        write(self.path("arkana-docs", "src", "a.md"), "cambiado")
+        write(self.path("arkana-docs", "src", "suelto.pdf"), "x")
         r = self.kn("validate")
         self.assertEqual(r.returncode, 1)
         self.assertIn("sha256", r.stdout)
@@ -182,15 +185,73 @@ class Documentos(Base):
 
     def test_puntero_lfs_avisa(self):
         self.ingest(self.incoming("a.md"))
-        write(self.path("arkana-docs", "a.md"), "version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 3\n")
+        os.chmod(self.path("arkana-docs", "src", "a.md"), 0o644)
+        write(self.path("arkana-docs", "src", "a.md"), "version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 3\n")
         self.assertIn("git-lfs", self.kn("validate").stdout)
 
     def test_puntero_lfs_huerfano_se_nombra_como_tal(self):
-        write(self.path("arkana-docs", "grande.bin"), "version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 9\n")
-        write(self.path("arkana-docs", "suelto.pdf"), "x")
+        write(self.path("arkana-docs", "src", "grande.bin"), "version https://git-lfs.github.com/spec/v1\noid sha256:abc\nsize 9\n")
+        write(self.path("arkana-docs", "src", "suelto.pdf"), "x")
         out = self.kn("validate").stdout
-        self.assertRegex(out, r"huerfano\|arkana-docs/grande\.bin es un puntero de git-lfs")
-        self.assertRegex(out, r"huerfano\|arkana-docs/suelto\.pdf está en arkana-docs/ sin su Markdown")
+        self.assertRegex(out, r"huerfano\|arkana-docs/src/grande\.bin es un puntero de git-lfs")
+        self.assertRegex(out, r"huerfano\|arkana-docs/src/suelto\.pdf está en arkana-docs/src/ sin su Markdown")
+
+    def test_el_original_queda_de_solo_lectura(self):
+        self.assertEqual(self.ingest(self.incoming("a.md")).returncode, 0)
+        modo = stat.S_IMODE(os.stat(self.path("arkana-docs", "src", "a.md")).st_mode)
+        self.assertEqual(modo & 0o222, 0, oct(modo))                                                  # nadie puede escribir
+        if os.geteuid() != 0:                                                                     # root salta los permisos: allí la garantía real es el sha256 de validate
+            with self.assertRaises(PermissionError):
+                write(self.path("arkana-docs", "src", "a.md"), "x")
+
+    def test_con_keep_source_la_copia_tambien_es_de_solo_lectura(self):
+        f = self.incoming("k.md")
+        self.assertEqual(self.ingest(f, "--keep-source").returncode, 0)
+        self.assertTrue(os.path.exists(self.path(f)))
+        self.assertEqual(os.stat(self.path("arkana-docs", "src", "k.md")).st_mode & 0o222, 0)
+
+    def test_un_original_suelto_en_arkana_docs_es_del_layout_anterior(self):
+        write(self.path("arkana-docs", "viejo.pdf"), "x")
+        out = self.kn("validate").stdout
+        self.assertRegex(out, r"WARN\|suelto\|arkana-docs/viejo\.pdf está fuera de src/, md/ y out/")
+        self.assertIn("/arkana-evolve:apply", out)
+
+    def test_out_es_libre_y_validate_no_lo_toca(self):
+        write(self.path("arkana-docs", "out", "informes", "resumen.md"), "# elaborado")
+        r = self.kn("validate")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertNotIn("resumen.md", r.stdout)
+        self.assertNotIn("huerfano", r.stdout)
+
+    def test_out_son_duplas_markdown_fuente_y_render(self):
+        write(self.path("arkana-docs", "out", "informe-x.md"), "# informe")
+        write(self.path("arkana-docs", "out", "informe-x.docx"), "PK")
+        write(self.path("arkana-docs", "out", "informe-x.pdf"), "%PDF")                              # varios renders de la misma fuente
+        write(self.path("arkana-docs", "out", "solo-md.md"), "# solo markdown")                      # entregable en Markdown: sin render, válido
+        r = self.kn("validate")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertNotIn("WARN|out", r.stdout)
+        self.assertIn("INFO|out|2 documentos elaborados (fuente .md) y 2 renders", r.stdout)
+
+    def test_un_render_sin_su_markdown_fuente_avisa(self):
+        write(self.path("arkana-docs", "out", "huerfano.docx"), "PK")
+        write(self.path("arkana-docs", "out", "sub", "otro.md"), "# otro")
+        write(self.path("arkana-docs", "out", "sub", "otro.pptx"), "PK")                             # este sí tiene fuente
+        write(self.path("arkana-docs", "out", "sub", "falta.pdf"), "%PDF")
+        out = self.kn("validate").stdout
+        self.assertRegex(out, r"WARN\|out\|arkana-docs/out/huerfano\.docx es un render sin su fuente huerfano\.md")
+        self.assertRegex(out, r"WARN\|out\|arkana-docs/out/sub/falta\.pdf es un render sin su fuente falta\.md")
+        self.assertNotIn("otro.pptx es un render", out)
+
+    def test_la_fuente_debe_estar_en_la_misma_carpeta(self):
+        write(self.path("arkana-docs", "out", "a", "x.md"), "# x")
+        write(self.path("arkana-docs", "out", "b", "x.docx"), "PK")
+        self.assertIn("b/x.docx es un render sin su fuente x.md", self.kn("validate").stdout)
+
+    def test_reconvert_lee_el_original_de_src(self):
+        self.assertEqual(self.ingest(self.incoming("a.md")).returncode, 0)
+        did = json.loads(self.kn("query", "--q", "manual", "--kind", "document", "--json").stdout)[0]["id"]
+        self.assertEqual(self.kn("ingest", "reconvert", "--id", did).returncode, 0)
 
     def test_modelo_sin_herramienta(self):
         write(self.path("md.txt"), "# Resumen del modelo\n")
