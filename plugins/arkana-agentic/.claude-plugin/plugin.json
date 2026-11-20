@@ -1,6 +1,6 @@
 {
   "name": "arkana-agentic",
-  "version": "0.10.22",
+  "version": "0.10.23",
   "description": "Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verificación por scripts, límites y control (estado, parada, recuperación).",
   "author": {
     "name": "R. Mompó Pavesi"

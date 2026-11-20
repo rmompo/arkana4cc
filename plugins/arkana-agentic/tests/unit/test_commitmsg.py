@@ -67,6 +67,23 @@ class TestCommitMsg(unittest.TestCase):
         self.assertTrue(commitmsg.check_message(alias, "docs(arkana) x"), alias)                                   # sin dos puntos: no vale
         self.assertTrue(commitmsg.check_message(alias, "docs(arkana): x", "u@otro.com"), alias)                    # dominio no permitido
 
+    def test_con_module_en_el_formato_el_scope_debe_ser_el_modulo(self):
+        import json
+        shared = os.path.join(self.tmp.name, "shared")
+        d = json.loads(Path(os.path.join(shared, ".arkana", "core", "workspace.json")).read_text())
+        for c in d["components"]:
+            if c["alias"] == "api":
+                c["commit_format"] = "ia4d({module})"
+                c["id"] = "11111111-1111-4111-8111-111111111111"
+        Path(os.path.join(shared, ".arkana", "core", "workspace.json")).write_text(json.dumps(d))
+        Path(os.path.join(shared, "arkana-project.json")).write_text(json.dumps({"schema_version": 1, "layout": 5, "workspace": {"id": "x", "name": "t"},
+            "components": [{"id": "11111111-1111-4111-8111-111111111111", "alias": "api", "module": "viso_rest_inquilino"}]}))
+        self.assertEqual(commitmsg.format_of("api"), "ia4d")
+        self.assertEqual(commitmsg.check_message("api", "chore(viso_rest_inquilino) x"), [])
+        errs = commitmsg.check_message("api", "chore(api) x")                                  # el alias ya no vale como scope
+        self.assertTrue(errs and "viso_rest_inquilino" in errs[0], errs)
+        self.assertTrue(commitmsg.check_message("api", "chore(viso_rest_inquilino): x"))      # y sigue exigiendo el formato (sin dos puntos)
+
     def test_repo_desconocido(self):
         self.assertTrue(commitmsg.check_message("otro", "docs(x) y"))
 
