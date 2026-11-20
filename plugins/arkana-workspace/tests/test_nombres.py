@@ -209,5 +209,67 @@ class TestAliasEnMayusculas(unittest.TestCase):
             self.assertEqual(ws(lab).aliases()[:3], ["arkana", "app", "api"])
 
 
+class TestIdentidadYCredencialesAlAnadir(unittest.TestCase):
+    """Al añadir un componente se piden usuario, correo y, si tiene remoto, el token (su clave): el CLI avisa de lo que falta y aplica la identidad al repo."""
+    def repo(self, lab, nombre):
+        d = os.path.join(lab.ws, nombre)
+        os.makedirs(d)
+        subprocess.run(["git", "-C", d, "init", "-q"], check=True)
+        return d
+
+    def git(self, d, *a):
+        return subprocess.run(["git", "-C", d, *a], capture_output=True, text=True, env=lab_env()).stdout.strip()
+
+    def test_la_identidad_se_aplica_al_repo_y_no_a_la_configuracion_global(self):
+        with TC.CLab() as lab:
+            d = self.repo(lab, "nuevo")
+            r = cli(lab, "components.py", "add", "--alias", "nuevo", "--path", d, "--git-user", "Ana Pérez", "--git-email", "ana@example.org")
+            self.assertEqual(r.returncode, 0, r.stdout)
+            self.assertIn("OK|identidad|user.name del repo de NUEVO fijado", r.stdout)
+            self.assertEqual((self.git(d, "config", "--local", "user.name"), self.git(d, "config", "--local", "user.email")), ("Ana Pérez", "ana@example.org"))
+            self.assertNotIn("WARN|identidad", r.stdout)
+            loc = json.loads(Path(lab.arkana + "/.arkana/arkana-workspace/local.json").read_text())
+            self.assertEqual(loc["git"]["nuevo"]["email"], "ana@example.org")
+
+    def test_sin_identidad_avisa_y_pide_los_datos(self):
+        with TC.CLab() as lab:
+            d = self.repo(lab, "sin-id")
+            r = cli(lab, "components.py", "add", "--alias", "sin-id", "--path", d)
+            self.assertEqual(r.returncode, 0, r.stdout)
+            self.assertRegex(r.stdout, r"WARN\|identidad\|SIN-ID no tiene user.name/user.email: pídelos .* --git-user y --git-email")
+
+    def test_con_remoto_pide_usuario_y_clave_del_token_y_nunca_el_valor(self):
+        with TC.CLab() as lab:
+            d = self.repo(lab, "remoto")
+            r = cli(lab, "components.py", "add", "--alias", "remoto", "--path", d, "--remote", "https://git.example/g/r.git", "--git-user", "A", "--git-email", "a@example.org")
+            self.assertIn("WARN|credenciales|REMOTO tiene remoto pero no usuario git", r.stdout)
+            self.assertIn("tiene remoto pero no clave de token: elige un nombre (p. ej. GIT_TOKEN_REMOTO)", r.stdout)
+            r = cli(lab, "components.py", "edit", "--alias", "remoto", "--git-username", "ana", "--token-ref", "GIT_TOKEN_REMOTO")
+            self.assertNotIn("usuario git", r.stdout)
+            self.assertRegex(r.stdout, r"WARN\|credenciales\|falta el valor de GIT_TOKEN_REMOTO: .*credentials.py set GIT_TOKEN_REMOTO.* no debe pasar por la conversación")
+            self.assertNotIn("--token-value", r.stdout)
+            self.assertEqual(subprocess.run([sys.executable, "-I", os.path.join(LIB, "credentials.py"), "set", "GIT_TOKEN_REMOTO", "--home", lab.arkana],
+                                            input="valor-secreto\n", capture_output=True, text=True, env=lab.env).returncode, 0)
+            r = cli(lab, "components.py", "edit", "--alias", "remoto", "--git-username", "ana")
+            self.assertNotIn("falta el valor", r.stdout)
+            self.assertNotIn("valor-secreto", r.stdout)
+
+    def test_sin_remoto_no_pide_token(self):
+        with TC.CLab() as lab:
+            d = self.repo(lab, "local")
+            r = cli(lab, "components.py", "add", "--alias", "local", "--path", d, "--git-user", "A", "--git-email", "a@example.org")
+            self.assertNotIn("credenciales", r.stdout)
+
+    def test_arkana_con_remoto_tambien_pide_el_token(self):
+        with TC.CLab() as lab:
+            r = cli(lab, "components.py", "edit", "--alias", "arkana", "--remote", "https://git.example/g/arkana.git")
+            self.assertIn("tiene remoto pero no usuario git", r.stdout)
+            self.assertIn("GIT_TOKEN_ARKANA", r.stdout)
+
+
+def lab_env():
+    return dict(os.environ, GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_NOSYSTEM="1")
+
+
 if __name__ == "__main__":
     unittest.main()

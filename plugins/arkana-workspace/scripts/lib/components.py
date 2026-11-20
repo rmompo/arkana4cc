@@ -45,6 +45,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "_core"))
 from arkana_core import contract, datafiles, locate, manifest, output, project  # noqa: E402
 import proc  # noqa: E402
+import credentials  # noqa: E402
 
 
 def _load(home):
@@ -149,6 +150,43 @@ def check_names(home, before, data, module_for=None):
     nuevos = [c for c in prospective_conflicts(home, data, module_for) if c not in before]
     if nuevos:
         raise ValueError("el cambio repetiría nombres entre componentes (alias, carpeta y módulo son únicos): " + "; ".join(nuevos[:3]))
+
+
+def _git(path, *args):
+    rc, out = proc.run(["git", "-C", path, *args], 15, dict(os.environ, GIT_TERMINAL_PROMPT="0", LC_ALL="C"))
+    return out.strip() if rc == 0 else ""
+
+
+def apply_identity(rep, alias, path, name, email, dry):
+    """Fija user.name/user.email a NIVEL DE REPO (nunca ~/.gitconfig) del componente con lo que dio la persona usuaria."""
+    if not (name or email):
+        return
+    if not os.path.isdir(os.path.join(path, ".git")):
+        rep.add("WARN", "identidad", f"{path} no es un repo git: la identidad queda en local.json y se aplicará al hacer `git init`", component=alias)
+        return
+    for k, v in (("user.name", name), ("user.email", email)):
+        if v:
+            if not dry:
+                _git(path, "config", "--local", k, v)
+            rep.add("DRY" if dry else "OK", "identidad", f"{k} del repo de {manifest.display(alias)} {'se fijaría' if dry else 'fijado'} ({k.split('.')[1]}: {v})", component=alias)
+
+
+def aviso_credenciales(rep, home, alias, block, path, a):
+    """Lo que falta de credenciales de un componente: identidad git, y para un remoto, usuario y token. Son WARN que piden el dato; nunca se pasa un token por argumento."""
+    git_ok = os.path.isdir(os.path.join(path, ".git"))
+    if git_ok and not a.git_email and not _git(path, "config", "user.email"):
+        rep.add("WARN", "identidad", f"{manifest.display(alias)} no tiene user.name/user.email: pídelos a la persona usuaria y repite con --git-user y --git-email", component=alias)
+    if not block.get("remote"):
+        return
+    g = block.get("git") or {}
+    if not g.get("username"):
+        rep.add("WARN", "credenciales", f"{manifest.display(alias)} tiene remoto pero no usuario git: pídelo y repite con --git-username", component=alias)
+    ref = g.get("token_ref")
+    if not ref:
+        rep.add("WARN", "credenciales", f"{manifest.display(alias)} tiene remoto pero no clave de token: elige un nombre (p. ej. GIT_TOKEN_{alias.upper().replace('-', '_')}) y repite con --token-ref", component=alias)
+    elif not credentials.get(home, ref):
+        rep.add("WARN", "credenciales", f"falta el valor de {ref}: que la persona usuaria lo guarde en su terminal con `python3 {os.path.join(HERE, 'credentials.py')} set {ref}` "
+                "(lo pide sin mostrarlo; el token no debe pasar por la conversación) y después `credentials.py wire-git " + alias + "`", component=alias)
 
 
 def aviso_statusline(rep, a):
@@ -338,6 +376,9 @@ def main(argv=None):
             if reg.present and not a.dry_run:
                 project.add_component(home, alias, cid=block["id"], module=project.check_module(a.module) if a.module else None)
             rep.add("DRY" if a.dry_run else "OK", alias, f"componente añadido en {block['path']}" + (f" (id {block['id'][:8]}…)" if block.get("id") else ""), component=alias)
+            cpath = os.path.normpath(os.path.join(root, block["path"]))
+            apply_identity(rep, alias, cpath, a.git_user, a.git_email, a.dry_run)
+            aviso_credenciales(rep, home, alias, block, cpath, a)
             aviso_statusline(rep, a)
         elif a.cmd == "edit":
             if alias == "arkana":                                             # ARKANA también tiene sus directrices de commit, su remoto y su identidad git
@@ -386,6 +427,10 @@ def main(argv=None):
                 rename_hooks(rep, os.path.realpath(a.plugins_dir) if a.plugins_dir else os.path.join(home, "plugins"), home, alias, new, a.dry_run)
             else:
                 rep.add("DRY" if a.dry_run else "OK", alias, "componente actualizado", component=alias)
+            cpath = os.path.normpath(os.path.join(root, block["path"]))
+            apply_identity(rep, target, cpath, a.git_user, a.git_email, a.dry_run)
+            if a.remote or a.token_ref or a.git_username or a.git_user or a.git_email:
+                aviso_credenciales(rep, home, target, block, cpath, a)
             aviso_statusline(rep, a)
         elif a.cmd == "remove":
             if not any(c["alias"] == alias for c in data["components"]):
