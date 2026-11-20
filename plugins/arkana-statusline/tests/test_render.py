@@ -230,33 +230,33 @@ class TestVisibilidadYVigilancia(unittest.TestCase):
     def test_por_defecto_se_ve_todo_menos_docs_y_se_puede_ocultar_o_mostrar(self):
         with L.Lab() as lab:
             t = self.linea(lab)
-            self.assertIn("api@", t)
-            self.assertNotIn("docs@", t)                                                        # type docs: oculto por defecto (como siempre)
+            self.assertIn("API@", t)
+            self.assertNotIn("DOCS@", t)                                                        # type docs: oculto por defecto (como siempre)
             self.manifiesto(lab, api={"statusline": False}, docs={"statusline": True}, _schema=2)
             t = self.linea(lab)
-            self.assertNotIn("api@", t)
-            self.assertIn("docs@", t)
+            self.assertNotIn("API@", t)
+            self.assertIn("DOCS@", t)
 
     def test_un_componente_de_referencia_se_oculta_salvo_que_se_active(self):
         with L.Lab() as lab:
             self.manifiesto(lab, api={"mode": "reference", "ref": "v1"}, _schema=2)
-            self.assertNotIn("api@", self.linea(lab))
+            self.assertNotIn("API@", self.linea(lab))
             self.manifiesto(lab, api={"statusline": True}, _schema=2)                           # explícito gana al defecto del modo
-            self.assertIn("api@", self.linea(lab))
+            self.assertIn("API@", self.linea(lab))
 
     def test_el_componente_oculto_donde_estas_sigue_viendose(self):
         with L.Lab() as lab:
             self.manifiesto(lab, api={"statusline": False}, _schema=2)
-            self.assertNotIn("api@", self.linea(lab, "app"))
-            self.assertIn("api@", self.linea(lab, "api"))                                       # estás dentro: la barra te ubica
+            self.assertNotIn("API@", self.linea(lab, "app"))
+            self.assertIn("API@", self.linea(lab, "api"))                                       # estás dentro: la barra te ubica
 
     def test_sin_vigilar_no_cuentan_los_cambios_locales(self):
         with L.Lab() as lab:
             with open(os.path.join(lab.path("api"), "nuevo.txt"), "w") as f:
                 f.write("x")
-            self.assertIn("api@develop:◌1", self.linea(lab))
+            self.assertIn("API@develop:◌1", self.linea(lab))
             self.manifiesto(lab, api={"watch": False}, _schema=2)
-            self.assertIn("api@develop:✓", self.linea(lab))                                     # visible pero sin vigilar: sin ◌ ✚ ●
+            self.assertIn("API@develop:✓", self.linea(lab))                                     # visible pero sin vigilar: sin ◌ ✚ ●
 
     def test_referencia_en_su_ref_sin_indicadores_y_con_noref_si_se_mueve(self):
         with L.Lab() as lab:
@@ -268,13 +268,13 @@ class TestVisibilidadYVigilancia(unittest.TestCase):
                 f.write("{}")                                                                   # lo reescribe el tooling del repo: no se vigila
             self.manifiesto(lab, api={"mode": "reference", "ref": "v1", "statusline": True}, _schema=2)
             t = self.linea(lab)
-            self.assertIn("api@v1:✓", t)                                                        # HEAD separado en el tag: se muestra el ref, sin ◌
+            self.assertIn("API@v1:✓", t)                                                        # HEAD separado en el tag: se muestra el ref, sin ◌
             self.assertNotIn("≠ref", t)
             L.git(d, "checkout", "-q", "--detach", "HEAD~0")
             L.git(d, "checkout", "-q", "develop")                                               # HEAD se ha movido del ref fijado
             t = self.linea(lab)
-            self.assertIn("api@develop:≠ref", t)
-            self.assertNotIn("api@develop:✓", t)
+            self.assertIn("API@develop:≠ref", t)
+            self.assertNotIn("API@develop:✓", t)
 
     def test_un_manifiesto_de_esquema_futuro_dice_que_hay_que_actualizar(self):
         with L.Lab() as lab:

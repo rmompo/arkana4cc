@@ -69,9 +69,9 @@ class TestCoste(unittest.TestCase):
     def test_la_actual_sale_en_naranja_brillante_y_los_docs_no_salen(self):
         with L.Lab() as lab:
             r = lab.run("api", columns=200)
-            self.assertIn("\033[1;38;5;214mapi\033[0m\033[31m@\033[0m", r.stdout)
-            self.assertIn("\033[38;5;208mapp\033[0m\033[31m@\033[0m", r.stdout)
-            self.assertNotIn("docs", S.plain(r.stdout))                                          # tipo docs sin `statusline: true`: oculto
+            self.assertIn("\033[1;38;5;214mAPI\033[0m\033[31m@\033[0m", r.stdout)
+            self.assertIn("\033[38;5;208mAPP\033[0m\033[31m@\033[0m", r.stdout)
+            self.assertNotIn("DOCS", S.plain(r.stdout))                                          # tipo docs sin `statusline: true`: oculto
 
     def test_menos_de_300_ms_con_siete_componentes(self):
         with L.Lab() as lab:

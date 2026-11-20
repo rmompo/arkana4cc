@@ -23,7 +23,7 @@ Visión de conjunto de los plugins de Arkana: [`../README.md`](../README.md).
 
 | Plugin | Relación |
 |---|---|
-| `arkana-workspace` | De su **manifiesto** (`core/workspace.json`) salen los componentes, su **orden** (ARKANA primero, después los del manifiesto), el **alias** que se muestra de cada uno y la marca `statusline` (ver «Qué componentes se muestran»). Localiza el repo de Arkana con `$ARKANA_HOME` o subiendo desde el directorio del proyecto. `/arkana-workspace:sync` hace lo mismo que `/arkana-statusline:refresh` (ambos dejan `⇣` al día). |
+| `arkana-workspace` | De su **manifiesto** (`core/workspace.json`) salen los componentes, su **orden** (ARKANA primero, después los del manifiesto), el **alias** que se muestra de cada uno (**siempre en MAYÚSCULAS**: `ARKANA`, `WEBAPP`…, para distinguirlo de la carpeta y del nombre-módulo, que van en minúsculas) y la marca `statusline` (ver «Qué componentes se muestran»). Localiza el repo de Arkana con `$ARKANA_HOME` o subiendo desde el directorio del proyecto. `/arkana-workspace:sync` hace lo mismo que `/arkana-statusline:refresh` (ambos dejan `⇣` al día). |
 | `arkana-agentic` | **Lee** el plan: la statusline pinta `run/linea.json`, que el motor reescribe en cada transición (aquí no se calcula nada del plan). A la inversa, la statusline es la **única escritora del coste real de la sesión**, que los hooks de `arkana-agentic` leen para su libro de sesiones (`/arkana-agentic:costs`). Ver [Coste real de la sesión](#coste-real-de-la-sesión). |
 | `arkana-messaging` | **Sin relación directa**: ni la statusline lee ni escribe nada de la mensajería, ni la mensajería de la statusline (no hay referencias en su código ni en sus hooks). |
 | `arkana-knowledge` | Sin relación. |
@@ -295,7 +295,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/refresh.py" [--component <alias>]... 
 
 | Parámetro | Valores / por defecto | Efecto |
 |---|---|---|
-| `--component <alias>` | repetible; por defecto, **todos** los del manifiesto, ARKANA incluida | Limita el `fetch` a esos componentes. El alias se normaliza (minúsculas, sinónimos históricos). Un alias que no existe en el manifiesto es un error `FAIL\|workspace` (código 3). |
+| `--component <alias>` | repetible; por defecto, **todos** los del manifiesto, ARKANA incluida | Limita el `fetch` a esos componentes. Vale el alias (en cualquier caso), la carpeta o el módulo (`dir:`, `mod:`, `alias:` fuerzan el tipo). Un alias que no existe en el manifiesto es un error `FAIL\|workspace` (código 3). |
 | `--no-fetch` | opcional; por defecto se hace `fetch` | No toca la red: solo muestra el estado local actual de cada componente. |
 | `--json` | opcional; por defecto texto | Salida en JSON (cada ítem lleva su `component`). |
 | `--home <dir>` | opcional; por defecto se localiza el repo de Arkana | Ruta del repo de Arkana. Existe en el script pero **no figura en el `SKILL.md`**; útil para pruebas. |
