@@ -4,7 +4,7 @@ Un workspace es Arkana (su repo, que contiene `.arkana/`) más el proyecto (los 
 La carpeta de Arkana se reconoce porque tiene `.arkana/arkana.json`. Orden de resolución:
   1. $ARKANA_HOME (la carpeta del repo de Arkana)
   2. un ancestro del directorio actual que sea una carpeta de Arkana
-  3. el registro por usuario `~/.arkana-workspaces.json`: el primer workspace cuya raíz contiene el directorio actual
+  3. el registro por usuario `~/.arkana/workspaces.json` (antes `~/.arkana-workspaces.json`, que se sigue leyendo y se migra al registrar): el primer workspace cuya raíz contiene el directorio actual
      (así se localiza desde la carpeta de un componente, que no cuelga de Arkana)
   4. ninguno: quien llama no debe hacer nada (los hooks de un plugin instalado a nivel de usuario corren en cualquier proyecto)
 
@@ -15,11 +15,24 @@ import os
 
 STATE_DIR = ".arkana"
 ARKANA_JSON = "arkana.json"
-REGISTRY_NAME = ".arkana-workspaces.json"
+REGISTRY_DIR = ".arkana"                                 # carpeta de usuario de Arkana (~/.arkana/); no es un workspace: no tiene arkana.json
+REGISTRY_FILE = "workspaces.json"
+REGISTRY_NAME = os.path.join(REGISTRY_DIR, REGISTRY_FILE)
+LEGACY_REGISTRY_NAME = ".arkana-workspaces.json"          # ubicación anterior: solo lectura, y se mueve a la nueva al registrar
 
 
 def registry_path():
     return os.path.join(os.path.expanduser("~"), REGISTRY_NAME)
+
+
+def legacy_registry_path():
+    return os.path.join(os.path.expanduser("~"), LEGACY_REGISTRY_NAME)
+
+
+def _registry_file():
+    """El registro que se lee: el nuevo; si aún no existe, el de la ubicación anterior."""
+    new, old = registry_path(), legacy_registry_path()
+    return new if os.path.isfile(new) or not os.path.isfile(old) else old
 
 
 def is_home(d):
@@ -28,7 +41,7 @@ def is_home(d):
 
 def read_registry():
     try:
-        with open(registry_path(), encoding="utf-8") as f:
+        with open(_registry_file(), encoding="utf-8") as f:
             ws = json.load(f).get("workspaces", [])
         return [w for w in ws if isinstance(w, dict) and w.get("arkana") and w.get("root")]
     except (OSError, ValueError, AttributeError):
@@ -83,12 +96,17 @@ def register(home, name=None):
     entry = {"name": name or os.path.basename(root), "arkana": home, "root": root}
     for i, w in enumerate(reg["workspaces"]):
         if os.path.realpath(w["arkana"]) == home:
-            if w == entry:
+            if w == entry and not (os.path.isfile(legacy_registry_path()) and not os.path.isfile(registry_path())):
                 return False
             reg["workspaces"][i] = entry
             break
     else:
         reg["workspaces"].append(entry)
     from . import datafiles
+    os.makedirs(os.path.dirname(registry_path()), exist_ok=True)
     datafiles.atomic_write_json(registry_path(), reg, mode=0o644)
+    try:
+        os.remove(legacy_registry_path())                    # migrado: el fichero antiguo ya sobra (sus entradas se copiaron arriba)
+    except OSError:
+        pass
     return True

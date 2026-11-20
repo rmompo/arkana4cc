@@ -21,7 +21,7 @@ Orden fijo; cada paso se ensaya (`--dry-run`), se confirma y se aplica. Repetir 
 | # | Paso | Plugin | Escribe en |
 |---|------|--------|------------|
 | 1 | `git` | arkana | `git init` de la carpeta de ARKANA (si no es un repo) y su usuario y correo, a nivel de repo; sin commits |
-| 2 | `layout` | arkana-workspace | `.arkana/` (arkana.json, manifiesto, local.json, tools.json) y `~/.arkana-workspaces.json` |
+| 2 | `layout` | arkana-workspace | `.arkana/` (arkana.json, manifiesto, local.json, tools.json) y `~/.arkana/workspaces.json` |
 | 3 | `evolve` | arkana-evolve | registro del proyecto (`arkana-project.json`) y carpetas fijas; sin commit |
 | 4 | `statusline` | arkana-statusline | `~/.claude/arkana-statusline/` y `statusLine` de `~/.claude/settings.json` |
 | 5 | `messaging` | arkana-messaging | `.arkana/arkana-messaging/` y ajustes de usuario |
