@@ -1,8 +1,8 @@
 ---
 name: apply
-description: Aplica las migraciones pendientes de Arkana (registro del proyecto con UUID, carpetas fijas…) en orden, de forma idempotente y con copia de seguridad. Siempre ensaya primero con --dry-run y pide confirmación; nunca hace commit ni push. Acepta --dry-run, --to N y --json. Also invoked explicitly as /arkana-evolve:apply
+description: Aplica las migraciones pendientes de Arkana (registro del proyecto con UUID, carpetas fijas, modelo de estados de las tareas, `/.arkana/` en el `.gitignore`, `arkana-docs/` en `src/`, `md/` y `out/`, y el registro de workspaces de usuario…) en orden, de forma idempotente y con copia de seguridad. Siempre ensaya primero con --dry-run y pide confirmación; nunca hace commit ni push. Acepta --dry-run, --to N y --json. Also invoked explicitly as /arkana-evolve:apply
 allowed-tools: [AskUserQuestion]
-version: 7
+version: 12
 ---
 
 # arkana-evolve:apply
