@@ -8,6 +8,11 @@
   },
   "plugins": [
     {
+      "name": "arkana",
+      "source": "./plugins/arkana",
+      "description": "Instalación guiada: /arkana:install monta el espacio de trabajo mínimo (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente"
+    },
+    {
       "name": "arkana-workspace",
       "source": "./plugins/arkana-workspace",
       "description": "Gobierno del workspace: componentes, permisos R/E/W (rew-grants), credenciales, herramientas, red/VPN, convención de commits, comprobaciones (check/fix), export/import y handover"
