@@ -25,7 +25,8 @@ Arkana es una herramienta general para gobernar proyectos de varias piezas en re
 │   │   └── bak/
 │   ├── arkana-evolve/state.json     migraciones aplicadas en esta instalación (clase local)
 │   ├── arkana-statusline/state/sessions/<sid>.json   coste real de cada sesión (la statusline es su única escritora)
-│   └── arkana-todo/todos.json       lista de tareas de la persona usuaria (clase data)
+│   ├── arkana-todo/todos.json       lista de tareas de la persona usuaria (clase data)
+│   └── arkana-note/notes.json       notas de la persona usuaria (clase data)
 ├── arkana-project.json              registro del proyecto (versionado): UUID, alias y nombre-módulo (`module`, opcional) de cada pieza y sello `layout`
 ├── arkana-incoming/                 entrada de documentos; solo `.gitkeep` y su `.gitignore` interno se versionan
 ├── arkana-knowledge/                notas versionadas en git (<topic>/<slug>.md); su índice es local y derivado (.arkana/arkana-knowledge/index.json)

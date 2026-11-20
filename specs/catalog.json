@@ -11,14 +11,18 @@
       "description": "Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente",
       "category": "other",
       "status": "beta",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "spec": "specs/arkana.md",
       "path": "plugins/arkana",
       "skills": [
         {
           "name": "install",
-          "version": 1,
+          "version": 2,
           "changelog": [
+            {
+              "version": 2,
+              "changes": "Se añade el paso note (arkana-note) al pipeline de instalacion"
+            },
             {
               "version": 1,
               "changes": "Se crea la skill: pipeline de instalación de todo el espacio de trabajo mínimo y sugerencia del primer componente"
@@ -27,6 +31,10 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.2",
+          "changes": "install: Se añade el paso note (arkana-note) al pipeline de instalacion"
+        },
         {
           "version": "1.1.1",
           "changes": "install: Se crea la skill: pipeline de instalación de todo el espacio de trabajo mínimo y sugerencia del primer componente"
@@ -870,6 +878,121 @@
       ]
     },
     {
+      "name": "arkana-note",
+      "description": "Notas de la persona usuaria en un workspace de Arkana: locales, sin red, con título, texto y componente (alias o * para todos); borrado lógico; salen en el BRIEF de la sesión (install, add, list, modify, delete)",
+      "category": "other",
+      "status": "beta",
+      "version": "1.1.7",
+      "spec": "specs/arkana-note.md",
+      "path": "plugins/arkana-note",
+      "skills": [
+        {
+          "name": "add",
+          "version": 2,
+          "changelog": [
+            {
+              "version": 2,
+              "changes": "Se crea el skill add"
+            }
+          ]
+        },
+        {
+          "name": "check",
+          "version": 6,
+          "changelog": [
+            {
+              "version": 6,
+              "changes": "Se crea el skill check"
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "version": 5,
+          "changelog": [
+            {
+              "version": 5,
+              "changes": "Se crea el skill delete"
+            }
+          ]
+        },
+        {
+          "name": "fix",
+          "version": 7,
+          "changelog": [
+            {
+              "version": 7,
+              "changes": "Se crea el skill fix"
+            }
+          ]
+        },
+        {
+          "name": "install",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Se crea el skill install"
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "version": 3,
+          "changelog": [
+            {
+              "version": 3,
+              "changes": "Se crea el skill list"
+            }
+          ]
+        },
+        {
+          "name": "modify",
+          "version": 4,
+          "changelog": [
+            {
+              "version": 4,
+              "changes": "Se crea el skill modify"
+            }
+          ]
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.1.7",
+          "changes": "fix: Se crea el skill fix"
+        },
+        {
+          "version": "1.1.6",
+          "changes": "check: Se crea el skill check"
+        },
+        {
+          "version": "1.1.5",
+          "changes": "delete: Se crea el skill delete"
+        },
+        {
+          "version": "1.1.4",
+          "changes": "modify: Se crea el skill modify"
+        },
+        {
+          "version": "1.1.3",
+          "changes": "list: Se crea el skill list"
+        },
+        {
+          "version": "1.1.2",
+          "changes": "add: Se crea el skill add"
+        },
+        {
+          "version": "1.1.1",
+          "changes": "install: Se crea el skill install"
+        },
+        {
+          "version": "1.1.0",
+          "changes": "Bootstrap: plugin registered in catalog.json"
+        }
+      ]
+    },
+    {
       "name": "arkana-statusline",
       "description": "Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión",
       "category": "other",
@@ -1296,10 +1419,14 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.33",
+      "version": "6.2.34",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.34",
+          "changes": "BRIEF: seccion NOTES con las notas activas de arkana-note y linea en el QUICK START"
+        },
         {
           "version": "6.2.33",
           "changes": "component: Tres nombres por componente (alias, carpeta y modulo compartido), referencia por cualquiera con prefijos dir:, mod: y alias:, scope de commit con ({module}), check nombres y alias siempre en mayusculas"

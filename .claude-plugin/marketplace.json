@@ -43,6 +43,11 @@
       "description": "Lista de tareas pendientes de la persona usuaria: local, con prioridad, vencimiento y componente, cierre reversible y borrado lógico"
     },
     {
+      "name": "arkana-note",
+      "source": "./plugins/arkana-note",
+      "description": "Notas de la persona usuaria: locales, con título, texto y componente (alias o *), borrado lógico; salen en el BRIEF de la sesión"
+    },
+    {
       "name": "arkana-evolve",
       "source": "./plugins/arkana-evolve",
       "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (registro del proyecto con UUID, carpetas fijas, datos) de una versión a otra"

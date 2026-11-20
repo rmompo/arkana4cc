@@ -39,6 +39,7 @@ Estructura: el **workspace** es ARKANA más el proyecto, y el proyecto se compon
 | `arkana-statusline` | Statusline de dos líneas (ARKANA y los componentes en el orden del manifiesto); única escritora del coste real de sesión; `refresh` | `install`, `check`, `fix` |
 | `arkana-agentic` | Orquestación: `plan`, `run`, `status`, `control`, `stop`, `archive`, `costs`; adaptadores por tipo de componente; libro de sesiones | `install`, `check`, `fix` |
 | `arkana-knowledge` | Conocimiento del proyecto que las personas usuarias administran (`add`, `modify`, `delete` lógico) y consultan (`query`); funciona como un pseudo-RAG: notas con UUID y documentos con su versión en Markdown, indexados en local para consultarlos con eficiencia; ingesta desde `arkana-incoming/` | `install`, `check`, `fix` |
+| `arkana-note` | Notas de la persona usuaria (`add`, `list`, `modify`, `delete` lógico), en `.arkana/arkana-note/notes.json` (clase `data`) | `install`, `check`, `fix` |
 | `arkana-todo` | Lista de tareas pendientes de la persona usuaria (`add`, `list`, `done`, `modify`, `delete` lógico), en `.arkana/arkana-todo/todos.json` (clase `data`) | `install`, `check`, `fix` |
 | `arkana-evolve` | Evolución de una instalación: migraciones numeradas e idempotentes (`apply`, con `--dry-run` y `--to N`) y su diagnóstico (`check`); estado local en `.arkana/arkana-evolve/state.json`. **No depende de ningún plugin** y es la excepción a los verbos comunes: no ofrece `install` ni `fix` | `check`, `apply` |
 
