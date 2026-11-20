@@ -103,12 +103,12 @@ class Notas(Base):
         self.assertEqual(self.add(components="app").returncode, 0)
         self.assertIn(APP_ID, read(self.path("arkana-knowledge", "decision", "usar-json-en-la-cola.md")))
         out = json.loads(self.kn("query", "--q", "json", "--json", "--component", "app").stdout)
-        self.assertEqual(out[0]["components"], ["app"])
+        self.assertEqual(out[0]["components"], ["APP"])
         self.assertEqual(self.add("Otra", components="inventado").returncode, 2)
         # renombrar el alias no toca la nota
         self.registry([("arkana", "33333333-3333-4333-8333-333333333333"), ("front", APP_ID)])
         out = json.loads(self.kn("query", "--q", "json", "--json", "--component", "front").stdout)
-        self.assertEqual(out[0]["components"], ["front"])
+        self.assertEqual(out[0]["components"], ["FRONT"])
         self.assertEqual(self.kn("validate").returncode, 0)
 
     def test_validate_detecta_problemas(self):
