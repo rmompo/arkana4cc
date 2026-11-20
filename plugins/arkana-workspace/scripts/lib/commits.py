@@ -5,7 +5,8 @@
   commits.py show   [--component A]... [--home DIR]              imprime la convención que se inyecta en la sesión de cada pieza
 
 `commit_format` de la pieza: `conventional` (por defecto: `tipo(scope): descripción`, con dos puntos, p. ej. por commitlint) o `ia4d`
-(formato opcional: `verbo(scope) descripción`, sin dos puntos).
+(formato opcional: `verbo(scope) descripción`, sin dos puntos). El scope es el alias de la pieza; con `conventional({module})` o `ia4d({module})` es su
+nombre-módulo (`component edit --module`; sin módulo, el alias).
 """
 import argparse
 import os
@@ -27,19 +28,32 @@ COMMON = """- Inglés, **≤72 caracteres**, sin punto final y un solo objetivo 
 
 
 def fmt_of(ws, alias):
-    return (ws.get(alias).get("commit_format") or "conventional").strip().lower()
+    """Formato del componente (`conventional` o `ia4d`), sin el origen del scope; ValueError si no se reconoce."""
+    return manifest.parse_commit_format(ws.get(alias).get("commit_format"))[0]
 
 
-def body(alias, fmt):
+def scope_of(ws, alias):
+    return ws.commit_scope(alias)
+
+
+def wants_module(ws, alias):
+    """¿El formato pide el módulo como scope? (y, por tanto, debería tenerlo)."""
+    try:
+        return manifest.parse_commit_format(ws.get(alias).get("commit_format"))[1] == "module"
+    except ValueError:
+        return False
+
+
+def body(alias, fmt, scope=None):
     if fmt not in FORMATS:
         raise ValueError(f"commit_format desconocido: {fmt!r} (usa {' o '.join(FORMATS)})")
-    return f"## Convención de commits\n\nFormato de este repo ({manifest.display(alias)}): {FORMATS[fmt].format(scope=alias)}\n\n{COMMON}"
+    return f"## Convención de commits\n\nFormato de este repo ({manifest.display(alias)}): {FORMATS[fmt].format(scope=scope or alias)}\n\n{COMMON}"
 
 
 def check(ws, alias):
     """None si el formato es válido; el motivo si no."""
     try:
-        body(alias, fmt_of(ws, alias))
+        body(alias, fmt_of(ws, alias), scope_of(ws, alias))
         return None
     except ValueError as e:
         return str(e)
@@ -57,7 +71,7 @@ def main(argv=None):
         return 2 if e.code else 0
     try:
         ws = manifest.load(os.path.realpath(a.home) if a.home else None)
-        al = [manifest.canon(c) for c in a.component] if a.component else ws.aliases()
+        al = [ws.key(c) for c in a.component] if a.component else ws.aliases()
         for c in al:
             ws.get(c)
     except (manifest.ManifestError, KeyError) as e:
@@ -66,12 +80,14 @@ def main(argv=None):
     if a.cmd == "show":
         for c in al:
             err = check(ws, c)
-            print(f"### {manifest.display(c)}\n" + (body(c, fmt_of(ws, c)) if err is None else f"FAIL: {err}") + "\n")
+            print(f"### {manifest.display(c)}\n" + (body(c, fmt_of(ws, c), scope_of(ws, c)) if err is None else f"FAIL: {err}") + "\n")
         return 0
     rep = output.Report("arkana-workspace", "commits")
     for c in al:
         err = check(ws, c)
-        rep.add("FAIL" if err else "OK", f"commits-{c}", err or f"formato {fmt_of(ws, c)}", component=c)
+        rep.add("FAIL" if err else "OK", f"commits-{c}", err or f"formato {fmt_of(ws, c)}, scope {scope_of(ws, c)}", component=c)
+        if not err and wants_module(ws, c) and not ws.module(c):
+            rep.add("WARN", f"commits-{c}", f"el formato pide ({{module}}) pero {manifest.display(c)} no tiene módulo: se usa el alias (component edit --module)", component=c)
     sys.stdout.write(rep.render(a.json))
     return rep.exit_code()
 

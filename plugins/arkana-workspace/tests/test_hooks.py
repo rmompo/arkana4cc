@@ -40,7 +40,7 @@ class TestVigilanciaYLayoutEnElBrief(unittest.TestCase):
             subprocess.run(["git", "init", "-q", app], check=True)
             with open(os.path.join(app, "nuevo.txt"), "w") as f:
                 f.write("x")
-            self.assertRegex(self.sesion(lab), r"\d\. app \(")
+            self.assertRegex(self.sesion(lab), r"\d\. APP \(")
             f = os.path.join(lab.arkana, ".arkana", "core", "workspace.json")
             d = json.load(open(f, encoding="utf-8"))
             for c in d["components"]:
@@ -48,7 +48,7 @@ class TestVigilanciaYLayoutEnElBrief(unittest.TestCase):
                     c["watch"] = False
             d["schema"] = 2
             wj(f, d)
-            self.assertNotRegex(self.sesion(lab), r"\d\. app \(")                       # sin vigilar: sus cambios no cuentan
+            self.assertNotRegex(self.sesion(lab), r"\d\. APP \(")                       # sin vigilar: sus cambios no cuentan
 
     def test_repo_en_un_layout_mas_nuevo_dice_que_hay_que_actualizar_el_plugin(self):
         with TC.CLab() as lab:
@@ -167,8 +167,8 @@ class TestHookEstado(unittest.TestCase):
             m = out["systemMessage"]
             self.assertTrue(m.startswith("****** [ARKANA] BRIEF ******"), m)
             self.assertIn("### GIT (pending):\n", m)
-            self.assertRegex(m, r"\d\. app \(\S+\)")
-            self.assertIn("### MESSAGING:\n1. app (1 tasks, 1 repeat)", m)
+            self.assertRegex(m, r"\d\. APP \(\S+\)")
+            self.assertIn("### MESSAGING:\n1. APP (1 tasks, 1 repeat)", m)
             self.assertIn("plan P1 (en_ejecucion, 0.40 USD)", m)
             self.assertIn("### QUICK START", m)
             usos = [l for l in m.split("### QUICK START\n")[1].splitlines()]
@@ -209,7 +209,7 @@ class TestHookDirectrices(unittest.TestCase):
             out = json.loads(r.stdout)["hookSpecificOutput"]
             self.assertEqual(out["hookEventName"], "SessionStart")
             c = out["additionalContext"]
-            self.assertIn("[Arkana] Directrices para app", c)
+            self.assertIn("[Arkana] Directrices para APP", c)
             self.assertIn("No instales herramientas ni paquetes", c)
             self.assertIn("Conventional Commits con dos puntos", c)                 # formato por defecto
             self.assertIn("chore(app):", c)
@@ -231,7 +231,7 @@ class TestHookDirectrices(unittest.TestCase):
             self.assertIn("Directrices para ARKANA", self.ctx(run(lab, lab.arkana)))
             sub = os.path.join(lab.ws, "app", "src", "ui")
             os.makedirs(sub, exist_ok=True)
-            self.assertIn("Directrices para app-ui", self.ctx(run(lab, sub)))      # la pieza más específica
+            self.assertIn("Directrices para APP-UI", self.ctx(run(lab, sub)))      # la pieza más específica
 
     def test_las_notas_locales_se_inyectan_con_tope_y_solo_si_existen(self):
         with TC.CLab() as lab:

@@ -5,7 +5,7 @@
   components.py add    --alias A --path RUTA [--type node|maven|docs|generic] [--remote URL] [--main M] [--develop D]
                       [--git-user U --git-email E] [--git-email-domain D]... [--commit-format F] [--token-ref CLAVE] [--git-username U] [--vpn|--no-vpn]
                       [--statusline|--no-statusline] [--watch|--no-watch] [--mode work|reference] [--ref REF] [--checks-skip ID]...
-                      [--tool-version tool=ver]... [--tool-path tool=ruta]...
+                      [--module NOMBRE] [--tool-version tool=ver]... [--tool-path tool=ruta]...
   components.py edit   --alias A  (mismas opciones que add; solo se cambia lo indicado). `--alias arkana` edita ARKANA: su `--commit-format`,
                       `--git-email-domain`, remoto, ramas, `--token-ref`/`--git-username` (no admite --type, --path, --vpn, --statusline, --watch, --mode, --ref, --checks-skip ni --tool-*; en un componente
                       sí se pueden cambiar en cualquier momento, también `--statusline/--no-statusline` y `--watch/--no-watch`)
@@ -22,6 +22,11 @@ pasa a `schema: 2`; si la copia de la statusline (`~/.claude/arkana-statusline/`
 barra, no se vigilan sus cambios, `check` no le exige identidad git, `.gitignore`, `.env`… (`--checks-skip ID` repetible fija otra lista; `--reset-checks-skip` vuelve al defecto del modo; una lista vacía
 explícita ejecuta todos los checks) y los permisos sobre él son solo de lectura para todos. `--ref` (tag, rama o sha) es la versión en la que debe estar `HEAD`; `check` avisa si se ha movido. Lo explícito
 (`--statusline`, `--watch`, `--checks-skip`) siempre gana al defecto del modo. `--mode work` lo devuelve a repo de trabajo (y quita su `ref`).
+
+`--module NOMBRE` fija el nombre-módulo del componente (`--module ""` lo quita). Es un dato **compartido** (va en `arkana-project.json`, versionado, junto al id) y exige el registro del
+proyecto (`/arkana-evolve:apply`). Con la carpeta real (último tramo de la ruta) y el alias son los tres nombres con los que se puede referir al componente (`dir:`/`mod:`/`alias:` fuerzan el
+tipo); no pueden repetirse entre componentes (se rechaza el alta o el cambio que cree un conflicto). Con `--commit-format ia4d({module})` o `conventional({module})` el scope de sus
+commits es el módulo (sin módulo, el alias). Los alias se muestran siempre en MAYÚSCULAS y se aceptan en cualquier caso.
 
 `--path` se da absoluta o relativa a la raíz del workspace y se guarda relativa. La identidad git (user/email) y las rutas absolutas van
 a `local.json`, no al manifiesto exportable. `--git-email-domain` (repetible) fija los dominios de correo que debe tener el autor de los commits del
@@ -81,7 +86,8 @@ def apply_options(block, a, root):
         b["main"] = a.main or b.get("main", "main")
         b["develop"] = a.develop or b.get("develop", "develop")
     if a.commit_format:
-        block["commit_format"] = a.commit_format
+        manifest.parse_commit_format(a.commit_format)                          # ValueError si no se reconoce
+        block["commit_format"] = a.commit_format.strip().lower()
     if a.token_ref or a.git_username or a.git_email_domain:
         g = block.setdefault("git", {})
         if a.token_ref:
@@ -115,6 +121,34 @@ def apply_options(block, a, root):
             tools[k] = {"tool": k, "version": v}
         block["tools"] = list(tools.values())
     return tp
+
+
+def prospective_conflicts(home, data, module_for=None):
+    """Nombres repetidos que habría con `data` (y, si se da, con el módulo `module_for=(alias, módulo)`), sin escribir nada."""
+    import copy
+    ws = manifest.Workspace(home, data, _local(home))
+    reg = copy.deepcopy(project.read(home) or {"components": []})
+    reg.setdefault("components", [])
+    if module_for:
+        al, mod = module_for
+        block = next((c for c in data["components"] if c["alias"] == al), data["arkana"] if al == "arkana" else {})
+        ent = next((c for c in reg["components"] if project._canon(c.get("alias")) == al), None)
+        if ent is None:
+            ent = {"id": block.get("id") or project.new_id(), "alias": al}
+            reg["components"].append(ent)
+        if mod:
+            ent["module"] = mod
+        else:
+            ent.pop("module", None)
+    ws._reg = project.Registry(reg)
+    return ws.name_conflicts()
+
+
+def check_names(home, before, data, module_for=None):
+    """ValueError si el cambio crea nombres repetidos nuevos (los que ya había no bloquean un cambio ajeno)."""
+    nuevos = [c for c in prospective_conflicts(home, data, module_for) if c not in before]
+    if nuevos:
+        raise ValueError("el cambio repetiría nombres entre componentes (alias, carpeta y módulo son únicos): " + "; ".join(nuevos[:3]))
 
 
 def aviso_statusline(rep, a):
@@ -250,6 +284,7 @@ def main(argv=None):
     ap.add_argument("--ref")
     ap.add_argument("--checks-skip", dest="checks_skip", action="append")
     ap.add_argument("--reset-checks-skip", dest="reset_checks_skip", action="store_true")
+    ap.add_argument("--module")
     ap.add_argument("--tool-version", action="append")
     ap.add_argument("--tool-path", action="append")
     ap.add_argument("--rename")
@@ -268,11 +303,24 @@ def main(argv=None):
         path, data = _load(home)
         root = locate.workspace_root(home)
         alias = manifest.canon(a.alias) if a.alias else None
+        if alias and a.cmd in ("edit", "remove"):                              # el componente se puede dar por alias, carpeta o módulo (o con dir:/mod:/alias:)
+            try:
+                alias = manifest.load(home).key(alias)
+            except manifest.ManifestError:
+                pass
+        if a.module is not None and not project.Registry.load(home).present:
+            raise ValueError("--module se guarda en el registro compartido del proyecto: ejecuta antes /arkana-evolve:apply")
+        before = None
+        if a.cmd in ("add", "edit"):
+            import copy
+            before = prospective_conflicts(home, copy.deepcopy(data)) if a.cmd == "edit" else []
         if a.cmd == "list":
             ws = manifest.load(home)
             for al in ws.aliases():
                 b = ws.get(al)
-                rep.add("INFO", al, f"{b.get('type', 'arkana')} {os.path.relpath(ws.path(al), root)} {b.get('remote_host', '-')}", component=al)
+                rep.add("INFO", al, f"{b.get('type', 'arkana')} {os.path.relpath(ws.path(al), root)} {b.get('remote_host', '-')} · carpeta {ws.folder(al)} · módulo {ws.module(al) or '-'}", component=al)
+            for c in ws.name_conflicts():
+                rep.add("WARN", "nombres", c)
         elif a.cmd == "add":
             if not alias or not a.path:
                 raise ValueError("add necesita --alias y --path")
@@ -284,10 +332,11 @@ def main(argv=None):
                 block["id"] = reg.id_of(alias) or project.new_id()
             tp = apply_options(block, a, root)
             data["components"].append(block)
+            check_names(home, before, data, (alias, project.check_module(a.module)) if a.module is not None else None)
             save(home, path, data, a.dry_run)
             update_local(home, alias, tp, a.git_user, a.git_email, a.dry_run)
             if reg.present and not a.dry_run:
-                project.add_component(home, alias, cid=block["id"])
+                project.add_component(home, alias, cid=block["id"], module=project.check_module(a.module) if a.module else None)
             rep.add("DRY" if a.dry_run else "OK", alias, f"componente añadido en {block['path']}" + (f" (id {block['id'][:8]}…)" if block.get("id") else ""), component=alias)
             aviso_statusline(rep, a)
         elif a.cmd == "edit":
@@ -318,6 +367,7 @@ def main(argv=None):
                         raise ValueError("el renombrado no es posible ahora (no se ha cambiado nada): " + "; ".join(f"{i['id']}: {i['detail']}" for i in fallos[:3]))
             tp = apply_options(block, a, root)
             target = new or alias
+            check_names(home, before, data, (target, project.check_module(a.module)) if a.module is not None else None)
             if new and new != alias:
                 reg = project.Registry.load(home)
                 if reg.present and (reg.id_of(alias) or reg.id_of(new)) and not a.dry_run:
@@ -329,6 +379,8 @@ def main(argv=None):
                 rename_local(home, alias, new, a.dry_run)                      # antes que update_local: las claves nuevas no deben pisarse
             update_local(home, target, tp, a.git_user, a.git_email, a.dry_run, os.path.realpath(os.path.join(root, block["path"])) if a.path else None)
             save(home, path, data, a.dry_run)
+            if a.module is not None and not a.dry_run:
+                project.set_module(home, target, a.module)                    # compartido: va en arkana-project.json, no en el manifiesto local
             if new and new != alias:
                 rep.add("DRY" if a.dry_run else "OK", target, f"alias {alias} → {new} en el manifiesto y en local.json", component=target)
                 rename_hooks(rep, os.path.realpath(a.plugins_dir) if a.plugins_dir else os.path.join(home, "plugins"), home, alias, new, a.dry_run)
@@ -345,7 +397,7 @@ def main(argv=None):
             if not a.dry_run and project.Registry.load(home).present:
                 project.retire_component(home, alias)                          # el id se conserva (retirado) para que las referencias sigan mostrándose
             rep.add("DRY" if a.dry_run else "OK", alias, "componente quitado del manifiesto (la carpeta no se toca)", component=alias)
-    except (ValueError, OSError, KeyError, manifest.ManifestError) as e:
+    except (ValueError, OSError, KeyError, manifest.ManifestError, project.ProjectError) as e:
         rep.add("FAIL", a.cmd, str(e))
     sys.stdout.write(rep.render(a.json))
     return rep.exit_code()

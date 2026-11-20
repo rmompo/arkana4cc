@@ -196,7 +196,11 @@ def main(argv=None):
                 for k in import_maven(home, a.arg, a.server, a.prefix):
                     rep.add("OK", k, "guardada")
         elif a.cmd == "wire-git":
-            rep = wire_git(home, manifest.canon(a.arg or ""), a.dry_run)
+            try:
+                wire = manifest.load(home).key(a.arg or "")                   # alias, carpeta o módulo
+            except manifest.ManifestError:
+                wire = manifest.canon(a.arg or "")
+            rep = wire_git(home, wire, a.dry_run)
     except (ValueError, OSError, KeyError, manifest.ManifestError) as e:
         rep.add("FAIL", a.cmd, str(e))
     except Exception as e:  # el XML mal formado u otros: nunca con el contenido
