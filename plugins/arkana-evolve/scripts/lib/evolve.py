@@ -155,6 +155,14 @@ def statusline_copy_outdated():
     return m.group(1) if ver(m.group(1)) < ver(CORE_VERSION) else None
 
 
+def migrar_registro(ctx, rep):
+    """El registro de workspaces pasó de `~/.arkana-workspaces.json` a `~/.arkana/workspaces.json`: se mueve (conservando sus entradas) la primera vez que se aplica."""
+    if os.path.isfile(locate.legacy_registry_path()) and not os.path.isfile(locate.registry_path()):
+        if not ctx.dry:
+            locate.register(ctx.home)
+        rep.add("DRY" if ctx.dry else "OK", "registro-usuario", f"{locate.legacy_registry_path()} {'se movería a' if ctx.dry else 'movido a'} {locate.registry_path()}")
+
+
 def aviso_statusline(rep):
     old = statusline_copy_outdated()
     if old:
@@ -237,6 +245,7 @@ def cmd_apply(a, ctx, rep):
     if not pending:
         if not ctx.dry:
             settle(ctx, mods, before=None if hasta is None else hasta + 1)
+        migrar_registro(ctx, rep)
         rep.add("OK", "apply", f"nada que hacer: layout {project_layout(ctx)}, sin migraciones pendientes")
         return
     done, backed = [], False
@@ -272,6 +281,7 @@ def cmd_apply(a, ctx, rep):
     if not ctx.dry:
         settle(ctx, mods, before=None if hasta is None else hasta + 1)
     aviso_statusline(rep)
+    migrar_registro(ctx, rep)
     if ctx.dry:
         rep.add("DRY", "apply", f"{len(done)} migraciones se aplicarían; no se ha escrito nada")
     else:
