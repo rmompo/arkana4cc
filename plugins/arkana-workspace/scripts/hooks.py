@@ -2,7 +2,7 @@
 """Hook de estado de Arkana al abrir, reanudar, limpiar o compactar una sesión (SessionStart: startup|resume|clear|compact). Solo local: git local, sin red.
 
 Hace dos cosas. (1) Muestra al USUARIO (`systemMessage`) un BRIEF corto, por este orden: QUICK START (comandos útiles según lo pendiente),
-MESSAGING (por componente: tareas pendientes, directrices repeat y avisos sin leer), TODO (tareas abiertas de arkana-todo, hasta 5), GIT (componentes con cambios o commits sin subir) y ORCHESTRATION (plan activo de arkana-agentic, con su coste).
+MESSAGING (por componente: tareas pendientes, directrices repeat y avisos sin leer), TODO (tareas activas de arkana-todo, hasta 5), NOTES (notas activas de arkana-note, hasta 5), GIT (componentes con cambios o commits sin subir) y ORCHESTRATION (plan activo de arkana-agentic, con su coste).
 (2) Inyecta en el contexto del MODELO (`additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (ver `lib/directives.py`: convención de commits,
 reglas comunes y, si existe, `ARKANA.local.md`): así no hace falta ningún fichero de instrucciones en los repos de trabajo.
 No hace nada dentro de un worker (`ARKANA_WORKER=1`) ni fuera de un workspace. Nunca falla.
@@ -95,6 +95,25 @@ def todo_pending(st):
     return sorted(res, key=lambda r: (PRIO.get(r[2], 2), r[3] or "9999", r[0]))
 
 
+NOTE_MAX = 5
+
+
+def note_pending(st):
+    """Notas activas de arkana-note, las modificadas más recientemente primero: [(id, título, componente)]. Lectura local sin importar el plugin; cualquier dato raro se ignora."""
+    d = datafiles.read_json(os.path.join(st, "arkana-note", "notes.json"), {}) or {}
+    res = []
+    for n in d.get("notas", []) if isinstance(d, dict) else []:
+        if not isinstance(n, dict) or n.get("estado") != "active" or not n.get("titulo"):
+            continue
+        res.append((str(n.get("modificada") or ""), str(n.get("id", "")), str(n["titulo"]), str(n.get("componente") or "")))
+    return [(i, t, c) for _, i, t, c in sorted(res, reverse=True)]
+
+
+def note_line(i, n):
+    id_, titulo, comp = n
+    return f"{i}. {titulo} [{id_}]" + (f" ({manifest.display(comp)})" if comp not in ("", "*", "all") else "")
+
+
 def statusline_installed():
     """¿`statusLine` de ~/.claude/settings.json apunta a arkana-statusline? Lectura local barata."""
     cfg = datafiles.read_json(os.path.join(os.path.expanduser("~"), ".claude", "settings.json"), {}) or {}
@@ -108,9 +127,9 @@ def todo_line(i, t):
     return f"{i}. {titulo} [{id_}]" + (f" ({', '.join(extra)})" if extra else "")
 
 
-def brief(git, msgs, plan, todos=()):
-    """Texto del BRIEF, o None si no hay nada pendiente. Orden de las secciones: QUICK START, MESSAGING, TODO, GIT y ORCHESTRATION."""
-    if not (git or msgs or plan or todos):
+def brief(git, msgs, plan, todos=(), notes=()):
+    """Texto del BRIEF, o None si no hay nada pendiente. Orden de las secciones: QUICK START, MESSAGING, TODO, NOTES, GIT y ORCHESTRATION."""
+    if not (git or msgs or plan or todos or notes):
         return None
     qs = []                                                                      # primero la puesta a punto (config → check → fix), luego el trabajo del día
     if not statusline_installed():
@@ -127,6 +146,8 @@ def brief(git, msgs, plan, todos=()):
         qs.append("- Use '/arkana-agentic:status' - progress and cost of the active plan")
     if todos:
         qs.append("- Use '/arkana-todo:list' - active tasks grouped by status, with priority and due date")
+    if notes:
+        qs.append("- Use '/arkana-note:list' - your notes (add one with '/arkana-note:add')")
     qs.append("- Use '/arkana-knowledge:ingest' - turn what is waiting in arkana-incoming/ into notes and documents")
     qs.append("- Use '/arkana-evolve:check' - check whether this installation needs migrations (then '/arkana-evolve:apply')")
     out = ["****** [ARKANA] BRIEF ******", "", "### QUICK START", *qs]
@@ -137,6 +158,10 @@ def brief(git, msgs, plan, todos=()):
         out += ["", "### TODO:", *[todo_line(i, t) for i, t in enumerate(todos[:TODO_MAX], 1)]]
         if len(todos) > TODO_MAX:
             out.append(f"... and {len(todos) - TODO_MAX} more")
+    if notes:
+        out += ["", "### NOTES:", *[note_line(i, n) for i, n in enumerate(notes[:NOTE_MAX], 1)]]
+        if len(notes) > NOTE_MAX:
+            out.append(f"... and {len(notes) - NOTE_MAX} more")
     if git:
         out += ["", "### GIT (pending):", *[f"{i}. {a} ({b})" for i, (a, b) in enumerate(git, 1)]]
     if plan:
@@ -155,7 +180,7 @@ def main(argv):
         ws = manifest.load(home)
         st = locate.state_dir(home)
         aliases = ws.aliases()
-        text = brief(git_pending(ws, aliases), messaging_pending(st, aliases), active_plan(st), todo_pending(st))
+        text = brief(git_pending(ws, aliases), messaging_pending(st, aliases), active_plan(st), todo_pending(st), note_pending(st))
         have = project.layout(home)
         if have < project.LAYOUT_REQUIRED:                                      # instalación sin migrar: lo primero que debe ver la persona usuaria
             aviso = f"[ARKANA] ⚠ Instalación en layout {have}; esta versión necesita {project.LAYOUT_REQUIRED}. Ejecuta /arkana-evolve:apply."

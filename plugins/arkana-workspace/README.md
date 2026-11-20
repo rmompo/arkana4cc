@@ -850,7 +850,7 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 
 **Qué hace.** (1) Muestra al **usuario** (campo `systemMessage`) un BRIEF corto, solo si hay algo que contar (tareas abiertas, cambios sin subir, mensajes, plan activo), precedido de un aviso `⚠ Instalación en layout N; esta versión necesita M. Ejecuta /arkana-evolve:apply.` cuando el registro del proyecto está por debajo del layout que esperan los plugins. (2) Inyecta en el contexto del **modelo** (`hookSpecificOutput.additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (la más específica; ARKANA incluida): reglas comunes, convención de commits y `ARKANA.local.md`. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker) ni si no hay workspace. Nunca falla (siempre sale con 0).
 
-**Formato del BRIEF** (secciones en este orden: QUICK START, MESSAGING, TODO, GIT y ORCHESTRATION; cada una solo si tiene contenido, salvo QUICK START, que sale siempre que haya BRIEF):
+**Formato del BRIEF** (secciones en este orden: QUICK START, MESSAGING, TODO, NOTES, GIT y ORCHESTRATION; cada una solo si tiene contenido, salvo QUICK START, que sale siempre que haya BRIEF):
 
 ```text
 ****** [ARKANA] BRIEF ******
@@ -890,6 +890,7 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 | `QUICK START` | Comandos en el orden **config → check → fix → uso diario**: primero la puesta a punto (`config`, `check`, `fix`), luego el trabajo del día. `/arkana-statusline:install` solo si `statusLine` de `~/.claude/settings.json` no apunta a `arkana-statusline`; `messaging query --unread` solo con mensajes; `sync` siempre; `status` solo con cambios git; `agentic:status` solo con plan |
 | `MESSAGING` | Por pieza, de `arkana-messaging/state/index.json` y `state/read/<actor>.json`: `N tasks` (task, review o question de una vez, abiertas y sin confirmar por ella), `N repeat` (directrices vigentes que le alcanzan; no las `propuesto`) y `N unread notices` (avisos sin leer, solo si los hay). Se excluyen borrados, reconciliados y propios |
 | `TODO` | Tareas activas de `arkana-todo/todos.json` (`pending`, `in-progress`, `paused`, `blocked`; no `done`, `rejected` ni `removed`), por prioridad (`critical` primero), vencimiento e id; hasta 5 y `... and N more`. Cada línea: título, `[id]` y entre paréntesis lo que no es el valor por defecto (prioridad distinta de `medium`, estado distinto de `pending`, `vence`/`⚠ vencida`, componente distinto de `*`) |
+| `NOTES` | Notas activas de `arkana-note/notes.json`, las modificadas más recientemente primero; hasta 5 y `... and N more`. Cada línea: título, `[id]` y, entre paréntesis, el componente si no es `*` (en MAYÚSCULAS). Va justo después de TODO. El QUICK START añade `/arkana-note:list` cuando hay notas |
 | `GIT` | Piezas con cambios o commits sin subir (`gitstate`, hasta 8 repos en paralelo), con su rama |
 | `ORCHESTRATION` | Plan activo (`arkana-agentic/state/actual` y su `plan.json`, salvo `completado`, `archivado` o `cancelado`) con su estado y gasto |
 
