@@ -11,14 +11,18 @@
       "description": "Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente",
       "category": "other",
       "status": "beta",
-      "version": "1.1.7",
+      "version": "1.1.8",
       "spec": "specs/arkana.md",
       "path": "plugins/arkana",
       "skills": [
         {
           "name": "install",
-          "version": 4,
+          "version": 8,
           "changelog": [
+            {
+              "version": 8,
+              "changes": "install: el paso knowledge garantiza el andamiaje completo con .gitkeep en cada carpeta final"
+            },
             {
               "version": 4,
               "changes": "install: nuevo paso git (git init y usuario y correo del repo) y entrevista de remoto y token de ARKANA sin pasar el token por la conversacion"
@@ -39,6 +43,10 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.8",
+          "changes": "install: install: el paso knowledge garantiza el andamiaje completo con .gitkeep en cada carpeta final"
+        },
         {
           "version": "1.1.7",
           "changes": "Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8"
@@ -379,10 +387,14 @@
       "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra (apply, check)",
       "category": "other",
       "status": "beta",
-      "version": "0.5.9",
+      "version": "0.5.10",
       "spec": "specs/arkana-evolve.md",
       "path": "plugins/arkana-evolve",
       "changelog": [
+        {
+          "version": "0.5.10",
+          "changes": "Migracion 0001: crea las carpetas finales de arkana-docs (src, md y out) con .gitkeep y no la carpeta contenedora"
+        },
         {
           "version": "0.5.9",
           "changes": "Migracion 0008: arkana-docs/ en src/, md/ y out/, layout 8"
@@ -472,10 +484,14 @@
       "description": "Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y documentos de origen con su versión en Markdown, ingesta desde arkana-incoming y consulta (add, query, modify, delete, ingest)",
       "category": "other",
       "status": "beta",
-      "version": "2.0.24",
+      "version": "2.0.25",
       "spec": "specs/arkana-knowledge.md",
       "path": "plugins/arkana-knowledge",
       "changelog": [
+        {
+          "version": "2.0.25",
+          "changes": "install: install: las carpetas finales (src, md, out, incoming y knowledge) llevan .gitkeep; arkana-docs/ ya no"
+        },
         {
           "version": "2.0.24",
           "changes": "fix: fix: indica que hacer con originales sueltos y renders sin fuente"
@@ -674,8 +690,12 @@
         },
         {
           "name": "install",
-          "version": 23,
+          "version": 25,
           "changelog": [
+            {
+              "version": 25,
+              "changes": "install: las carpetas finales (src, md, out, incoming y knowledge) llevan .gitkeep; arkana-docs/ ya no"
+            },
             {
               "version": 23,
               "changes": "install: crea tambien arkana-docs/src/ y arkana-docs/out/"

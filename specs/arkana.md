@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana
 
-> **Estado:** `beta` | **Versión:** `1.1.7`
+> **Estado:** `beta` | **Versión:** `1.1.8`
 
 ---
 
@@ -14,7 +14,7 @@ Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (w
 
 | Skill | Versión | Descripción |
 |-------|---------|-------------|
-| `install` | 4 | Monta de una vez el espacio de trabajo mínimo de Arkana - comprueba que están los plugins arkana-*, crea la disposición de .arkana y el registro del proyecto, instala statusline, mensajería, orquestación, conocimiento y tareas, aplica los permisos, revisa credenciales y herramientas y verifica todo. No añade componentes - al terminar sugiere dar de alta el primero. Repetible e idempotente, con ensayo previo de cada paso. |
+| `install` | 8 | Monta de una vez el espacio de trabajo mínimo de Arkana - comprueba que están los plugins arkana-*, crea la disposición de .arkana y el registro del proyecto, instala statusline, mensajería, orquestación, conocimiento y tareas, aplica los permisos, revisa credenciales y herramientas y verifica todo. No añade componentes - al terminar sugiere dar de alta el primero. Repetible e idempotente, con ensayo previo de cada paso. |
 
 ---
 
@@ -22,6 +22,7 @@ Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (w
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.8 | install: install: el paso knowledge garantiza el andamiaje completo con .gitkeep en cada carpeta final |
 | 1.1.7 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 1.1.6 | Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json |
 | 1.1.5 | gitinit: el ensayo muestra la identidad que se fijaria en lugar de una linea vacia |
