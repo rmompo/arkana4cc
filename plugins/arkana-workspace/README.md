@@ -269,11 +269,11 @@ Resumen:
 
 **Para qué sirve.** Primera puesta en marcha, repetible: deja `.arkana/` completo y registra el workspace. Lo que ya existe no se pisa.
 
-**Cuándo.** Al clonar Arkana en una máquina nueva o cuando falte algún fichero base. No lleva `--component` y solo funciona con el repo de Arkana (carpeta con `plugins/`). Ya no existe ni el modo «sin manifiesto» ni la migración desde disposiciones antiguas: `layout.py` solo tiene `init`.
+**Cuándo.** Al clonar Arkana en una máquina nueva o cuando falte algún fichero base. No lleva `--component` y solo funciona con la carpeta del repo de Arkana. Ya no existe ni el modo «sin manifiesto» ni la migración desde disposiciones antiguas: `layout.py` solo tiene `init`.
 
 **Orden exacta** (el skill pide confirmación antes de cada cambio):
 
-1. `python3 scripts/lib/layout.py init --dry-run` y después `init`. Precondiciones: la carpeta tiene `plugins/`; no hay plan activo de `arkana-agentic` (estados `aprobado`, `ejecutando`, `verificando`, `pausado`, `borrador`, `integrando`); no hay procesos `launch.py`/`watchdog.py` vivos. Si todo existe y el workspace está registrado, responde `OK|layout|ya está inicializado`. Si no: copia de seguridad `.arkana/arkana-workspace/bak/layout-<fecha-hora>.tar.gz` (solo si ya hay `core/` o `arkana-workspace/`; modo 600; excluye `bak/`); crea `arkana.json`, `core/workspace.json` (solo ARKANA, con su remoto sin credenciales y ramas `main`/`develop`), `arkana-workspace/local.json` (rutas absolutas e identidad git leída de cada repo), `arkana-workspace/tools.json` (`{"schema_version":1,"tools":[]}`); registra el workspace en `~/.arkana-workspaces.json`. Si ya había manifiesto, se valida y se conserva.
+1. `python3 scripts/lib/layout.py init --dry-run` y después `init`. Precondiciones: la carpeta existe; no hay plan activo de `arkana-agentic` (estados `aprobado`, `ejecutando`, `verificando`, `pausado`, `borrador`, `integrando`); no hay procesos `launch.py`/`watchdog.py` vivos. Si todo existe y el workspace está registrado, responde `OK|layout|ya está inicializado`. Si no: copia de seguridad `.arkana/arkana-workspace/bak/layout-<fecha-hora>.tar.gz` (solo si ya hay `core/` o `arkana-workspace/`; modo 600; excluye `bak/`); crea `arkana.json`, `core/workspace.json` (solo ARKANA, con su remoto sin credenciales y ramas `main`/`develop`), `arkana-workspace/local.json` (rutas absolutas e identidad git leída de cada repo), `arkana-workspace/tools.json` (`{"schema_version":1,"tools":[]}`); registra el workspace en `~/.arkana-workspaces.json`. Si ya había manifiesto, se valida y se conserva.
 2. `components.py list`; si falta alguno, `/arkana-workspace:component add`.
 3. `permissions.py apply --dry-run`, confirmar y `apply` (ARKANA y cada componente; solo añade lo que falta).
 4. `credentials.py check`; si una clave referenciada no existe, `credentials.py set <CLAVE>` (valor por stdin) y `credentials.py wire-git <alias>`.
@@ -287,7 +287,7 @@ Resumen:
 |---|---|---|---|
 | `--dry-run` | flag | no | No escribe; las acciones salen como `DRY` (incluida la ruta de la copia) |
 | `--json` | flag | no | Salida estructurada |
-| `--home DIR` | ruta | la que localiza el workspace; si no hay ninguna, la carpeta que contiene el plugin | Carpeta de Arkana. Debe contener `plugins/`, si no `FAIL|home` |
+| `--home DIR` | ruta | la que localiza el workspace; si no hay ninguna, la carpeta que contiene el plugin | Carpeta de Arkana. Debe existir, si no `FAIL|home` |
 | `--base DIR` | ruta | directorio padre de la carpeta de Arkana | Raíz del workspace; se guarda como `root` relativo en `arkana.json` |
 
 **Errores (`FAIL`, salida 1):** `home` (no parece el repo de Arkana), `plan-activo`, `procesos`, `manifiesto` (el existente no valida: se muestran hasta 3 errores).

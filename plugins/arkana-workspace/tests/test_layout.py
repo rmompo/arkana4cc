@@ -114,10 +114,9 @@ class TestInit(unittest.TestCase):
             Path(os.path.join(d, "planes", "P1", "plan.json")).write_text(json.dumps({"estado": "completado"}))
             self.assertEqual(layout.init(lab.arkana, lab.ws).exit_code(), 0)
 
-    def test_se_niega_si_no_es_arkana(self):
+    def test_se_niega_si_la_carpeta_no_existe(self):
         with Lab() as lab:
-            os.rmdir(os.path.join(lab.arkana, "plugins"))
-            self.assertEqual(layout.init(lab.arkana, lab.ws).exit_code(), 1)
+            self.assertEqual(layout.init(os.path.join(lab.arkana, "no-existe"), lab.ws).exit_code(), 1)
 
     def test_ya_no_existe_el_modo_antiguo(self):
         self.assertFalse(hasattr(layout, "migrate") or hasattr(layout, "KNOWN") or hasattr(layout, "read_conf"))
