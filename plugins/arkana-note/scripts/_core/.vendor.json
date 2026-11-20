@@ -1,10 +1,10 @@
 {
   "files": {
-    "__init__.py": "b28962639c4f9c67f1202e86d6095fbcf6c4fff2047492229de13c479f111441",
+    "__init__.py": "5daf7860a81f02415fa02886a6e4d88c8eb552b6ac44b4b97712d57e7a562fe0",
     "arkana-core.sh": "003b403ca0dc1a987e96570b407d7e794a13b572c2b620f5229ba79e92b5a02d",
     "contract.py": "3265dd47cad446eb902a18b55fff1da3425509ecc08ae9bbe3252fd2b2d8108e",
     "datafiles.py": "18b265a206642c364ad9f4dbfdc666100d0ccc813f449adec6c4c59a3b1dd4af",
-    "locate.py": "cc87df859f2f264cfbea0a6458dfddf61b5171bef0b6333316e2b06eb1d86c71",
+    "locate.py": "1befba1b0612b46a82b99d1e054ad8fcf11e761494332cb91b532e15f54907f3",
     "manifest.py": "5f03f0200e55da682d73a464dacad7ba825561a4c31cf7fede4fa80ba8e00fa7",
     "netguard.py": "8a97327dce48a6c4fc3119b2444e675ddf49e96ca1a6996134aeae654b8c3771",
     "output.py": "ab89bd5651df3855d75eabff201f94b85498988304137d12fece88d4fe988c5c",
@@ -16,5 +16,5 @@
     "schemas/workspace.schema.json": "49f1baf60da3c8a00d94274d8b50a74d08903eb0da1885d728b18a9ce636bb54"
   },
   "source": "lib/arkana_core",
-  "version": "1.11.0"
+  "version": "1.11.1"
 }

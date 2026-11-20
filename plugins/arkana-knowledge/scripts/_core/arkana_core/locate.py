@@ -96,6 +96,8 @@ def register(home, name=None):
     entry = {"name": name or os.path.basename(root), "arkana": home, "root": root}
     for i, w in enumerate(reg["workspaces"]):
         if os.path.realpath(w["arkana"]) == home:
+            if not name and w.get("name"):
+                entry["name"] = w["name"]                   # sin nombre explícito se conserva el que ya tenía (p. ej. al migrar el registro antiguo)
             if w == entry and not (os.path.isfile(legacy_registry_path()) and not os.path.isfile(registry_path())):
                 return False
             reg["workspaces"][i] = entry
