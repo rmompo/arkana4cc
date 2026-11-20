@@ -20,25 +20,29 @@ Orden fijo; cada paso se ensaya (`--dry-run`), se confirma y se aplica. Repetir 
 
 | # | Paso | Plugin | Escribe en |
 |---|------|--------|------------|
-| 1 | `layout` | arkana-workspace | `.arkana/` (arkana.json, manifiesto, local.json, tools.json) y `~/.arkana-workspaces.json` |
-| 2 | `evolve` | arkana-evolve | registro del proyecto (`arkana-project.json`) y carpetas fijas; sin commit |
-| 3 | `statusline` | arkana-statusline | `~/.claude/arkana-statusline/` y `statusLine` de `~/.claude/settings.json` |
-| 4 | `messaging` | arkana-messaging | `.arkana/arkana-messaging/` y ajustes de usuario |
-| 5 | `agentic` | arkana-agentic | `.arkana/arkana-agentic/` y ajustes de usuario |
-| 6 | `knowledge` | arkana-knowledge | `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/` |
-| 7 | `todo` | arkana-todo | `.arkana/arkana-todo/` |
-| 8 | `note` | arkana-note | `.arkana/arkana-note/` |
-| 9 | `permisos` | arkana-workspace | `.claude/settings.local.json` de ARKANA |
-| 10 | `credenciales` | arkana-workspace | nada (diagnóstico) |
-| 11 | `herramientas` | arkana-workspace | `tools.json` solo si se declaran; **nunca instala nada** |
-| 12 | `verificacion` | arkana-workspace | nada (diagnóstico) |
+| 1 | `git` | arkana | `git init` de la carpeta de ARKANA (si no es un repo) y su usuario y correo, a nivel de repo; sin commits |
+| 2 | `layout` | arkana-workspace | `.arkana/` (arkana.json, manifiesto, local.json, tools.json) y `~/.arkana-workspaces.json` |
+| 3 | `evolve` | arkana-evolve | registro del proyecto (`arkana-project.json`) y carpetas fijas; sin commit |
+| 4 | `statusline` | arkana-statusline | `~/.claude/arkana-statusline/` y `statusLine` de `~/.claude/settings.json` |
+| 5 | `messaging` | arkana-messaging | `.arkana/arkana-messaging/` y ajustes de usuario |
+| 6 | `agentic` | arkana-agentic | `.arkana/arkana-agentic/` y ajustes de usuario |
+| 7 | `knowledge` | arkana-knowledge | `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/` |
+| 8 | `todo` | arkana-todo | `.arkana/arkana-todo/` |
+| 9 | `note` | arkana-note | `.arkana/arkana-note/` |
+| 10 | `permisos` | arkana-workspace | `.claude/settings.local.json` de ARKANA |
+| 11 | `credenciales` | arkana-workspace | nada (diagnóstico) |
+| 12 | `herramientas` | arkana-workspace | `tools.json` solo si se declaran; **nunca instala nada** |
+| 13 | `verificacion` | arkana-workspace | nada (diagnóstico) |
 
-Después: `/arkana-workspace:component add` para el primer componente.
+Después: `/arkana-workspace:component add` para el primer componente (pide usuario y correo git y, si tiene remoto, su token).
+
+**Credenciales.** El paso `git` pregunta el usuario y el correo de ARKANA (`gitinit.py --name --email`; sin ellos no se escribe nada). Si ARKANA va a un remoto, se piden la URL, el usuario y el **nombre** de la clave del token (`GIT_TOKEN_ARKANA` por defecto) y la persona guarda el valor **en su propia terminal** con `credentials.py set` (lo pide sin mostrarlo): el token no pasa por la conversación ni por ningún argumento. Lo mismo ocurre al añadir un componente con remoto.
 
 ## Plan de solo lectura
 
 ```bash
 python3 scripts/lib/pipeline.py plan [--home <dir>] [--json]
+python3 scripts/lib/gitinit.py --home <dir> [--name N] [--email E] [--branch main] [--dry-run]   # el paso `git`
 ```
 
 Localiza cada plugin (hermano de este en el repo, o la versión más reciente de `~/.claude/plugins/cache/arkana/<plugin>/`), resuelve la carpeta de Arkana (`--home`, `$ARKANA_HOME`, un ancestro con `.arkana/arkana.json` o la raíz git del directorio actual) y devuelve las órdenes con rutas absolutas: `ESTADO|ID|detalle` y `PASO|id|plugin|ensayo|aplicar`. Código de salida 1 si falta un plugin o no hay dónde crear el workspace. No escribe nada.
