@@ -96,7 +96,7 @@ Ejemplo de disposición: `<raíz>/arkana` (ARKANA), `<raíz>/api`, `<raíz>/app`
   arkana-messaging/ arkana-agentic/ arkana-statusline/ ...                    (datos de cada plugin)
 ```
 
-Además, el registro por usuario `~/.arkana-workspaces.json` (`{"workspaces":[{"name","arkana","root"}]}`) permite localizar el workspace desde la carpeta de un componente, que no cuelga de Arkana. Lo crea `install`.
+Además, el registro por usuario `~/.arkana/workspaces.json` (`{"workspaces":[{"name","arkana","root"}]}`; antes `~/.arkana/workspaces.json`, que se sigue leyendo y se mueve al registrar) permite localizar el workspace desde la carpeta de un componente, que no cuelga de Arkana. Lo crea `install`.
 
 Clases de datos (las declara cada plugin en `arkana-plugin.json`):
 
@@ -253,7 +253,7 @@ Resumen:
 
 | Skill | Escribe | Red | Script principal |
 |---|---|---|---|
-| `install` | `.arkana/*`, `~/.arkana-workspaces.json`, permisos | no | `lib/layout.py init` |
+| `install` | `.arkana/*`, `~/.arkana/workspaces.json`, permisos | no | `lib/layout.py init` |
 | `check` | nada | opcional (`--network`) | `checks/all.py` |
 | `fix` | `settings.local.json`, `.git/info/exclude`, `.gitignore`… del componente | no | `checks/component.py` + `permissions.py` / `excludes.py apply` |
 | `component` | manifiesto, `local.json` | no | `lib/components.py` |
@@ -275,7 +275,7 @@ Resumen:
 
 **Orden exacta** (el skill pide confirmación antes de cada cambio):
 
-1. `python3 scripts/lib/layout.py init --dry-run` y después `init`. Precondiciones: la carpeta existe; no hay plan activo de `arkana-agentic` (estados `aprobado`, `ejecutando`, `verificando`, `pausado`, `borrador`, `integrando`); no hay procesos `launch.py`/`watchdog.py` vivos. Si todo existe y el workspace está registrado, responde `OK|layout|ya está inicializado`. Si no: copia de seguridad `.arkana/arkana-workspace/bak/layout-<fecha-hora>.tar.gz` (solo si ya hay `core/` o `arkana-workspace/`; modo 600; excluye `bak/`); deja `/.arkana/` ignorado en el `.gitignore` del repo de ARKANA si git no lo ignora ya (ahí viven los datos locales y `.credentials`; el cambio queda sin commitear); crea `arkana.json`, `core/workspace.json` (solo ARKANA, con su remoto sin credenciales y ramas `main`/`develop`), `arkana-workspace/local.json` (rutas absolutas e identidad git leída de cada repo), `arkana-workspace/tools.json` (`{"schema_version":1,"tools":[]}`); registra el workspace en `~/.arkana-workspaces.json`. Si ya había manifiesto, se valida y se conserva.
+1. `python3 scripts/lib/layout.py init --dry-run` y después `init`. Precondiciones: la carpeta existe; no hay plan activo de `arkana-agentic` (estados `aprobado`, `ejecutando`, `verificando`, `pausado`, `borrador`, `integrando`); no hay procesos `launch.py`/`watchdog.py` vivos. Si todo existe y el workspace está registrado, responde `OK|layout|ya está inicializado`. Si no: copia de seguridad `.arkana/arkana-workspace/bak/layout-<fecha-hora>.tar.gz` (solo si ya hay `core/` o `arkana-workspace/`; modo 600; excluye `bak/`); deja `/.arkana/` ignorado en el `.gitignore` del repo de ARKANA si git no lo ignora ya (ahí viven los datos locales y `.credentials`; el cambio queda sin commitear); crea `arkana.json`, `core/workspace.json` (solo ARKANA, con su remoto sin credenciales y ramas `main`/`develop`), `arkana-workspace/local.json` (rutas absolutas e identidad git leída de cada repo), `arkana-workspace/tools.json` (`{"schema_version":1,"tools":[]}`); registra el workspace en `~/.arkana/workspaces.json`. Si ya había manifiesto, se valida y se conserva.
 2. `components.py list`; si falta alguno, `/arkana-workspace:component add`.
 3. `permissions.py apply --dry-run`, confirmar y `apply` (ARKANA y cada componente; solo añade lo que falta).
 4. `credentials.py check`; si una clave referenciada no existe, `credentials.py set <CLAVE>` (valor por stdin) y `credentials.py wire-git <alias>`.
@@ -916,7 +916,7 @@ Internamente los scripts fijan `GIT_TERMINAL_PROMPT=0` y `LC_ALL=C` en cada llam
 
 1. `$ARKANA_HOME`, si es un directorio.
 2. Un ancestro del directorio actual que tenga `.arkana/arkana.json`.
-3. El registro `~/.arkana-workspaces.json`: el primer workspace cuya raíz contenga el directorio actual (así se localiza desde la carpeta de un componente).
+3. El registro `~/.arkana/workspaces.json`: el primer workspace cuya raíz contenga el directorio actual (así se localiza desde la carpeta de un componente).
 4. Ninguno: los hooks no hacen nada y los scripts salen con 3. Todos aceptan `--home DIR` para forzarlo.
 
 ---

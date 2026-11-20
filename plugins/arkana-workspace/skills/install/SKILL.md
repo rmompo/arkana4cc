@@ -11,7 +11,7 @@ Deja el workspace listo. **Todo es repetible**: lo que ya está bien no se toca.
 
 ## Pasos
 
-1. **Disposición de `.arkana/`** (manifiesto, `local.json`, `tools.json`, registro en `~/.arkana-workspaces.json`; copia de seguridad previa; se niega si hay un plan activo):
+1. **Disposición de `.arkana/`** (manifiesto, `local.json`, `tools.json`, registro en `~/.arkana/workspaces.json`; copia de seguridad previa; se niega si hay un plan activo):
 
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/layout.py" init --dry-run
