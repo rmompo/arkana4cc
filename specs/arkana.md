@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana
 
-> **Estado:** `beta` | **Versión:** `1.1.5`
+> **Estado:** `beta` | **Versión:** `1.1.6`
 
 ---
 
@@ -22,6 +22,7 @@ Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (w
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.6 | Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json |
 | 1.1.5 | gitinit: el ensayo muestra la identidad que se fijaria en lugar de una linea vacia |
 | 1.1.4 | install: install: nuevo paso git (git init y usuario y correo del repo) y entrevista de remoto y token de ARKANA sin pasar el token por la conversacion |
 | 1.1.3 | install: Tras la verificacion ofrece /arkana-workspace:fix para lo corregible y documenta el .gitignore de .arkana (hallazgos del laboratorio) |
