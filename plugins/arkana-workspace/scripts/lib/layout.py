@@ -6,7 +6,7 @@
 `init` es idempotente: crea lo que falta y nunca pisa lo que existe. Pasos, en orden:
   1. precondiciones: la carpeta del repo de Arkana existe; no hay un plan activo ni procesos de lanzamiento vivos;
   2. copia de seguridad `.arkana/arkana-workspace/bak/layout-<fecha>.tar.gz` (solo si hay datos y algo que cambiar);
-  3. `arkana.json`, `core/workspace.json` (solo con ARKANA: los componentes se dan de alta con `components.py add`, o `/arkana-workspace:component add`),
+  3. `/.arkana/` en el `.gitignore` del repo de ARKANA (si git no lo ignora ya), `arkana.json`, `core/workspace.json` (solo con ARKANA: los componentes se dan de alta con `components.py add`, o `/arkana-workspace:component add`),
      `arkana-workspace/local.json` (identidad git y rutas absolutas), `arkana-workspace/tools.json`;
   4. registro del workspace en `~/.arkana-workspaces.json`.
 """
@@ -61,6 +61,23 @@ def active_plan(state):
             continue
         return pid if plan.get("estado") in ACTIVE_PLAN_STATES else None
     return None
+
+
+def arkana_ignored(home):
+    """¿Git ignora `.arkana/` en el repo de ARKANA? True si no es un repo git (nada que ignorar)."""
+    if not os.path.isdir(os.path.join(home, ".git")):
+        return True
+    probe = os.path.join(locate.STATE_DIR, "arkana.json")
+    r = subprocess.run(["git", "-C", home, "check-ignore", "-q", probe], capture_output=True, timeout=15)
+    return r.returncode == 0
+
+
+def ensure_ignored(home):
+    """Añade `/.arkana/` al `.gitignore` del repo de ARKANA (lo crea si falta). Ahí viven datos locales y `.credentials`: nunca deben acabar en un commit."""
+    gi = os.path.join(home, ".gitignore")
+    cur = Path(gi).read_text(encoding="utf-8") if os.path.isfile(gi) else ""
+    with open(gi, "w", encoding="utf-8") as f:
+        f.write(cur + ("" if not cur or cur.endswith("\n") else "\n") + "/.arkana/\n")
 
 
 def live_processes():
@@ -124,6 +141,7 @@ def init(home, root=None, dry=False):
     if not os.path.isfile(local_json): todo.append(("arkana-workspace/local.json", local_json))
     if not os.path.isfile(tools_json): todo.append(("arkana-workspace/tools.json", tools_json))
     if not registered: todo.append(("registro", locate.registry_path()))
+    if not arkana_ignored(home): todo.append(("gitignore", os.path.join(home, ".gitignore")))
     if not todo:
         return rep.add("OK", "layout", "ya está inicializado")
 
@@ -161,6 +179,12 @@ def init(home, root=None, dry=False):
         write("local.json", local_json, {"schema_version": 1, "paths": {a: p for a, p in abs_paths.items()}, "git": ident}, mode=0o644)
     if ("arkana-workspace/tools.json", tools_json) in todo:
         write("tools.json", tools_json, {"schema_version": 1, "tools": []})
+    if ("gitignore", os.path.join(home, ".gitignore")) in todo:
+        if dry:
+            rep.add("DRY", "gitignore", "añadiría /.arkana/ al .gitignore del repo de ARKANA (datos locales y credenciales: no se versionan)")
+        else:
+            ensure_ignored(home)
+            rep.add("OK", "gitignore", "/.arkana/ añadido al .gitignore del repo de ARKANA (queda sin commitear)")
     if ("registro", locate.registry_path()) in todo:
         if dry:
             rep.add("DRY", "registro", f"registraría el workspace en {locate.registry_path()}")

@@ -26,7 +26,6 @@ class Lab:
         self.home_dir = os.path.join(self.root, "home")
         self.arkana = os.path.join(self.ws, "shared")
         os.makedirs(self.home_dir)
-        os.makedirs(os.path.join(self.arkana, "plugins"))
         os.makedirs(os.path.join(self.arkana, ".arkana", "core"))
         for alias, _t, carpeta in E.SEED_COMPONENTS:
             os.makedirs(os.path.join(self.ws, carpeta), exist_ok=True)
@@ -88,6 +87,43 @@ class TestInit(unittest.TestCase):
             self.assertIn("ya está inicializado", rep.text())
             self.assertEqual(json.loads(Path(ws).read_text())["workspace"]["name"], "editado")
             self.assertEqual(len(locate.read_registry()), 1)
+
+    def test_deja_ignorado_el_estado_local_en_el_repo_de_arkana(self):
+        with Lab() as lab:
+            gi = os.path.join(lab.arkana, ".gitignore")
+            self.assertFalse(os.path.exists(gi))
+            dry = layout.init(lab.arkana, lab.ws, dry=True)
+            self.assertIn("gitignore", dry.text()); self.assertFalse(os.path.exists(gi))          # el ensayo no escribe
+            rep = layout.init(lab.arkana, lab.ws)
+            self.assertEqual(rep.exit_code(), 0, rep.text())
+            with open(gi, encoding="utf-8") as f:
+                self.assertEqual(f.read(), "/.arkana/\n")
+            self.assertEqual(subprocess.run(["git", "-C", lab.arkana, "check-ignore", "-q", ".arkana/.credentials"]).returncode, 0)
+            self.assertIn("ya está inicializado", layout.init(lab.arkana, lab.ws).text())            # idempotente: no lo duplica
+            with open(gi, encoding="utf-8") as f:
+                self.assertEqual(f.read().count("/.arkana/"), 1)
+
+    def test_respeta_un_gitignore_existente_y_lo_que_ya_se_ignora(self):
+        with Lab() as lab:
+            gi = os.path.join(lab.arkana, ".gitignore")
+            with open(gi, "w", encoding="utf-8") as f:
+                f.write("node_modules/")                                                          # sin salto de línea final
+            layout.init(lab.arkana, lab.ws)
+            with open(gi, encoding="utf-8") as f:
+                self.assertEqual(f.read(), "node_modules/\n/.arkana/\n")
+        with Lab() as lab:
+            with open(os.path.join(lab.arkana, ".gitignore"), "w", encoding="utf-8") as f:
+                f.write(".arkana/\n")                                                             # ya ignorado con otra forma
+            layout.init(lab.arkana, lab.ws)
+            with open(os.path.join(lab.arkana, ".gitignore"), encoding="utf-8") as f:
+                self.assertEqual(f.read(), ".arkana/\n")
+
+    def test_sin_repo_git_no_toca_nada(self):
+        with Lab() as lab:
+            import shutil
+            shutil.rmtree(os.path.join(lab.arkana, ".git"))
+            layout.init(lab.arkana, lab.ws)
+            self.assertFalse(os.path.exists(os.path.join(lab.arkana, ".gitignore")))
 
     def test_dry_run_no_escribe_nada(self):
         with Lab() as lab:

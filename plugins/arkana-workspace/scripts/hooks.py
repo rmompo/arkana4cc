@@ -123,7 +123,7 @@ def statusline_installed():
 def todo_line(i, t):
     id_, titulo, prio, vence, comp, vencida, estado = t
     extra = [x for x in (prio if prio not in ("medium", "normal") else "", estado if estado not in ("pending", "open") else "",
-                         ("⚠ vencida " if vencida else "vence ") + vence if vence else "", comp if comp not in ("", "*", "all") else "") if x]
+                         ("⚠ vencida " if vencida else "vence ") + vence if vence else "", manifest.display(comp) if comp not in ("", "*", "all") else "") if x]
     return f"{i}. {titulo} [{id_}]" + (f" ({', '.join(extra)})" if extra else "")
 
 
