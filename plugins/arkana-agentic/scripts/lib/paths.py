@@ -8,7 +8,7 @@ Una subcarpeta por plugin, con el nombre del plugin, y `core/` para lo que usan 
 
 Resolucion de la carpeta de ARKANA (la misma en los scripts de bash de arkana-workspace):
   0. $ARKANA_HOME (carpeta del repo de Arkana; el localizador del nucleo, arkana_core.locate, la encuentra tambien por cwd y por registro)
-  1. un ancestro de este fichero que sea la carpeta de ARKANA (contiene plugins/ y `.arkana/arkana.json`), sea cual sea su nombre
+  1. un ancestro de este fichero que sea la carpeta de ARKANA (contiene `.arkana/arkana.json`), sea cual sea su nombre
   2. la raiz git del directorio actual: la carpeta hermana ../arkana, o ella misma si es la de ARKANA
   Si ninguna lo encuentra: error `NoWorkspace` (no hay ruta por defecto: el workspace se crea con /arkana-workspace:install).
 Resolucion de `.arkana`: $ARKANA_PLUGINS_DIR o <arkana>/.arkana.
@@ -23,7 +23,7 @@ class NoWorkspace(RuntimeError):
 
 
 def _is_arkana(d):
-    return os.path.isdir(os.path.join(d, "plugins")) and os.path.isfile(os.path.join(d, ".arkana", "arkana.json"))
+    return os.path.isfile(os.path.join(d, ".arkana", "arkana.json"))
 
 
 def _git_root(cwd):

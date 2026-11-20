@@ -29,7 +29,7 @@ class TestNombreDeCarpeta(Base):
     """La carpeta de ARKANA se reconoce por su contenido, no por su nombre; `arkana` vale como hermana de un repo git."""
     def _crear(self, nombre):
         d = os.path.join(self.tmp.name, nombre)
-        os.makedirs(os.path.join(d, "plugins")); os.makedirs(os.path.join(d, ".arkana"))
+        os.makedirs(os.path.join(d, ".arkana"))
         Path(os.path.join(d, ".arkana", "arkana.json")).write_text("{}")
         return os.path.realpath(d)
 
