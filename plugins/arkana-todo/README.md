@@ -39,7 +39,7 @@ Todas aceptan `--json`; las que escriben aceptan `--dry-run`. Salida `ESTADO|ID|
 | `estado` | `pending` (por defecto) · `in-progress` · `paused` · `blocked` · `done` · `rejected` · `removed` |
 | `prioridad` | `critical` · `high` · `medium` (por defecto) · `low` |
 | `vence` | `AAAA-MM-DD` o vacío |
-| `componente` | alias del manifiesto, `arkana` o `*` (todos; por defecto). Se valida si hay manifiesto |
+| `componente` | alias del manifiesto, `arkana` o `*` (todos; por defecto). Se valida si hay manifiesto; al teclearlo vale también la carpeta o el módulo (se guarda el alias) y en las tablas se muestra en MAYÚSCULAS |
 | `creada` / `cerrada` | fechas ISO |
 | `notas` | texto libre (sin secretos) |
 

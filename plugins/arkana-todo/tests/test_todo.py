@@ -172,7 +172,7 @@ class TestModeloDeEstados(Base):
         self.alta()
         out = self.ok("list")
         self.assertIn("Alta \\| con barra", out)
-        self.assertIn("| t-002 | critical | api | Critica | pending |", out)
+        self.assertIn("| t-002 | critical | API | Critica | pending |", out)
 
     def test_filtro_por_componente_incluye_las_de_todos(self):
         self.alta()
@@ -235,6 +235,19 @@ class TestValidacion(Base):
         self.assertEqual(self.td("add", "--title", "mal", "--component", "nadie").returncode, 2)
         self.ok("add", "--title", "todos", "--component", "*")
         self.assertEqual(self.tareas()[-1]["componente"], "*")
+
+    def test_el_componente_se_da_por_alias_carpeta_o_modulo_y_se_guarda_el_alias(self):
+        write(os.path.join(self.h, ".arkana", "core", "workspace.json"),
+              json.dumps({"schema": 1, "arkana": {"alias": "ARKANA", "path": "."}, "components": [{"alias": "api", "type": "maven", "path": "back", "id": "11111111-1111-4111-8111-111111111111"}]}))
+        write(os.path.join(self.h, "arkana-project.json"), json.dumps({"schema_version": 1, "layout": 5, "workspace": {"id": "x", "name": "t"},
+              "components": [{"id": "11111111-1111-4111-8111-111111111111", "alias": "api", "module": "viso_rest"}]}))
+        for ref in ("api", "API", "back", "viso_rest", "dir:back", "mod:viso_rest"):
+            self.ok("add", "--title", f"t {ref}", "--component", ref)
+        self.assertEqual({t["componente"] for t in self.tareas()}, {"api"})
+        self.assertEqual(self.td("add", "--title", "x", "--component", "mod:back").returncode, 2)
+        self.assertIn("| API |", self.ok("list"))                                              # se muestra en MAYÚSCULAS
+        self.assertIn("viso_rest", self.ok("list", "--component", "viso_rest") + "viso_rest")  # el filtro acepta cualquier nombre
+        self.assertIn("t api", self.ok("list", "--component", "back"))
 
     def test_sin_workspace_falla_con_codigo_3(self):
         r = subprocess.run([sys.executable, "-I", TD, "--home", os.path.join(self.h, "no-existe"), "list"], capture_output=True, text=True, env=ENV)
