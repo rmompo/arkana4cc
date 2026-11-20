@@ -152,12 +152,20 @@ def aliases(home):
         return None
 
 
+def resolve_name(home, x):
+    """Alias canónico de un componente dado por alias, carpeta o módulo (o con `alias:`, `dir:`, `mod:`); sin manifiesto, el valor en minúsculas."""
+    try:
+        return manifest.load(home).key(x)
+    except Exception:
+        return manifest.canon(x)
+
+
 def norm_components(home, value):
     """Lista de componentes para guardar en un documento compartido: ids del registro (o `all`). Sin registro, alias (comprobados contra el manifiesto)."""
     reg = registry(home)
     out = []
     for x in csv(value) if value is not None else []:
-        k = manifest.canon(x)
+        k = resolve_name(home, x)
         if k == "all":
             out.append("all")
             continue
@@ -192,7 +200,7 @@ def matches_component(home, comps, wanted):
     """¿Un documento con `comps` aplica al componente pedido (alias o id)? `all` aplica a todos."""
     if not wanted:
         return True
-    w = manifest.canon(wanted)
+    w = resolve_name(home, wanted)
     if w == "all" or "all" in comps:
         return True
     reg = registry(home)
