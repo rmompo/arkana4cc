@@ -73,17 +73,20 @@ class TestSeccionTodo(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         return json.loads(r.stdout).get("systemMessage", "")
 
-    def test_lista_las_abiertas_ordenadas_con_prioridad_vencimiento_y_componente(self):
+    def test_lista_las_activas_ordenadas_por_prioridad_con_estado_vencimiento_y_componente(self):
         with TC.CLab() as lab:
             migrada(lab)
-            t = lambda i, titulo, **kw: dict({"id": i, "titulo": titulo, "estado": "open", "prioridad": "normal", "vence": "", "componente": ""}, **kw)
+            t = lambda i, titulo, **kw: dict({"id": i, "titulo": titulo, "estado": "pending", "prioridad": "medium", "vence": "", "componente": "*"}, **kw)
             self.tareas(lab, [t("t-001", "Sin fecha"), t("t-002", "Urgente", prioridad="high", vence="2099-01-01", componente="api"),
-                              t("t-003", "Atrasada", vence="2000-01-01"), t("t-004", "Hecha", estado="done"), t("t-005", "Borrada", estado="deleted")])
+                              t("t-003", "Atrasada", vence="2000-01-01"), t("t-004", "Hecha", estado="done"), t("t-005", "Borrada", estado="removed"),
+                              t("t-006", "Bloqueada", estado="blocked", prioridad="low"), t("t-007", "Legado", estado="open", prioridad="normal", componente=""),
+                              t("t-008", "Rechazada", estado="rejected")])
             m = self.brief(lab)
             self.assertIn("\n### TODO:\n", m)
-            self.assertIn("1. Atrasada [t-003] (⚠ vencida 2000-01-01)\n2. Urgente [t-002] (high, vence 2099-01-01, api)\n3. Sin fecha [t-001]\n", m)
-            self.assertNotIn("Hecha", m)
-            self.assertNotIn("Borrada", m)
+            self.assertIn("1. Urgente [t-002] (high, vence 2099-01-01, api)\n2. Atrasada [t-003] (⚠ vencida 2000-01-01)\n3. Sin fecha [t-001]\n"
+                          "4. Legado [t-007]\n5. Bloqueada [t-006] (low, blocked)\n", m)
+            for oculta in ("Hecha", "Borrada", "Rechazada"):
+                self.assertNotIn(oculta, m)
             self.assertIn("- Use '/arkana-todo:list'", m)
 
     def test_orden_de_las_secciones(self):

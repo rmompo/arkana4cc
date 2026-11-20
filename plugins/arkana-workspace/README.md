@@ -861,7 +861,7 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 - Use '/arkana-workspace:sync' - fetch the remotes so the commits to pull (⇣) are up to date
 - Use '/arkana-workspace:status' - git state of every component
 - Use '/arkana-agentic:status' - progress and cost of the active plan
-- Use '/arkana-todo:list' - open tasks with priority and due date
+- Use '/arkana-todo:list' - active tasks grouped by status, with priority and due date
 - Use '/arkana-knowledge:ingest' - turn what is waiting in arkana-incoming/ into notes and documents
 - Use '/arkana-evolve:check' - check whether this installation needs migrations (then '/arkana-evolve:apply')
 
@@ -886,7 +886,7 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 |---|---|
 | `QUICK START` | Comandos en el orden **config → check → fix → uso diario**: primero la puesta a punto (`config`, `check`, `fix`), luego el trabajo del día. `/arkana-statusline:install` solo si `statusLine` de `~/.claude/settings.json` no apunta a `arkana-statusline`; `messaging query --unread` solo con mensajes; `sync` siempre; `status` solo con cambios git; `agentic:status` solo con plan |
 | `MESSAGING` | Por pieza, de `arkana-messaging/state/index.json` y `state/read/<actor>.json`: `N tasks` (task, review o question de una vez, abiertas y sin confirmar por ella), `N repeat` (directrices vigentes que le alcanzan; no las `propuesto`) y `N unread notices` (avisos sin leer, solo si los hay). Se excluyen borrados, reconciliados y propios |
-| `TODO` | Tareas abiertas de `arkana-todo/todos.json` (no hechas ni borradas), ordenadas como `list`: vencimiento, prioridad e id; hasta 5 y `... and N more`. Cada línea: título, `[id]` y entre paréntesis lo que no es el valor por defecto (prioridad distinta de `normal`, `vence`/`⚠ vencida`, componente) |
+| `TODO` | Tareas activas de `arkana-todo/todos.json` (`pending`, `in-progress`, `paused`, `blocked`; no `done`, `rejected` ni `removed`), por prioridad (`critical` primero), vencimiento e id; hasta 5 y `... and N more`. Cada línea: título, `[id]` y entre paréntesis lo que no es el valor por defecto (prioridad distinta de `medium`, estado distinto de `pending`, `vence`/`⚠ vencida`, componente distinto de `*`) |
 | `GIT` | Piezas con cambios o commits sin subir (`gitstate`, hasta 8 repos en paralelo), con su rama |
 | `ORCHESTRATION` | Plan activo (`arkana-agentic/state/actual` y su `plan.json`, salvo `completado`, `archivado` o `cancelado`) con su estado y gasto |
 
