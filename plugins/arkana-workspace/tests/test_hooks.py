@@ -89,6 +89,38 @@ class TestSeccionTodo(unittest.TestCase):
                 self.assertNotIn(oculta, m)
             self.assertIn("- Use '/arkana-todo:list'", m)
 
+    def notas(self, lab, notas):
+        wj(os.path.join(lab.arkana, ".arkana", "arkana-note", "notes.json"), {"version": 1, "next": 99, "notas": notas})
+
+    def test_las_notas_activas_salen_en_el_brief_y_en_el_quick_start(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            n = lambda i, titulo, **kw: dict({"id": i, "titulo": titulo, "estado": "active", "componente": "*", "modificada": "2026-01-01"}, **kw)
+            self.notas(lab, [n("n-001", "Vieja"), n("n-002", "Reciente", modificada="2026-06-01", componente="api"), n("n-003", "Borrada", estado="removed")])
+            m = self.brief(lab)
+            self.assertIn("\n### NOTES:\n1. Reciente [n-002] (API)\n2. Vieja [n-001]\n", m)
+            self.assertNotIn("Borrada", m)
+            self.assertIn("- Use '/arkana-note:list' - your notes", m)
+
+    def test_las_notas_van_despues_de_todo_y_antes_de_git_y_se_acotan(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            app = os.path.join(lab.ws, "app")
+            with open(os.path.join(app, "nuevo.txt"), "w") as f:
+                f.write("x")
+            self.tareas(lab, [{"id": "t-001", "titulo": "Algo", "estado": "pending", "prioridad": "medium"}])
+            self.notas(lab, [{"id": f"n-{i:03d}", "titulo": f"Nota {i}", "estado": "active", "modificada": f"2026-01-{i:02d}"} for i in range(1, 9)])
+            m = self.brief(lab)
+            self.assertLess(m.index("### TODO:"), m.index("### NOTES:")); self.assertLess(m.index("### NOTES:"), m.index("### GIT (pending):"))
+            self.assertIn("5. Nota 4 [n-004]\n... and 3 more", m)
+
+    def test_sin_notas_no_hay_seccion_ni_linea_en_el_quick_start(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            self.tareas(lab, [{"id": "t-001", "titulo": "Algo", "estado": "pending", "prioridad": "medium"}])
+            m = self.brief(lab)
+            self.assertNotIn("NOTES", m); self.assertNotIn("/arkana-note:list", m)
+
     def test_orden_de_las_secciones(self):
         with TC.CLab() as lab:
             migrada(lab)
