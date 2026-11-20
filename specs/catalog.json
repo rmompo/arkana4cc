@@ -987,10 +987,38 @@
       "description": "Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: local, sin red, con prioridad, vencimiento y componente, cierre reversible y borrado lógico (add, list, done, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.17",
+      "version": "1.1.24",
       "spec": "specs/arkana-todo.md",
       "path": "plugins/arkana-todo",
       "changelog": [
+        {
+          "version": "1.1.24",
+          "changes": "modify: modify: nuevo --status y componente * para todos; removed solo sale con --restore"
+        },
+        {
+          "version": "1.1.23",
+          "changes": "list: list: una tabla por estado (identificador, prioridad, componente, descripcion, estado) ordenadas por prioridad; done, rejected y removed ocultos por defecto"
+        },
+        {
+          "version": "1.1.22",
+          "changes": "fix: Modelo nuevo: migra los valores antiguos (open, deleted, normal, all) a los actuales"
+        },
+        {
+          "version": "1.1.21",
+          "changes": "done: Modelo nuevo: reabrir deja la tarea en pending y el resto de estados se cambian con modify --status"
+        },
+        {
+          "version": "1.1.20",
+          "changes": "delete: Modelo nuevo: estados pending, in-progress, paused, blocked, done, rejected y removed; prioridad critical a low; componente * para todos"
+        },
+        {
+          "version": "1.1.19",
+          "changes": "check: Modelo nuevo: estados pending, in-progress, paused, blocked, done, rejected y removed; prioridad critical a low; componente * para todos"
+        },
+        {
+          "version": "1.1.18",
+          "changes": "add: Modelo nuevo: estados pending, in-progress, paused, blocked, done, rejected y removed; prioridad critical a low; componente * para todos"
+        },
         {
           "version": "1.1.17",
           "changes": "Núcleo 1.8.0 vendorizado: campos mode, ref, watch y checks_skip del componente, esquema 2 del manifiesto y LAYOUT_KNOWN"
@@ -1067,8 +1095,12 @@
       "skills": [
         {
           "name": "add",
-          "version": 9,
+          "version": 18,
           "changelog": [
+            {
+              "version": 18,
+              "changes": "Modelo nuevo: estados pending, in-progress, paused, blocked, done, rejected y removed; prioridad critical a low; componente * para todos"
+            },
             {
               "version": 9,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1085,8 +1117,12 @@
         },
         {
           "name": "check",
-          "version": 10,
+          "version": 19,
           "changelog": [
+            {
+              "version": 19,
+              "changes": "Modelo nuevo: estados pending, in-progress, paused, blocked, done, rejected y removed; prioridad critical a low; componente * para todos"
+            },
             {
               "version": 10,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1103,8 +1139,12 @@
         },
         {
           "name": "delete",
-          "version": 11,
+          "version": 20,
           "changelog": [
+            {
+              "version": 20,
+              "changes": "Modelo nuevo: estados pending, in-progress, paused, blocked, done, rejected y removed; prioridad critical a low; componente * para todos"
+            },
             {
               "version": 11,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1121,8 +1161,12 @@
         },
         {
           "name": "done",
-          "version": 12,
+          "version": 21,
           "changelog": [
+            {
+              "version": 21,
+              "changes": "Modelo nuevo: reabrir deja la tarea en pending y el resto de estados se cambian con modify --status"
+            },
             {
               "version": 12,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1139,8 +1183,12 @@
         },
         {
           "name": "fix",
-          "version": 13,
+          "version": 22,
           "changelog": [
+            {
+              "version": 22,
+              "changes": "Modelo nuevo: migra los valores antiguos (open, deleted, normal, all) a los actuales"
+            },
             {
               "version": 13,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1175,8 +1223,12 @@
         },
         {
           "name": "list",
-          "version": 15,
+          "version": 23,
           "changelog": [
+            {
+              "version": 23,
+              "changes": "list: una tabla por estado (identificador, prioridad, componente, descripcion, estado) ordenadas por prioridad; done, rejected y removed ocultos por defecto"
+            },
             {
               "version": 15,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1193,8 +1245,12 @@
         },
         {
           "name": "modify",
-          "version": 16,
+          "version": 24,
           "changelog": [
+            {
+              "version": 24,
+              "changes": "modify: nuevo --status y componente * para todos; removed solo sale con --restore"
+            },
             {
               "version": 16,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1216,10 +1272,14 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.31",
+      "version": "6.2.32",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.32",
+          "changes": "BRIEF: las tareas activas de arkana-todo salen por prioridad con su estado (nuevo modelo de estados y prioridades)"
+        },
         {
           "version": "6.2.31",
           "changes": "stop requiring a plugins folder to recognise the Arkana repo"
