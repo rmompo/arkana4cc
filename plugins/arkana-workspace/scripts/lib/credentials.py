@@ -6,7 +6,7 @@ Este módulo es el único resolvedor. Nunca imprime un valor (ni su longitud): l
 
   credentials.py keys                          lista las claves (sin valores)
   credentials.py has <CLAVE>                   sale con 0 si existe y no está vacía
-  credentials.py set <CLAVE>                   lee el valor de stdin (nunca de argumentos, que quedan en el historial del shell)
+  credentials.py set <CLAVE>                   lee el valor de stdin (nunca de argumentos, que quedan en el historial del shell); desde una terminal lo pide sin mostrarlo
   credentials.py unset <CLAVE>
   credentials.py check                         modo 600, ignorado por git, sin valores vacíos
   credentials.py import-maven <settings.xml> [--server <id>] [--prefix REGISTRY]
@@ -14,6 +14,7 @@ Este módulo es el único resolvedor. Nunca imprime un valor (ni su longitud): l
   credentials.py wire-git <alias> [--dry-run]  configura el asistente de git (git-credential-arkana) en el repo de ese componente
 """
 import argparse
+import getpass
 import os
 import re
 import stat
@@ -181,7 +182,7 @@ def main(argv=None):
             if a.dry_run:
                 rep.add("DRY", a.arg, "se guardaría")
             else:
-                value = sys.stdin.readline().rstrip("\r\n")
+                value = (getpass.getpass(f"valor de {a.arg} (no se muestra): ") if sys.stdin.isatty() else sys.stdin.readline()).rstrip("\r\n")
                 set_key(home, a.arg, value)
                 rep.add("OK", a.arg, "guardada")
         elif a.cmd == "unset":

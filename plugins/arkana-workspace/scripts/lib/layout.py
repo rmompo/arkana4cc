@@ -68,7 +68,7 @@ def arkana_ignored(home):
     if not os.path.isdir(os.path.join(home, ".git")):
         return True
     probe = os.path.join(locate.STATE_DIR, "arkana.json")
-    r = subprocess.run(["git", "-C", home, "check-ignore", "-q", probe], capture_output=True, timeout=15)
+    r = subprocess.run(["git", "-C", home, "check-ignore", "--no-index", "-q", probe], capture_output=True, timeout=15)
     return r.returncode == 0
 
 

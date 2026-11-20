@@ -2,7 +2,7 @@
 name: component
 description: Gestiona los componentes (repos) del workspace en el manifiesto core/workspace.json - list, add, edit y remove - con alias, ruta, tipo, remoto, ramas, referencia de token, VPN y herramientas. Valida, hace copia .bak y acepta --dry-run y --json. La identidad git personal y las rutas absolutas van a local.json. Also invoked explicitly as /arkana-workspace:component
 allowed-tools: [AskUserQuestion]
-version: 33
+version: 36
 ---
 
 # arkana-workspace:component
@@ -17,8 +17,8 @@ Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directric
 | `--type` | `node`, `maven`, `docs` o `generic` |
 | `--remote` | URL del remoto, **sin usuario ni contraseña** (se rechaza si los lleva) |
 | `--main`, `--develop` | Ramas principal y de integración |
-| `--git-user`, `--git-email` | Identidad personal (va a `local.json`, no se exporta) |
-| `--git-username`, `--token-ref` | Usuario para git y **nombre** de la clave del token en `.credentials` (nunca el valor) |
+| `--git-user`, `--git-email` | Identidad personal: se fija con `git config --local` en el repo del componente (si ya es un repo git) y va a `local.json`; nunca a `~/.gitconfig` ni al manifiesto exportable. **Se piden siempre al añadir** |
+| `--git-username`, `--token-ref` | Usuario para git y **nombre** de la clave del token en `.credentials` (nunca el valor). **Se piden si el componente tiene remoto**; el valor lo guarda la persona con `credentials.py set` en su terminal |
 | `--commit-format` | Convención de commits: `conventional` (por defecto) o `ia4d` (opcional). Con `conventional({module})` o `ia4d({module})` el scope del commit es el módulo del componente (sin módulo, el alias) |
 | `--git-email-domain` | Dominio de correo exigido al autor de los commits (repetible; sustituye la lista; sin él no hay regla) |
 | `--vpn` / `--no-vpn` | Si requiere VPN |
@@ -34,6 +34,8 @@ Altas, cambios y bajas de componentes (`edit --alias arkana` edita las directric
 ## Pasos
 
 1. `list` para ver el estado actual. Para `add`/`edit`/`remove` recoge los datos con `AskUserQuestion` si faltan; **ensaya con `--dry-run`** y confirma antes de aplicar.
+   **En un `add` pide siempre la identidad git del componente**: el **usuario** (`--git-user`) y el **correo** (`--git-email`), que se fijan a nivel de repo si la carpeta ya es un repo git (y quedan en `local.json`). Si el componente **tiene remoto** (`--remote`), pide además el **usuario del remoto** (`--git-username`) y el **nombre de la clave del token** (`--token-ref`, por defecto `GIT_TOKEN_<ALIAS>`). El CLI lo recuerda con `WARN|identidad` y `WARN|credenciales` cuando falta algo: repite la orden con lo que te den.
+   **El token nunca pasa por la conversación ni por un argumento**: la persona lo guarda en su propia terminal con `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/credentials.py" set <CLAVE>` (lo pide sin mostrarlo) y tú solo compruebas `credentials.py has <CLAVE>` (código de salida) y ejecutas `credentials.py wire-git <alias>`. Lo mismo para ARKANA: si se guarda en un remoto, `edit --alias arkana --remote … --git-username … --token-ref …`.
 2. Tras `add` o `edit`: ofrece `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/permissions.py" apply --component <alias> --dry-run` (y luego sin `--dry-run`) para generar sus permisos, y `credentials.py wire-git <alias>` si tiene `--token-ref`.
 3. Si el token no existe aún, indica `credentials.py set <CLAVE>` (el valor entra por stdin, nunca como argumento).
 
