@@ -4,7 +4,7 @@
   layout.py init [--dry-run] [--json] [--home <dir>] [--base <dir>]
 
 `init` es idempotente: crea lo que falta y nunca pisa lo que existe. Pasos, en orden:
-  1. precondiciones: hay un repo de Arkana (con `plugins/`); no hay un plan activo ni procesos de lanzamiento vivos;
+  1. precondiciones: la carpeta del repo de Arkana existe; no hay un plan activo ni procesos de lanzamiento vivos;
   2. copia de seguridad `.arkana/arkana-workspace/bak/layout-<fecha>.tar.gz` (solo si hay datos y algo que cambiar);
   3. `arkana.json`, `core/workspace.json` (solo con ARKANA: los componentes se dan de alta con `components.py add`, o `/arkana-workspace:component add`),
      `arkana-workspace/local.json` (identidad git y rutas absolutas), `arkana-workspace/tools.json`;
@@ -103,8 +103,8 @@ def backup(state, dry):
 def init(home, root=None, dry=False):
     rep = output.Report("arkana-workspace", "layout-init")
     state = locate.state_dir(home)
-    if not os.path.isdir(os.path.join(home, "plugins")):
-        return rep.add("FAIL", "home", f"{home} no parece el repo de Arkana (no tiene plugins/)")
+    if not os.path.isdir(home):
+        return rep.add("FAIL", "home", f"{home} no existe: indica la carpeta del repo de Arkana (--home)")
     pid = active_plan(state)
     if pid:
         return rep.add("FAIL", "plan-activo", f"hay un plan activo ({pid}): termínalo o deténlo antes de inicializar")
