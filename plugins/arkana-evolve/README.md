@@ -5,6 +5,8 @@ Evolución de una instalación de Arkana. Arkana cambia con el tiempo (carpetas 
 Es uno de los plugins del marketplace `arkana` (visión de conjunto en [`../README.md`](../README.md)). Solo usa la biblioteca estándar de Python 3. **No depende de ningún otro plugin**: debe poder ejecutarse cuando el layout está desactualizado, y es el único que conoce los formatos antiguos.
 
 
+**Registro de usuario.** `apply` mueve `~/.arkana-workspaces.json` a `~/.arkana/workspaces.json` (conservando las entradas de todos los workspaces) la primera vez; mientras tanto el antiguo se sigue leyendo.
+
 **Aviso de la statusline.** `check` y `apply` avisan (`WARN|statusline`) si la copia de `~/.claude/arkana-statusline` lleva un núcleo anterior al de esta instalación: es un dato de usuario fuera del repo que ninguna migración toca; se refresca con `/arkana-statusline:fix`.
 
 ## Skills

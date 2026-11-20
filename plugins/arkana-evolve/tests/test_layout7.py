@@ -108,6 +108,29 @@ class TestMigracion0007(unittest.TestCase):
             self.assertEqual(lab.read(".gitignore"), "a\nb\n")
 
 
+class TestRegistroDeUsuario(unittest.TestCase):
+    def test_mueve_el_registro_antiguo_a_la_carpeta_arkana_del_usuario(self):
+        with Lab() as lab:
+            viejo = os.path.join(lab.home, ".arkana-workspaces.json")
+            with open(viejo, "w") as f:
+                json.dump({"workspaces": [{"name": "otro", "arkana": "/x/arkana", "root": "/x"}]}, f)
+            r = lab.run("apply", "--dry-run")
+            self.assertIn("DRY|registro-usuario|", r.stdout)
+            self.assertTrue(os.path.isfile(viejo))                                            # el ensayo no mueve nada
+            self.assertIn("OK|registro-usuario|", lab.run("apply").stdout)
+            nuevo = os.path.join(lab.home, ".arkana", "workspaces.json")
+            self.assertFalse(os.path.exists(viejo))
+            with open(nuevo) as f:
+                nombres = sorted(w["name"] for w in json.load(f)["workspaces"])
+            self.assertIn("otro", nombres)                                                    # conserva las entradas de otros workspaces
+            self.assertNotIn("registro-usuario", lab.run("apply").stdout)                     # idempotente
+
+    def test_sin_registro_antiguo_no_toca_nada(self):
+        with Lab() as lab:
+            self.assertNotIn("registro-usuario", lab.run("apply").stdout)
+            self.assertFalse(os.path.exists(os.path.join(lab.home, ".arkana")))
+
+
 class TestAvisoDeLaStatusline(unittest.TestCase):
     def test_avisa_si_la_copia_de_la_statusline_es_anterior(self):
         with Lab() as lab:
