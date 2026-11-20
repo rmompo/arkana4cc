@@ -1,8 +1,8 @@
 ---
 name: check
-description: Diagnóstico de solo lectura de la evolución de Arkana - sello de layout del repo, migraciones aplicadas y pendientes, e integridad de lo ya aplicado. Avisa si el repo va por delante de esta instalación. Acepta --json. Also invoked explicitly as /arkana-evolve:check
+description: Diagnóstico de solo lectura de la evolución de Arkana - sello de layout del repo, migraciones aplicadas y pendientes, e integridad de lo ya aplicado. Avisa si el repo va por delante de esta instalación y si la copia de la statusline de `~/.claude` es anterior. Acepta --json. Also invoked explicitly as /arkana-evolve:check
 allowed-tools: []
-version: 4
+version: 13
 ---
 
 # arkana-evolve:check
