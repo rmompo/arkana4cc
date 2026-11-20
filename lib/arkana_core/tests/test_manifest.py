@@ -23,7 +23,7 @@ class TestCarga(unittest.TestCase):
     def test_display_y_canon(self):
         self.assertEqual(manifest.canon(" APP "), "app")
         self.assertEqual(manifest.display("arkana"), "ARKANA")
-        self.assertEqual(manifest.display("App"), "app")
+        self.assertEqual(manifest.display("App"), "APP")
 
     def test_alias_sin_distinguir_mayusculas(self):
         with common.Lab() as lab:
