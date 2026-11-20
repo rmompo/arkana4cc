@@ -24,6 +24,7 @@ Arkana no sabe nada de ningún proyecto concreto: los componentes, sus rutas, ti
 | [`arkana-statusline`](arkana-statusline/README.md) | Barra de estado de dos líneas: componentes y su estado git, plan, coste, modelo y uso | — | — |
 | [`arkana-knowledge`](arkana-knowledge/README.md) | Conocimiento del proyecto, versionado en git y gestionado por las personas usuarias (`add`, `modify`, `delete`, `query`); funciona como un pseudo-RAG: notas con UUID (changelog por nota) y documentos de origen con su versión en Markdown, indexados en local; los documentos entran por `arkana-incoming/` con `ingest` | — | — |
 | [`arkana-todo`](arkana-todo/README.md) | Lista de tareas pendientes de la persona usuaria: local, con prioridad, vencimiento y componente; cierre reversible y borrado lógico (`add`, `list`, `done`, `modify`, `delete`) | — | — |
+| [`arkana-note`](arkana-note/README.md) | Notas de la persona usuaria: locales, con título, texto y componente (alias o `*`); borrado lógico; salen en el BRIEF de la sesión (`add`, `list`, `modify`, `delete`) | — | — |
 | [`arkana-evolve`](arkana-evolve/README.md) | Evolución de una instalación: migraciones numeradas, idempotentes y con `--dry-run` (`apply`, `check`); crea el registro del proyecto con UUID y las carpetas fijas | — | — |
 
 Todos (salvo `arkana`, que solo ofrece `install`) ofrecen los verbos `install`, `check` y `fix`, salvo `arkana-evolve`, que ofrece `check` y `apply`.
@@ -33,17 +34,17 @@ Todos (salvo `arkana`, que solo ofrece `install`) ofrecen los verbos `install`, 
 ```bash
 claude plugin marketplace add <ruta>
 claude plugin install arkana@arkana              # el instalador guiado (/arkana:install)
-claude plugin install arkana-workspace@arkana     # y el resto que quieras: arkana-messaging, arkana-agentic, arkana-statusline, arkana-knowledge, arkana-todo, arkana-evolve
+claude plugin install arkana-workspace@arkana     # y el resto que quieras: arkana-messaging, arkana-agentic, arkana-statusline, arkana-knowledge, arkana-todo, arkana-note, arkana-evolve
 ```
 
-**Atajo:** instala los plugins y, desde la carpeta de Arkana, ejecuta `/arkana:install`: encadena los pasos 1, 3, 4 (herramientas solo se diagnostican), 5 y los permisos del 6, y al terminar sugiere el paso 2 (el primer componente).
+**Atajo:** instala los plugins y, desde la carpeta de Arkana, ejecuta `/arkana:install`: encadena los pasos 1, 3, 4 (herramientas solo se diagnostican), 5 (incluido `arkana-note`) y los permisos del 6, y al terminar sugiere el paso 2 (el primer componente).
 
 Paso a paso, desde la carpeta de Arkana y en este orden:
 
 1. `/arkana-workspace:install` crea `.arkana/` y el manifiesto (solo con ARKANA).
 2. `/arkana-workspace:component add` da de alta cada componente (alias, ruta, tipo, remoto, formato de commit…).
 3. `/arkana-workspace:config tools` declara las herramientas del proyecto (ver «Dónde vive cada cosa»).
-4. `/arkana-messaging:install`, `/arkana-agentic:install`, `/arkana-statusline:install`, `/arkana-knowledge:install` y `/arkana-todo:install`, los que uses.
+4. `/arkana-messaging:install`, `/arkana-agentic:install`, `/arkana-statusline:install`, `/arkana-knowledge:install`, `/arkana-todo:install` y `/arkana-note:install`, los que uses.
 5. `/arkana-evolve:apply` lleva el layout al más reciente (registro del proyecto con UUID y carpetas fijas con `.gitkeep`); una sola persona lo aplica y empuja, el resto hace pull y lo ejecuta.
 6. `/arkana-workspace:fix` y `/arkana-workspace:check`: permisos, exclusiones locales de git, identidad git y convención de commits; el `check` revisa también los demás plugins.
 
