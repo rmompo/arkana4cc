@@ -395,10 +395,18 @@
       "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra (apply, check)",
       "category": "other",
       "status": "beta",
-      "version": "0.5.11",
+      "version": "0.5.13",
       "spec": "specs/arkana-evolve.md",
       "path": "plugins/arkana-evolve",
       "changelog": [
+        {
+          "version": "0.5.13",
+          "changes": "check: check: avisa tambien de la copia de la statusline anterior; tests de cobertura de la cadena de migraciones"
+        },
+        {
+          "version": "0.5.12",
+          "changes": "apply: apply: la descripcion recoge todo lo que migra (tareas, .gitignore de .arkana, arkana-docs en src, md y out y registro de usuario)"
+        },
         {
           "version": "0.5.11",
           "changes": "Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente"
@@ -451,8 +459,12 @@
       "skills": [
         {
           "name": "apply",
-          "version": 7,
+          "version": 12,
           "changelog": [
+            {
+              "version": 12,
+              "changes": "apply: la descripcion recoge todo lo que migra (tareas, .gitignore de .arkana, arkana-docs en src, md y out y registro de usuario)"
+            },
             {
               "version": 7,
               "changes": "Migraciones 0006 (modelo de estados de arkana-todo) y 0007 (/.arkana/ en el .gitignore), layout 7, aviso de la copia de la statusline y bucle de apply que reevalua tras cada migracion"
@@ -473,8 +485,12 @@
         },
         {
           "name": "check",
-          "version": 4,
+          "version": 13,
           "changelog": [
+            {
+              "version": 13,
+              "changes": "check: avisa tambien de la copia de la statusline anterior; tests de cobertura de la cadena de migraciones"
+            },
             {
               "version": 4,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
