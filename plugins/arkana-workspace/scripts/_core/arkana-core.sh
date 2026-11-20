@@ -2,7 +2,7 @@
 # Núcleo de Arkana para bash: localizador del workspace, manifiesto y ayudas de salida. Se carga con `source`. Requiere jq.
 # Misma resolución que arkana_core/locate.py y manifest.py (hay un test de paridad):
 #   ac_home [dir]            carpeta del repo de Arkana: $ARKANA_HOME, un ancestro con .arkana/arkana.json, o el registro
-#                            ~/.arkana-workspaces.json; sale con 1 (sin imprimir nada) si no hay workspace
+#                            ~/.arkana/workspaces.json (o el antiguo ~/.arkana-workspaces.json); sale con 1 (sin imprimir nada) si no hay workspace
 #   ac_state <home>          <home>/.arkana
 #   ac_root <home>           raíz del workspace (`root` de arkana.json, por defecto ..)
 #   ac_canon <alias>         alias canónico (minúsculas)
@@ -12,7 +12,10 @@
 #   ac_emit ESTADO ID detalle         línea `ESTADO|ID|detalle`
 AC_STATE_DIR=".arkana"
 
-ac__registry() { printf '%s/.arkana-workspaces.json' "$HOME"; }
+ac__registry() {
+  if [ -f "$HOME/.arkana/workspaces.json" ] || [ ! -f "$HOME/.arkana-workspaces.json" ]; then printf '%s/.arkana/workspaces.json' "$HOME"
+  else printf '%s/.arkana-workspaces.json' "$HOME"; fi
+}
 ac__is_home() { [ -f "$1/$AC_STATE_DIR/arkana.json" ]; }
 
 ac_home() {

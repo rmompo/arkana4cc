@@ -8,7 +8,7 @@
   2. copia de seguridad `.arkana/arkana-workspace/bak/layout-<fecha>.tar.gz` (solo si hay datos y algo que cambiar);
   3. `/.arkana/` en el `.gitignore` del repo de ARKANA (si git no lo ignora ya), `arkana.json`, `core/workspace.json` (solo con ARKANA: los componentes se dan de alta con `components.py add`, o `/arkana-workspace:component add`),
      `arkana-workspace/local.json` (identidad git y rutas absolutas), `arkana-workspace/tools.json`;
-  4. registro del workspace en `~/.arkana-workspaces.json`.
+  4. registro del workspace en `~/.arkana/workspaces.json`.
 """
 from pathlib import Path
 import argparse
