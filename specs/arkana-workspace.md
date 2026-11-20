@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-workspace
 
-> **Estado:** `beta` | **Versión:** `6.2.36`
+> **Estado:** `beta` | **Versión:** `6.2.37`
 
 ---
 
@@ -32,6 +32,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 
 | Versión | Cambios |
 |---------|---------|
+| 6.2.37 | El registro de workspaces vive en ~/.arkana/workspaces.json (el antiguo se lee y se migra) |
 | 6.2.36 | component: component: pide usuario y correo git al anadir un componente y, si tiene remoto, usuario y clave del token; la identidad se aplica al repo; credentials set pide el valor sin mostrarlo |
 | 6.2.35 | layout init deja /.arkana/ ignorado en el .gitignore de ARKANA y el BRIEF muestra el componente de las tareas en mayusculas (hallazgos del laboratorio de install) |
 | 6.2.34 | BRIEF: seccion NOTES con las notas activas de arkana-note y linea en el QUICK START |
