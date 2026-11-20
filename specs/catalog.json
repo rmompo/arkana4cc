@@ -11,7 +11,7 @@
       "description": "Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente",
       "category": "other",
       "status": "beta",
-      "version": "1.1.6",
+      "version": "1.1.7",
       "spec": "specs/arkana.md",
       "path": "plugins/arkana",
       "skills": [
@@ -39,6 +39,10 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.7",
+          "changes": "Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8"
+        },
         {
           "version": "1.1.6",
           "changes": "Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json"
@@ -74,10 +78,14 @@
       "description": "Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verificación por scripts, límites y control (estado, parada, recuperación).",
       "category": "other",
       "status": "beta",
-      "version": "0.10.25",
+      "version": "0.10.26",
       "spec": "specs/arkana-agentic.md",
       "path": "plugins/arkana-agentic",
       "changelog": [
+        {
+          "version": "0.10.26",
+          "changes": "Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8"
+        },
         {
           "version": "0.10.25",
           "changes": "Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json"
@@ -371,10 +379,14 @@
       "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra (apply, check)",
       "category": "other",
       "status": "beta",
-      "version": "0.5.8",
+      "version": "0.5.9",
       "spec": "specs/arkana-evolve.md",
       "path": "plugins/arkana-evolve",
       "changelog": [
+        {
+          "version": "0.5.9",
+          "changes": "Migracion 0008: arkana-docs/ en src/, md/ y out/, layout 8"
+        },
         {
           "version": "0.5.8",
           "changes": "apply mueve el registro de workspaces de ~/.arkana-workspaces.json a ~/.arkana/workspaces.json"
@@ -460,10 +472,22 @@
       "description": "Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y documentos de origen con su versión en Markdown, ingesta desde arkana-incoming y consulta (add, query, modify, delete, ingest)",
       "category": "other",
       "status": "beta",
-      "version": "2.0.21",
+      "version": "2.0.24",
       "spec": "specs/arkana-knowledge.md",
       "path": "plugins/arkana-knowledge",
       "changelog": [
+        {
+          "version": "2.0.24",
+          "changes": "fix: fix: indica que hacer con originales sueltos y renders sin fuente"
+        },
+        {
+          "version": "2.0.23",
+          "changes": "install: install: crea tambien arkana-docs/src/ y arkana-docs/out/"
+        },
+        {
+          "version": "2.0.22",
+          "changes": "ingest: ingest: los originales van a arkana-docs/src/ (solo lectura) y se anuncia arkana-docs/out/ con duplas md y render"
+        },
         {
           "version": "2.0.21",
           "changes": "Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json"
@@ -606,8 +630,12 @@
         },
         {
           "name": "fix",
-          "version": 13,
+          "version": 24,
           "changelog": [
+            {
+              "version": 24,
+              "changes": "fix: indica que hacer con originales sueltos y renders sin fuente"
+            },
             {
               "version": 13,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -624,8 +652,12 @@
         },
         {
           "name": "ingest",
-          "version": 14,
+          "version": 22,
           "changelog": [
+            {
+              "version": 22,
+              "changes": "ingest: los originales van a arkana-docs/src/ (solo lectura) y se anuncia arkana-docs/out/ con duplas md y render"
+            },
             {
               "version": 14,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -642,8 +674,12 @@
         },
         {
           "name": "install",
-          "version": 15,
+          "version": 23,
           "changelog": [
+            {
+              "version": 23,
+              "changes": "install: crea tambien arkana-docs/src/ y arkana-docs/out/"
+            },
             {
               "version": 15,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -701,10 +737,14 @@
       "description": "Mensajes entre los componentes de un workspace de Arkana: put, get, delete (lógico), sync y reconcile; almacén local, sin git ni red",
       "category": "other",
       "status": "beta",
-      "version": "2.1.20",
+      "version": "2.1.21",
       "spec": "specs/arkana-messaging.md",
       "path": "plugins/arkana-messaging",
       "changelog": [
+        {
+          "version": "2.1.21",
+          "changes": "Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8"
+        },
         {
           "version": "2.1.20",
           "changes": "Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json"
@@ -942,7 +982,7 @@
       "description": "Notas de la persona usuaria en un workspace de Arkana: locales, sin red, con título, texto y componente (alias o * para todos); borrado lógico; salen en el BRIEF de la sesión (install, add, list, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.9",
+      "version": "1.1.10",
       "spec": "specs/arkana-note.md",
       "path": "plugins/arkana-note",
       "skills": [
@@ -1019,6 +1059,10 @@
       ],
       "changelog": [
         {
+          "version": "1.1.10",
+          "changes": "Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8"
+        },
+        {
           "version": "1.1.9",
           "changes": "Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json"
         },
@@ -1065,10 +1109,14 @@
       "description": "Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión",
       "category": "other",
       "status": "beta",
-      "version": "1.1.13",
+      "version": "1.1.14",
       "spec": "specs/arkana-statusline.md",
       "path": "plugins/arkana-statusline",
       "changelog": [
+        {
+          "version": "1.1.14",
+          "changes": "Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8"
+        },
         {
           "version": "1.1.13",
           "changes": "Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json"
@@ -1206,10 +1254,14 @@
       "description": "Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: local, sin red, con prioridad, vencimiento y componente, cierre reversible y borrado lógico (add, list, done, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.27",
+      "version": "1.1.28",
       "spec": "specs/arkana-todo.md",
       "path": "plugins/arkana-todo",
       "changelog": [
+        {
+          "version": "1.1.28",
+          "changes": "Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8"
+        },
         {
           "version": "1.1.27",
           "changes": "Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json"
@@ -1503,10 +1555,14 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.37",
+      "version": "6.2.38",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.38",
+          "changes": "Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8"
+        },
         {
           "version": "6.2.37",
           "changes": "El registro de workspaces vive en ~/.arkana/workspaces.json (el antiguo se lee y se migra)"
