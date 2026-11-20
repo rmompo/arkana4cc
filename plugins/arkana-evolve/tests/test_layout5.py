@@ -12,7 +12,7 @@ class TestMigracion0005(unittest.TestCase):
             lab.run("apply", "--to", "4")
             self.assertEqual(lab.project()["layout"], 4)
             mf = lab.read(".arkana/core/workspace.json")
-            r = lab.run("apply")
+            r = lab.run("apply", "--to", "5")
             self.assertEqual(r.returncode, 0, r.stdout)
             self.assertIn("0005", r.stdout)
             p = lab.project()

@@ -4,6 +4,9 @@ Evolución de una instalación de Arkana. Arkana cambia con el tiempo (carpetas 
 
 Es uno de los plugins del marketplace `arkana` (visión de conjunto en [`../README.md`](../README.md)). Solo usa la biblioteca estándar de Python 3. **No depende de ningún otro plugin**: debe poder ejecutarse cuando el layout está desactualizado, y es el único que conoce los formatos antiguos.
 
+
+**Aviso de la statusline.** `check` y `apply` avisan (`WARN|statusline`) si la copia de `~/.claude/arkana-statusline` lleva un núcleo anterior al de esta instalación: es un dato de usuario fuera del repo que ninguna migración toca; se refresca con `/arkana-statusline:fix`.
+
 ## Skills
 
 | Skill | Qué hace |
@@ -42,6 +45,8 @@ Las `b*` son de **base**: convierten formatos antiguos y se ejecutan antes que l
 | `0003` | shared + local | Cada componente lleva su `id` (UUID del registro del proyecto) en el manifiesto local; da de alta en el registro lo que solo esté en el manifiesto; no reescribe ningún id y avisa si el registro llama de otro modo a un componente (renombrado por otra persona). |
 | `0004` | shared | Conocimiento con identidad UUID: cada nota recibe un `id` UUID (el identificador antiguo pasa a `slug`), sus `components` pasan de alias a ids del registro, gana `fuentes`, las notas sueltas se mueven a `arkana-knowledge/<topic>/` (con `git mv`) y se retira el `catalog.json` versionado (el índice ahora es local y derivado). No cambia versiones ni Changelogs. |
 | `0005` | shared | Layout 5: solo estampa el sello. El manifiesto admite los campos de componente de esquema 2 (`watch` y los de referencia) y los plugins nuevos avisan, ante un layout superior al que conocen, de que hay que actualizar el plugin. No cambia ningún dato. |
+| `0006` | local | Layout 6: las tareas de `arkana-todo` pasan al modelo de estados nuevo (`open`→`pending`, `deleted`→`removed`, `normal`→`medium`, `all`/vacío→`*`). Reescribe `.arkana/arkana-todo/todos.json` con copia previa; no toca el resto de campos. Sin `todos.json` o ya migrado no hace nada (el sello sube igual). |
+| `0007` | shared | Layout 7: el repo de ARKANA ignora `.arkana/` (datos locales y `.credentials`): añade `/.arkana/` a su `.gitignore` si git no lo ignora ya por otra vía. Si algún fichero de `.arkana/` ya estaba versionado lo **avisa** (`git rm -r --cached .arkana`, rotar credenciales): ignorarlo no lo saca de git. Cambio versionado: una sola persona lo aplica y commitea. |
 
 ## Pruebas
 

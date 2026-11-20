@@ -74,9 +74,9 @@ class TestMigracion0002(unittest.TestCase):
             self.assertNotIn("seed_file", lab.read(".arkana/core/workspace.json"))
             # sello del registro compartido y registro con los tres componentes
             p = lab.project()
-            self.assertEqual(p["layout"], 5)
+            self.assertEqual(p["layout"], 7)
             self.assertEqual([c["alias"] for c in p["components"]], ["arkana", "api", "app"])
-            self.assertEqual([h["id"] for h in p["history"]], ["0001", "0002", "0003", "0004", "0005"])
+            self.assertEqual([h["id"] for h in p["history"]], ["0001", "0002", "0003", "0004", "0005", "0006", "0007"])
             self.assertIn("nada que hacer", lab.run("apply").stdout)
             self.assertNotIn("WARN|", lab.run("check").stdout)
 
