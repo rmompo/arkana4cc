@@ -5,9 +5,13 @@ Cada pieza (ARKANA y los componentes) tiene un `id` (UUID v4) **inmutable** y un
 cambia el alias en este fichero (y en el manifiesto local), sin tocar ningún documento.
 
   {"schema_version": 1, "layout": N, "workspace": {"id", "name"},
-   "components": [{"id": "<uuid>", "alias": "arkana"}, {"id": "<uuid>", "alias": "api"}, {"id": "<uuid>", "alias": "viejo", "retired": true}],
+   "components": [{"id": "<uuid>", "alias": "arkana"}, {"id": "<uuid>", "alias": "api", "module": "viso_rest_inquilino"},
+                  {"id": "<uuid>", "alias": "viejo", "retired": true}],
    "policies": {"versioned_env": true},
    "history": [{"id": "0001", "date": "…"}]}
+
+`module` (opcional, compartido por git) es el nombre-módulo del componente: cómo se llama la aplicación (p. ej. el scope de sus commits). Junto al alias y a la
+carpeta real forma los tres nombres con los que se puede referir a un componente; ninguno puede repetirse entre componentes (`manifest.Workspace.name_conflicts`).
 
 Un componente dado de baja se conserva con `retired: true` (su id sigue resolviéndose para mostrarlo; su alias queda libre).
 
@@ -25,6 +29,7 @@ LAYOUT_REQUIRED = 4                    # layout mínimo que esperan los plugins 
 LAYOUT_KNOWN = 5                       # layout más alto que esta versión conoce: por encima, el repo va por delante de esta instalación (actualizar el plugin)
 UUID_RX = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 ALIAS_RX = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+MODULE_RX = re.compile(r"^[a-z0-9][a-z0-9._-]*$")      # minúsculas: es el scope de los commits
 
 
 class ProjectError(Exception):
@@ -92,6 +97,12 @@ class Registry:
     def aliases(self):
         return [c["alias"] for c in self._comps if not c.get("retired")]
 
+    def module_of(self, x):
+        """Nombre-módulo de una pieza dada por alias o por id; "" si no tiene."""
+        k = _canon(x)
+        c = self._by_id.get(k) or self._by_alias.get(k)
+        return _canon((c or {}).get("module"))
+
     def id_of(self, x):
         """Id de una pieza dada por alias o por id; None si no se conoce."""
         k = _canon(x)
@@ -112,14 +123,14 @@ class Registry:
         return self.id_of(x) or _canon(x)
 
     def display(self, x):
-        """Lo que se muestra: el alias (ARKANA en mayúsculas); un id desconocido se acorta; `all` se queda como está."""
+        """Lo que se muestra: el alias en MAYÚSCULAS; un id desconocido se acorta; `all` se queda como está."""
         k = _canon(x)
         if k == "all":
             return "all"
         a = self.alias_of(k)
         if a is None:
-            return k[:8] + "…" if is_id(k) else k
-        return "ARKANA" if a == "arkana" else a + (" (retirado)" if self._by_id.get(k, {}).get("retired") else "")
+            return k[:8] + "…" if is_id(k) else k.upper()
+        return a.upper() + (" (retirado)" if self._by_id.get(k, {}).get("retired") else "")
 
 
 def _write(home, data):
@@ -144,17 +155,46 @@ def set_policy(home, key, value):
     _write(home, d)
 
 
-def add_component(home, alias, cid=None):
-    """Da de alta una pieza en el registro (idempotente por alias). Devuelve su id."""
+def check_module(module):
+    m = _canon(module)
+    if m and not MODULE_RX.match(m):
+        raise ProjectError(f"nombre-módulo no válido: {module!r} (minúsculas, números, `.`, `_` y `-`; empieza por letra o número)")
+    return m
+
+
+def add_component(home, alias, cid=None, module=None):
+    """Da de alta una pieza en el registro (idempotente por alias). Devuelve su id. Con `module`, lo anota si la pieza no tenía ninguno."""
     a = _canon(alias)
     d = _must(home)
     reg = Registry(d)
     if reg.id_of(a):
+        if module:
+            set_module(home, a, module)
         return reg.id_of(a)
     if not ALIAS_RX.match(a):
         raise ProjectError(f"alias no válido: {alias!r}")
     cid = cid or new_id()
-    d.setdefault("components", []).append({"id": cid, "alias": a})
+    entry = {"id": cid, "alias": a}
+    if check_module(module):
+        entry["module"] = check_module(module)
+    d.setdefault("components", []).append(entry)
+    _write(home, d)
+    return cid
+
+
+def set_module(home, alias, module):
+    """Fija (o, con "", quita) el nombre-módulo de una pieza. Devuelve su id; idempotente."""
+    m = check_module(module)
+    d = _must(home)
+    cid = Registry(d).id_of(alias)
+    if not cid:
+        raise ProjectError(f"componente desconocido en el registro: {alias}")
+    for c in d["components"]:
+        if c["id"] == cid:
+            if m:
+                c["module"] = m
+            else:
+                c.pop("module", None)
     _write(home, d)
     return cid
 

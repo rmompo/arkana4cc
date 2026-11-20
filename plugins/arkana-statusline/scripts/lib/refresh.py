@@ -31,7 +31,7 @@ def main(argv=None):
     rep = output.Report("arkana-statusline", "refresh")
     try:
         ws = manifest.load(os.path.realpath(a.home) if a.home else None)
-        als = [manifest.canon(c) for c in a.component] if a.component else ws.aliases()
+        als = [ws.key(c) for c in a.component] if a.component else ws.aliases()
         for x in als:
             ws.get(x)
     except (manifest.ManifestError, KeyError) as e:
