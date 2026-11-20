@@ -83,7 +83,7 @@ class TestSeccionTodo(unittest.TestCase):
                               t("t-008", "Rechazada", estado="rejected")])
             m = self.brief(lab)
             self.assertIn("\n### TODO:\n", m)
-            self.assertIn("1. Urgente [t-002] (high, vence 2099-01-01, api)\n2. Atrasada [t-003] (⚠ vencida 2000-01-01)\n3. Sin fecha [t-001]\n"
+            self.assertIn("1. Urgente [t-002] (high, vence 2099-01-01, API)\n2. Atrasada [t-003] (⚠ vencida 2000-01-01)\n3. Sin fecha [t-001]\n"
                           "4. Legado [t-007]\n5. Bloqueada [t-006] (low, blocked)\n", m)
             for oculta in ("Hecha", "Borrada", "Rechazada"):
                 self.assertNotIn(oculta, m)
