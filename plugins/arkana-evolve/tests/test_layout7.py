@@ -52,7 +52,7 @@ class TestMigracion0006(unittest.TestCase):
             r = lab.run("apply")                                                          # sin todos.json
             self.assertEqual(r.returncode, 0, r.stdout)
             self.assertNotIn("0006:tareas", r.stdout)
-            self.assertEqual(lab.project()["layout"], 7)
+            self.assertEqual(lab.project()["layout"], 8)
         with Lab() as lab:
             lab.run("apply", "--to", "5")
             todos(lab, [{"id": "t-001", "titulo": "A", "estado": "pending", "prioridad": "medium", "componente": "*"}])
@@ -68,7 +68,7 @@ class TestMigracion0007(unittest.TestCase):
             self.assertEqual(r.returncode, 0, r.stdout)
             self.assertIn("0007:gitignore", r.stdout)
             self.assertEqual(lab.read(".gitignore"), "/.arkana/\n")
-            self.assertEqual(lab.project()["layout"], 7)
+            self.assertEqual(lab.project()["layout"], 8)
             self.assertIn("nada que hacer", lab.run("apply").stdout)
             self.assertEqual(lab.read(".gitignore").count("/.arkana/"), 1)
 
