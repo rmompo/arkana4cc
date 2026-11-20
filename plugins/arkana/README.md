@@ -26,7 +26,7 @@ Orden fijo; cada paso se ensaya (`--dry-run`), se confirma y se aplica. Repetir 
 | 4 | `statusline` | arkana-statusline | `~/.claude/arkana-statusline/` y `statusLine` de `~/.claude/settings.json` |
 | 5 | `messaging` | arkana-messaging | `.arkana/arkana-messaging/` y ajustes de usuario |
 | 6 | `agentic` | arkana-agentic | `.arkana/arkana-agentic/` y ajustes de usuario |
-| 7 | `knowledge` | arkana-knowledge | `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/{src,md,out}/` |
+| 7 | `knowledge` | arkana-knowledge | `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/{src,md,out}/` (andamiaje completo) |
 | 8 | `todo` | arkana-todo | `.arkana/arkana-todo/` |
 | 9 | `note` | arkana-note | `.arkana/arkana-note/` |
 | 10 | `permisos` | arkana-workspace | `.claude/settings.local.json` de ARKANA |
@@ -35,6 +35,8 @@ Orden fijo; cada paso se ensaya (`--dry-run`), se confirma y se aplica. Repetir 
 | 13 | `verificacion` | arkana-workspace | nada (diagnóstico) |
 
 Después: `/arkana-workspace:component add` para el primer componente (pide usuario y correo git y, si tiene remoto, su token).
+
+**Andamiaje.** La instalación deja en el repo de ARKANA todas las carpetas finales con su `.gitkeep` (para que git las versione y existan en cualquier clon): `arkana-incoming/` (además con su `.gitignore`, que ignora todo salvo `.gitignore` y `.gitkeep`), `arkana-knowledge/` y `arkana-docs/src/`, `md/` y `out/`. `arkana-docs/` solo las agrupa y no lleva `.gitkeep`. Lo crean `evolve` (migración `0001`) y `knowledge install`, ambos idempotentes, y `tests/test_scaffolding.py` lo comprueba de punta a punta. Lo local (`.arkana/`) queda ignorado.
 
 **Credenciales.** El paso `git` pregunta el usuario y el correo de ARKANA (`gitinit.py --name --email`; sin ellos no se escribe nada). Si ARKANA va a un remoto, se piden la URL, el usuario y el **nombre** de la clave del token (`GIT_TOKEN_ARKANA` por defecto) y la persona guarda el valor **en su propia terminal** con `credentials.py set` (lo pide sin mostrarlo): el token no pasa por la conversación ni por ningún argumento. Lo mismo ocurre al añadir un componente con remoto.
 

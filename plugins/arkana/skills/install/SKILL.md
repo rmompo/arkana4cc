@@ -2,7 +2,7 @@
 name: install
 description: Monta de una vez el espacio de trabajo mínimo de Arkana - comprueba que están los plugins arkana-*, inicia el git de ARKANA y pide usuario y correo (y el token si va a un remoto), crea la disposición de .arkana y el registro del proyecto, instala statusline, mensajería, orquestación, conocimiento, tareas y notas, aplica los permisos, revisa credenciales y herramientas y verifica todo. No añade componentes - al terminar sugiere dar de alta el primero. Repetible e idempotente, con ensayo previo de cada paso. Also invoked explicitly as /arkana:install
 allowed-tools: [AskUserQuestion]
-version: 4
+version: 8
 ---
 
 # arkana:install
@@ -34,7 +34,7 @@ Líneas `ESTADO|ID|detalle` (`OK`, `INFO`, `WARN`, `FAIL`) y una línea `PASO|id
    | `statusline` ⚠ | copia la statusline a `~/.claude/arkana-statusline/` y activa `statusLine` | si ya hay otra, **no la pises**: explica y pregunta; solo entonces repite con `--replace` |
    | `messaging` ⚠ | almacén de mensajes y plugin habilitado en `~/.claude/settings.json` | toca ajustes de usuario |
    | `agentic` ⚠ | carpetas de orquestación y plugin habilitado | toca ajustes de usuario |
-   | `knowledge` | carpetas `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/` e índice | — |
+   | `knowledge` | andamiaje de ARKANA: `arkana-incoming/` (con su `.gitignore`), `arkana-knowledge/` y `arkana-docs/{src,md,out}/`, cada carpeta final con su `.gitkeep`, e índice | `evolve` ya las crea; este paso lo garantiza |
    | `todo` | lista de tareas local | — |
 | `note` | almacén de notas local | — |
    | `permisos` | permisos de ARKANA (modelo en `/arkana-workspace:rew-grants`) | solo añade lo que falta; deja copia |
