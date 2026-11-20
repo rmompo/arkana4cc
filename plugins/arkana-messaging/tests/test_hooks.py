@@ -63,7 +63,7 @@ class TestHooks(unittest.TestCase):
             t = lab.put("arkana", "task", "Adaptar el cliente al nuevo contrato", "api", ("--instructions-file", ins, "--criteria-file", cri))
             lab.put("app", "notice", "Aviso informativo para el backend", "api")
             m1 = hook(lab, "api", "session-start", {"source": "clear"})["systemMessage"]
-            self.assertTrue(m1.startswith("[ARKANA messaging] api:"))
+            self.assertTrue(m1.startswith("[ARKANA messaging] API:"))
             for x in ("2 sin leer", "2 leídos en el último turno", "tareas para ti: 1 abiertas · 0 hechas"):
                 self.assertIn(x, m1)
             m2 = hook(lab, "api", "session-start", {"source": "compact"})["systemMessage"]
