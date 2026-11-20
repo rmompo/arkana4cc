@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-statusline
 
-> **Estado:** `beta` | **Versión:** `1.1.11`
+> **Estado:** `beta` | **Versión:** `1.1.12`
 
 ---
 
@@ -25,6 +25,7 @@ Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y esta
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.12 | Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7 |
 | 1.1.11 | Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas |
 | 1.1.10 | Componente de referencia: oculto por defecto, muestra el ref y marca ≠ref si HEAD se mueve |
 | 1.1.9 | watch por componente, el componente actual oculto sigue viéndose y mensaje de esquema desconocido (núcleo 1.8.0) |

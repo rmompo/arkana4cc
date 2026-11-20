@@ -11,14 +11,18 @@
       "description": "Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente",
       "category": "other",
       "status": "beta",
-      "version": "1.1.3",
+      "version": "1.1.5",
       "spec": "specs/arkana.md",
       "path": "plugins/arkana",
       "skills": [
         {
           "name": "install",
-          "version": 3,
+          "version": 4,
           "changelog": [
+            {
+              "version": 4,
+              "changes": "install: nuevo paso git (git init y usuario y correo del repo) y entrevista de remoto y token de ARKANA sin pasar el token por la conversacion"
+            },
             {
               "version": 3,
               "changes": "Tras la verificacion ofrece /arkana-workspace:fix para lo corregible y documenta el .gitignore de .arkana (hallazgos del laboratorio)"
@@ -35,6 +39,14 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.5",
+          "changes": "gitinit: el ensayo muestra la identidad que se fijaria en lugar de una linea vacia"
+        },
+        {
+          "version": "1.1.4",
+          "changes": "install: install: nuevo paso git (git init y usuario y correo del repo) y entrevista de remoto y token de ARKANA sin pasar el token por la conversacion"
+        },
         {
           "version": "1.1.3",
           "changes": "install: Tras la verificacion ofrece /arkana-workspace:fix para lo corregible y documenta el .gitignore de .arkana (hallazgos del laboratorio)"
@@ -58,10 +70,14 @@
       "description": "Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verificación por scripts, límites y control (estado, parada, recuperación).",
       "category": "other",
       "status": "beta",
-      "version": "0.10.23",
+      "version": "0.10.24",
       "spec": "specs/arkana-agentic.md",
       "path": "plugins/arkana-agentic",
       "changelog": [
+        {
+          "version": "0.10.24",
+          "changes": "Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7"
+        },
         {
           "version": "0.10.23",
           "changes": "Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas"
@@ -347,10 +363,14 @@
       "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra (apply, check)",
       "category": "other",
       "status": "beta",
-      "version": "0.5.6",
+      "version": "0.5.7",
       "spec": "specs/arkana-evolve.md",
       "path": "plugins/arkana-evolve",
       "changelog": [
+        {
+          "version": "0.5.7",
+          "changes": "apply: Migraciones 0006 (modelo de estados de arkana-todo) y 0007 (/.arkana/ en el .gitignore), layout 7, aviso de la copia de la statusline y bucle de apply que reevalua tras cada migracion"
+        },
         {
           "version": "0.5.6",
           "changes": "Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas"
@@ -383,8 +403,12 @@
       "skills": [
         {
           "name": "apply",
-          "version": 3,
+          "version": 7,
           "changelog": [
+            {
+              "version": 7,
+              "changes": "Migraciones 0006 (modelo de estados de arkana-todo) y 0007 (/.arkana/ en el .gitignore), layout 7, aviso de la copia de la statusline y bucle de apply que reevalua tras cada migracion"
+            },
             {
               "version": 3,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -424,10 +448,14 @@
       "description": "Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y documentos de origen con su versión en Markdown, ingesta desde arkana-incoming y consulta (add, query, modify, delete, ingest)",
       "category": "other",
       "status": "beta",
-      "version": "2.0.19",
+      "version": "2.0.20",
       "spec": "specs/arkana-knowledge.md",
       "path": "plugins/arkana-knowledge",
       "changelog": [
+        {
+          "version": "2.0.20",
+          "changes": "Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7"
+        },
         {
           "version": "2.0.19",
           "changes": "Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas"
@@ -657,10 +685,14 @@
       "description": "Mensajes entre los componentes de un workspace de Arkana: put, get, delete (lógico), sync y reconcile; almacén local, sin git ni red",
       "category": "other",
       "status": "beta",
-      "version": "2.1.18",
+      "version": "2.1.19",
       "spec": "specs/arkana-messaging.md",
       "path": "plugins/arkana-messaging",
       "changelog": [
+        {
+          "version": "2.1.19",
+          "changes": "Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7"
+        },
         {
           "version": "2.1.18",
           "changes": "Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas"
@@ -890,7 +922,7 @@
       "description": "Notas de la persona usuaria en un workspace de Arkana: locales, sin red, con título, texto y componente (alias o * para todos); borrado lógico; salen en el BRIEF de la sesión (install, add, list, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.7",
+      "version": "1.1.8",
       "spec": "specs/arkana-note.md",
       "path": "plugins/arkana-note",
       "skills": [
@@ -967,6 +999,10 @@
       ],
       "changelog": [
         {
+          "version": "1.1.8",
+          "changes": "Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7"
+        },
+        {
           "version": "1.1.7",
           "changes": "fix: Se crea el skill fix"
         },
@@ -1005,10 +1041,14 @@
       "description": "Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión",
       "category": "other",
       "status": "beta",
-      "version": "1.1.11",
+      "version": "1.1.12",
       "spec": "specs/arkana-statusline.md",
       "path": "plugins/arkana-statusline",
       "changelog": [
+        {
+          "version": "1.1.12",
+          "changes": "Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7"
+        },
         {
           "version": "1.1.11",
           "changes": "Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas"
@@ -1138,10 +1178,14 @@
       "description": "Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: local, sin red, con prioridad, vencimiento y componente, cierre reversible y borrado lógico (add, list, done, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.25",
+      "version": "1.1.26",
       "spec": "specs/arkana-todo.md",
       "path": "plugins/arkana-todo",
       "changelog": [
+        {
+          "version": "1.1.26",
+          "changes": "Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7"
+        },
         {
           "version": "1.1.25",
           "changes": "Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas"
@@ -1427,10 +1471,14 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.35",
+      "version": "6.2.36",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.36",
+          "changes": "component: component: pide usuario y correo git al anadir un componente y, si tiene remoto, usuario y clave del token; la identidad se aplica al repo; credentials set pide el valor sin mostrarlo"
+        },
         {
           "version": "6.2.35",
           "changes": "layout init deja /.arkana/ ignorado en el .gitignore de ARKANA y el BRIEF muestra el componente de las tareas en mayusculas (hallazgos del laboratorio de install)"
@@ -1601,8 +1649,12 @@
         },
         {
           "name": "component",
-          "version": 33,
+          "version": 36,
           "changelog": [
+            {
+              "version": 36,
+              "changes": "component: pide usuario y correo git al anadir un componente y, si tiene remoto, usuario y clave del token; la identidad se aplica al repo; credentials set pide el valor sin mostrarlo"
+            },
             {
               "version": 33,
               "changes": "Tres nombres por componente (alias, carpeta y modulo compartido), referencia por cualquiera con prefijos dir:, mod: y alias:, scope de commit con ({module}), check nombres y alias siempre en mayusculas"

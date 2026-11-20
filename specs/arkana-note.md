@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-note
 
-> **Estado:** `beta` | **Versión:** `1.1.7`
+> **Estado:** `beta` | **Versión:** `1.1.8`
 
 ---
 
@@ -28,6 +28,7 @@ Notas de la persona usuaria en un workspace de Arkana: locales, sin red, con tí
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.8 | Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7 |
 | 1.1.7 | fix: Se crea el skill fix |
 | 1.1.6 | check: Se crea el skill check |
 | 1.1.5 | delete: Se crea el skill delete |
