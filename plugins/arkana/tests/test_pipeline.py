@@ -42,7 +42,7 @@ def marcar_workspace(repo):
 
 def instalar_en_cache(lab, version="1.0.0", names=None):
     for n in names or pipeline.REQUIRED:
-        d = os.path.join(lab.cache, n, version, ".claude-plugin"); os.makedirs(d)
+        d = os.path.join(lab.cache, n, version, ".claude-plugin"); os.makedirs(d, exist_ok=True)
         with open(os.path.join(d, "plugin.json"), "w") as f:
             json.dump({"name": n, "version": version}, f)
 
@@ -100,12 +100,30 @@ class TestHome(unittest.TestCase):
             self.assertEqual(pipeline.find_home(None, "/")[0], lab.repo)
             self.assertEqual(pipeline.find_home(lab.siblings, "/")[0], lab.siblings)
 
-    def test_fuera_de_un_repo_no_hay_home(self):
+    def test_fuera_de_un_repo_se_crea_ahi_y_el_paso_git_lo_inicia(self):
         with Lab() as lab:
-            fuera = os.path.join(lab.siblings)
-            res = pipeline.plan(None, fuera, lab.siblings, lab.cache)
-            if res["home"] is None:
-                self.assertEqual(pipeline.exit_code(res), 1)
+            instalar_en_cache(lab)
+            carpeta = os.path.join(lab.siblings, "nueva"); os.makedirs(carpeta)
+            res = pipeline.plan(None, carpeta, lab.siblings, lab.cache)
+            self.assertEqual((res["home"], res["new_workspace"], res["git"]["repo"]), (os.path.realpath(carpeta), True, False))
+            self.assertEqual(pipeline.exit_code(res), 0)
+            self.assertIn(("INFO", "git"), [tuple(x[:2]) for x in res["status"]])
+            self.assertEqual(res["steps"][0]["id"], "git")
+
+    def test_la_raiz_y_la_carpeta_personal_no_valen(self):
+        with Lab() as lab:
+            instalar_en_cache(lab)
+            for malo in ("/", os.path.expanduser("~")):
+                res = pipeline.plan(malo, malo, lab.siblings, lab.cache)
+                self.assertEqual(pipeline.exit_code(res), 1, malo)
+                self.assertIsNone(res["home"]); self.assertEqual(res["steps"], [])
+
+    def test_un_workspace_existente_en_la_carpeta_personal_si_vale(self):
+        with Lab() as lab:
+            instalar_en_cache(lab)
+            marcar_workspace(lab.repo)
+            res = pipeline.plan(lab.repo, lab.repo, lab.siblings, lab.cache)
+            self.assertEqual(pipeline.exit_code(res), 0)
 
 
 class TestPasos(unittest.TestCase):
@@ -116,7 +134,7 @@ class TestPasos(unittest.TestCase):
     def test_orden_de_los_pasos(self):
         with Lab() as lab:
             ids = [s["id"] for s in self.plan(lab)["steps"]]
-            self.assertEqual(ids, ["layout", "evolve", "statusline", "messaging", "agentic", "knowledge", "todo", "note",
+            self.assertEqual(ids, ["git", "layout", "evolve", "statusline", "messaging", "agentic", "knowledge", "todo", "note",
                                    "permisos", "credenciales", "herramientas", "verificacion"])
 
     def test_ensayo_solo_en_los_pasos_que_escriben(self):
@@ -132,7 +150,8 @@ class TestPasos(unittest.TestCase):
             res = self.plan(lab)
             for s in res["steps"]:
                 self.assertIn(f"ARKANA_HOME={lab.repo}", s["apply"])
-                self.assertIn(os.path.join(lab.cache, s["plugin"]), s["apply"])
+                raiz = pipeline.PLUGIN_ROOT if s["plugin"] == "arkana" else os.path.join(lab.cache, s["plugin"])
+                self.assertIn(raiz, s["apply"])
 
     def test_ruta_con_espacios_se_entrecomilla(self):
         with Lab() as lab:
@@ -154,6 +173,44 @@ class TestPasos(unittest.TestCase):
         with Lab() as lab:
             self.plan(lab)
             self.assertEqual(sorted(os.listdir(lab.repo)), [".git"])
+
+
+class TestPasoGit(unittest.TestCase):
+    def plan(self, lab, repo=None):
+        instalar_en_cache(lab)
+        r = repo or lab.repo
+        return pipeline.plan(r, r, lab.siblings, lab.cache)
+
+    def test_info_de_git_repo_sin_identidad_con_identidad_y_con_remoto(self):
+        with Lab() as lab:
+            env = {"GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_NOSYSTEM": "1"}
+            old = {k: os.environ.get(k) for k in env}
+            os.environ.update(env)
+            try:
+                gi = self.plan(lab)["git"]
+                self.assertEqual((gi["repo"], gi["identity"], gi["remote"]), (True, False, False))
+                subprocess.run(["git", "-C", lab.repo, "config", "user.name", "Ana"], check=True)
+                subprocess.run(["git", "-C", lab.repo, "config", "user.email", "ana@example.org"], check=True)
+                subprocess.run(["git", "-C", lab.repo, "remote", "add", "origin", "https://git.example/g/a.git"], check=True)
+                gi = self.plan(lab)["git"]
+                self.assertEqual((gi["identity"], gi["name"], gi["email"], gi["remote"]), (True, "Ana", "ana@example.org", True))
+            finally:
+                for k, v in old.items():
+                    os.environ.pop(k, None) if v is None else os.environ.__setitem__(k, v)
+
+    def test_la_orden_del_paso_git_inicia_el_repo_pidiendo_identidad(self):
+        with Lab() as lab:
+            carpeta = os.path.join(lab.siblings, "nueva"); os.makedirs(carpeta)
+            instalar_en_cache(lab)
+            res = pipeline.plan(carpeta, carpeta, lab.siblings, lab.cache)
+            git_step = res["steps"][0]
+            env = dict(os.environ, GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_NOSYSTEM="1")
+            sin = subprocess.run(["bash", "-c", git_step["apply"]], capture_output=True, text=True, env=env)
+            self.assertEqual(sin.returncode, 2, sin.stdout)                                     # sin usuario ni correo: no los inventa
+            con = subprocess.run(["bash", "-c", git_step["apply"] + " --name Ana --email ana@example.org"], capture_output=True, text=True, env=env)
+            self.assertEqual(con.returncode, 0, con.stdout)
+            self.assertEqual(subprocess.run(["git", "-C", carpeta, "config", "--local", "user.email"], capture_output=True, text=True).stdout.strip(), "ana@example.org")
+            self.assertTrue(pipeline.plan(carpeta, carpeta, lab.siblings, lab.cache)["git"]["identity"])
 
 
 class TestCli(unittest.TestCase):

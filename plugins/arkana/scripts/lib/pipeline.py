@@ -8,12 +8,14 @@ confirmación. Este script existe porque el plugin `arkana` no puede referirse a
 vive en su propia copia de la caché): aquí se resuelve dónde está cada uno y se devuelven las órdenes con rutas absolutas.
 
 Resolución de la carpeta de Arkana (`home`): --home, $ARKANA_HOME, un ancestro del directorio actual con `.arkana/arkana.json`
-(ya hay workspace) o, si no hay ninguno, la raíz git del directorio actual (el workspace se creará ahí).
+(ya hay workspace) o, si no hay ninguno, la raíz git del directorio actual y, si tampoco hay repo, el propio directorio actual: el workspace se creará ahí y el paso `git`
+iniciará su repo (la statusline lo necesita). Se rechaza `/` y la carpeta personal del usuario.
 Resolución de cada plugin: hermano de este plugin (checkout del repo) o la versión más reciente de
 `~/.claude/plugins/cache/arkana/<plugin>/<versión>/`.
 
-Salida: `ESTADO|ID|detalle` (OK, INFO, WARN, FAIL) y una línea `PASO|id|plugin|ensayo|aplicar` por paso. Con --json, un objeto.
-Código de salida: 0 plan completo, 1 falta algún plugin o no hay carpeta donde crear el workspace.
+Salida: `ESTADO|ID|detalle` (OK, INFO, WARN, FAIL) y una línea `PASO|id|plugin|ensayo|aplicar` por paso. Con --json, un objeto (incluye `git`: si hay repo, si tiene
+identidad y si tiene remoto, para que el skill sepa qué pedir).
+Código de salida: 0 plan completo, 1 falta algún plugin o la carpeta no es válida para crear el workspace.
 """
 import argparse
 import json
@@ -80,13 +82,15 @@ def find_home(explicit=None, cwd=None):
         if os.path.dirname(d) == d:
             break
         d = os.path.dirname(d)
-    return _git_root(cur), False
+    return _git_root(cur) or cur, False
 
 
 def build_steps(home, roots, dry_flag=True):
     """Pasos del pipeline, en orden. Cada uno: id, plugin, título, ensayo y aplicar (órdenes con rutas absolutas)."""
     q = shlex.quote
     env = f"ARKANA_HOME={q(home)} "
+
+    roots = dict(roots, arkana=PLUGIN_ROOT)
 
     def py(plugin, rel, *args):
         return f"{env}python3 {q(os.path.join(roots[plugin], rel))} " + " ".join(args)
@@ -95,6 +99,8 @@ def build_steps(home, roots, dry_flag=True):
         return f"{env}bash {q(os.path.join(roots[plugin], rel))} " + " ".join(args)
 
     spec = [
+        ("git", "arkana", "Repositorio git de ARKANA (git init) y su identidad: usuario y correo",
+         lambda f: py("arkana", "scripts/lib/gitinit.py", "--home", q(home), *f)),
         ("layout", "arkana-workspace", "Disposición de .arkana/, manifiesto, registro del workspace",
          lambda f: py("arkana-workspace", "scripts/lib/layout.py", "init", "--home", q(home), *f)),
         ("evolve", "arkana-evolve", "Migraciones: registro del proyecto y carpetas fijas",
@@ -131,8 +137,21 @@ def build_steps(home, roots, dry_flag=True):
     return steps
 
 
+def git_info(home):
+    """{repo, identity, name, email, remote} de la carpeta de ARKANA (lectura local)."""
+    def g(*a):
+        try:
+            r = subprocess.run(["git", "-C", home, *a], capture_output=True, text=True, timeout=10, env=dict(os.environ, GIT_TERMINAL_PROMPT="0", LC_ALL="C"))
+            return r.stdout.strip() if r.returncode == 0 else ""
+        except (OSError, subprocess.SubprocessError):
+            return ""
+    repo = os.path.realpath(home) == (_git_root(home) or "")
+    name, email = (g("config", "user.name"), g("config", "user.email")) if repo else ("", "")
+    return {"repo": repo, "identity": bool(name and email), "name": name, "email": email, "remote": bool(repo and g("remote", "get-url", "origin"))}
+
+
 def plan(home_arg=None, cwd=None, plugins_parent=None, cache=None):
-    res = {"status": [], "steps": [], "home": None, "new_workspace": None, "plugins": {}}
+    res = {"status": [], "steps": [], "home": None, "new_workspace": None, "plugins": {}, "git": None}
     add = lambda s, i, d: res["status"].append([s, i, d])
     roots = {}
     for name in REQUIRED:
@@ -145,16 +164,26 @@ def plan(home_arg=None, cwd=None, plugins_parent=None, cache=None):
             res["plugins"][name] = None
             add("FAIL", f"plugin:{name}", f"no instalado: /plugin install {name}@{MARKETPLACE} y /reload-plugins")
     home, exists = find_home(home_arg, cwd)
+    if home is not None and not exists and os.path.realpath(home) in ("/", os.path.realpath(os.path.expanduser("~"))):
+        add("FAIL", "home", f"{home} no sirve como carpeta de Arkana (es la raíz o tu carpeta personal): crea una carpeta propia (p. ej. `mkdir arkana && cd arkana`) o pasa --home")
+        home = None
     res["home"], res["new_workspace"] = home, (None if home is None else not exists)
     if home is None:
-        add("FAIL", "home", "no hay repo git en el directorio actual ni un workspace existente: crea o clona el repo de Arkana y entra en él (o pasa --home)")
+        if not any(s == "FAIL" and i == "home" for s, i, _ in res["status"]):
+            add("FAIL", "home", "no se puede resolver la carpeta de Arkana: ejecuta desde ella o pasa --home")
     elif exists:
         add("OK", "home", f"workspace existente en {home} (la instalación es repetible: solo se añade lo que falta)")
     else:
         add("INFO", "home", f"no hay workspace: se creará en {home}")
-    if home is not None and not os.path.isdir(os.path.join(home, ".git")) and not _git_root(home):
-        add("WARN", "git", f"{home} no es un repo git: las migraciones de evolve lo necesitan (`git init` y un primer commit)")
     if home is not None:
+        res["git"] = git_info(home)
+        gi = res["git"]
+        if not gi["repo"]:
+            add("INFO", "git", f"{home} no es un repo git: el paso `git` lo iniciará (la statusline lo necesita) y pedirá usuario y correo")
+        elif not gi["identity"]:
+            add("INFO", "git", "el repo no tiene user.name/user.email: el paso `git` los pedirá")
+        else:
+            add("OK", "git", f"repo con identidad {gi['name']} <{gi['email']}>" + (" y remoto origin" if gi["remote"] else " (sin remoto)"))
         res["steps"] = build_steps(home, roots)
     return res
 
