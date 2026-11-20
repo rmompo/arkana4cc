@@ -26,7 +26,7 @@ from . import datafiles
 
 FILE = "arkana-project.json"
 LAYOUT_REQUIRED = 4                    # layout mínimo que esperan los plugins (la última migración numérica que necesitan)
-LAYOUT_KNOWN = 7                       # layout más alto que esta versión conoce: por encima, el repo va por delante de esta instalación (actualizar el plugin)
+LAYOUT_KNOWN = 8                       # layout más alto que esta versión conoce: por encima, el repo va por delante de esta instalación (actualizar el plugin)
 UUID_RX = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 ALIAS_RX = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 MODULE_RX = re.compile(r"^[a-z0-9][a-z0-9._-]*$")      # minúsculas: es el scope de los commits
