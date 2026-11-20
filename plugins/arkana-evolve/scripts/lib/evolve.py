@@ -24,7 +24,7 @@ import tarfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "_core"))
-from arkana_core import datafiles, locate, output  # noqa: E402
+from arkana_core import CORE_VERSION, datafiles, locate, output  # noqa: E402
 
 MIGRATIONS_DIR = os.path.join(HERE, "migrations")
 PROJECT_FILE = "arkana-project.json"
@@ -140,6 +140,27 @@ def find_home(arg):
     return home
 
 
+def statusline_copy_outdated():
+    """Versión del núcleo de la copia de la statusline (`~/.claude/arkana-statusline`) si es anterior a la de este plugin; None si está al día o no hay copia.
+    Es un dato de usuario fuera del repo: ninguna migración lo toca, pero tras actualizar los plugins hay que refrescarlo con `/arkana-statusline:fix`."""
+    f = os.path.join(os.path.expanduser("~"), ".claude", "arkana-statusline", "arkana_core", "__init__.py")
+    try:
+        with open(f, encoding="utf-8") as fh:
+            m = re.search(r'CORE_VERSION\s*=\s*"([\d.]+)"', fh.read())
+    except OSError:
+        return None
+    if not m:
+        return None
+    ver = lambda v: tuple(int(x) for x in v.split("."))
+    return m.group(1) if ver(m.group(1)) < ver(CORE_VERSION) else None
+
+
+def aviso_statusline(rep):
+    old = statusline_copy_outdated()
+    if old:
+        rep.add("WARN", "statusline", f"la copia de la statusline (~/.claude/arkana-statusline) lleva el núcleo {old}, anterior al de esta instalación: ejecuta /arkana-statusline:fix")
+
+
 # ---------- check ----------
 def cmd_check(a, ctx, rep):
     mods = load_migrations()
@@ -151,6 +172,7 @@ def cmd_check(a, ctx, rep):
         rep.add("WARN", "layout", f"el repo está en layout {layout}; la última migración es {latest}: ejecuta /arkana-evolve:apply")
     else:
         rep.add("OK", "layout", f"layout {layout} (al día)")
+    aviso_statusline(rep)
     for m in mods:
         if m.detect(ctx):
             rep.add("WARN", m.ID, f"pendiente: {m.TITLE} → /arkana-evolve:apply")
@@ -224,7 +246,9 @@ def cmd_apply(a, ctx, rep):
         if not ctx.dry and not backed and any("local" in m.SCOPE for m in pending):
             rep.add("OK", "copia", f"copia de .arkana en {os.path.relpath(backup(ctx), ctx.home)}")
             backed = True
-        for m in pending:
+        cola = list(pending)
+        while cola:
+            m = cola.pop(0)
             if not ctx.dry and not is_baseline(m):
                 settle(ctx, mods, before=int(m.ID))                 # las intermedias sin nada que hacer quedan en el historial antes que ésta
             rep.add("INFO", m.ID, f"{m.TITLE} (ámbito {'+'.join(m.SCOPE)})")
@@ -241,10 +265,13 @@ def cmd_apply(a, ctx, rep):
                         rep.add("FAIL", m.ID, f"verificación: {p}")
                     return
                 stamp(ctx, m)
-        # una migración puede dejar listo el terreno de otra (la de base mueve ficheros que luego migra una numérica): se vuelve a mirar
-        pending = [] if ctx.dry else pendientes(done)
+                # una migración deja listo el terreno de otra (la 0001 crea el registro que hace pendientes a las de solo sello; la de base mueve ficheros que luego
+                # migra una numérica): se vuelve a mirar después de CADA una, así ninguna se salta ni se queda fuera del historial
+                cola = pendientes(done)
+        pending = []
     if not ctx.dry:
         settle(ctx, mods, before=None if hasta is None else hasta + 1)
+    aviso_statusline(rep)
     if ctx.dry:
         rep.add("DRY", "apply", f"{len(done)} migraciones se aplicarían; no se ha escrito nada")
     else:
