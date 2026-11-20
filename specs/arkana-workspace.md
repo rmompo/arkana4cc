@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-workspace
 
-> **Estado:** `beta` | **Versión:** `6.2.34`
+> **Estado:** `beta` | **Versión:** `6.2.35`
 
 ---
 
@@ -32,6 +32,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 
 | Versión | Cambios |
 |---------|---------|
+| 6.2.35 | layout init deja /.arkana/ ignorado en el .gitignore de ARKANA y el BRIEF muestra el componente de las tareas en mayusculas (hallazgos del laboratorio de install) |
 | 6.2.34 | BRIEF: seccion NOTES con las notas activas de arkana-note y linea en el QUICK START |
 | 6.2.33 | component: Tres nombres por componente (alias, carpeta y modulo compartido), referencia por cualquiera con prefijos dir:, mod: y alias:, scope de commit con ({module}), check nombres y alias siempre en mayusculas |
 | 6.2.32 | BRIEF: las tareas activas de arkana-todo salen por prioridad con su estado (nuevo modelo de estados y prioridades) |

@@ -11,14 +11,18 @@
       "description": "Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente",
       "category": "other",
       "status": "beta",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "spec": "specs/arkana.md",
       "path": "plugins/arkana",
       "skills": [
         {
           "name": "install",
-          "version": 2,
+          "version": 3,
           "changelog": [
+            {
+              "version": 3,
+              "changes": "Tras la verificacion ofrece /arkana-workspace:fix para lo corregible y documenta el .gitignore de .arkana (hallazgos del laboratorio)"
+            },
             {
               "version": 2,
               "changes": "Se añade el paso note (arkana-note) al pipeline de instalacion"
@@ -31,6 +35,10 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.3",
+          "changes": "install: Tras la verificacion ofrece /arkana-workspace:fix para lo corregible y documenta el .gitignore de .arkana (hallazgos del laboratorio)"
+        },
         {
           "version": "1.1.2",
           "changes": "install: Se añade el paso note (arkana-note) al pipeline de instalacion"
@@ -1419,10 +1427,14 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.34",
+      "version": "6.2.35",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.35",
+          "changes": "layout init deja /.arkana/ ignorado en el .gitignore de ARKANA y el BRIEF muestra el componente de las tareas en mayusculas (hallazgos del laboratorio de install)"
+        },
         {
           "version": "6.2.34",
           "changes": "BRIEF: seccion NOTES con las notas activas de arkana-note y linea en el QUICK START"
