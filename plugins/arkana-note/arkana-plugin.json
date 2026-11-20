@@ -1,0 +1,14 @@
+{
+  "plugin": "arkana-note",
+  "contract": 1,
+  "provides": ["install", "check", "fix", "add", "list", "modify", "delete"],
+  "check": "python3 scripts/lib/note.py validate",
+  "rename": "python3 scripts/lib/note.py rename",
+  "data": [
+    {
+      "path": "arkana-note/notes.json",
+      "class": "data",
+      "description": "las notas de la persona usuaria (id, título, texto, estado active|removed, componente alias o *, fechas); el borrado es lógico y viaja en export/import con --include-data"
+    }
+  ]
+}
