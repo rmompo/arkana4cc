@@ -2,7 +2,7 @@
 name: install
 description: Monta de una vez el espacio de trabajo mínimo de Arkana - comprueba que están los plugins arkana-*, crea la disposición de .arkana y el registro del proyecto, instala statusline, mensajería, orquestación, conocimiento, tareas y notas, aplica los permisos, revisa credenciales y herramientas y verifica todo. No añade componentes - al terminar sugiere dar de alta el primero. Repetible e idempotente, con ensayo previo de cada paso. Also invoked explicitly as /arkana:install
 allowed-tools: [AskUserQuestion]
-version: 2
+version: 3
 ---
 
 # arkana:install
@@ -28,7 +28,7 @@ Líneas `ESTADO|ID|detalle` (`OK`, `INFO`, `WARN`, `FAIL`) y una línea `PASO|id
 
    | Paso | Qué hace | Notas |
    |------|----------|-------|
-   | `layout` | `.arkana/`, manifiesto con ARKANA, `local.json`, `tools.json`, registro del workspace | se niega si hay un plan activo |
+   | `layout` | `.arkana/` (y `/.arkana/` en el `.gitignore` de ARKANA), manifiesto con ARKANA, `local.json`, `tools.json`, registro del workspace | se niega si hay un plan activo |
    | `evolve` | migraciones: registro del proyecto con UUID y carpetas fijas | exige git; no hace commit |
    | `statusline` ⚠ | copia la statusline a `~/.claude/arkana-statusline/` y activa `statusLine` | si ya hay otra, **no la pises**: explica y pregunta; solo entonces repite con `--replace` |
    | `messaging` ⚠ | almacén de mensajes y plugin habilitado en `~/.claude/settings.json` | toca ajustes de usuario |
@@ -43,7 +43,7 @@ Líneas `ESTADO|ID|detalle` (`OK`, `INFO`, `WARN`, `FAIL`) y una línea `PASO|id
 
 4. **Herramientas** (aquí, no en los plugins, vive todo lo específico del stack). Si no hay ninguna declarada, pregunta qué usa el proyecto (por ejemplo `node`, `jdk`, `maven`) y su versión, y decláralas con `/arkana-workspace:config tools`. **Arkana nunca instala herramientas**: si falta alguna (`pdftotext` para convertir PDF, `git-lfs` si el repo lo usa, la declarada…), dile cuál, para qué y el comando exacto, y que lo instale él (puede pedir su contraseña de sudo).
 5. **Si un paso falla**, no sigas ni fuerces: explica la causa (código de salida 3 = sin git o cambios sin commitear en lo que escribiría la migración) y deja que la persona la resuelva; al relanzar `/arkana:install` se reanuda donde se quedó, porque cada paso es idempotente.
-6. **Resumen.** Tabla con cada paso (hecho / ya estaba / pendiente / falló) y los `FAIL` y `WARN` de la verificación. Recuerda **recargar los plugins** (`/reload-plugins`) o reiniciar Claude Code para ver la statusline y los hooks. Todo queda **sin commitear**: que revise `git status` y haga él commit y push.
+6. **Resumen.** Tabla con cada paso (hecho / ya estaba / pendiente / falló) y los `FAIL` y `WARN` de la verificación. Recuerda **recargar los plugins** (`/reload-plugins`) o reiniciar Claude Code para ver la statusline y los hooks. Todo queda **sin commitear**: que revise `git status` y haga él commit y push. Si la verificación deja `FAIL` o `WARN` corregibles (identidad git del repo, `.gitignore` de `.env`, `.gitattributes`, `.env.example`), ofrece `/arkana-workspace:fix`, que los arregla uno a uno con confirmación; no los corrijas tú dentro de la instalación.
 7. **Cierre: sugiere el primer componente.** El workspace mínimo ya está, pero aún no hay ningún repo del proyecto. Termina siempre proponiendo darlo de alta: «Siguiente paso: añade tu primer componente con `/arkana-workspace:component add` (alias, ruta, tipo y remoto). Después, `/arkana-workspace:check` y `/arkana-workspace:fix`». Si ya había componentes, dilo en su lugar y sugiere `/arkana-workspace:check`.
 
 ## Reglas
