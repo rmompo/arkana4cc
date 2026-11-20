@@ -116,7 +116,7 @@ class TestPasos(unittest.TestCase):
     def test_orden_de_los_pasos(self):
         with Lab() as lab:
             ids = [s["id"] for s in self.plan(lab)["steps"]]
-            self.assertEqual(ids, ["layout", "evolve", "statusline", "messaging", "agentic", "knowledge", "todo",
+            self.assertEqual(ids, ["layout", "evolve", "statusline", "messaging", "agentic", "knowledge", "todo", "note",
                                    "permisos", "credenciales", "herramientas", "verificacion"])
 
     def test_ensayo_solo_en_los_pasos_que_escriben(self):
