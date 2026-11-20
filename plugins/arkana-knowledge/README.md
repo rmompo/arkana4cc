@@ -14,12 +14,23 @@ Las crea `install` (y vienen en cualquier clon, porque llevan su `.gitkeep`):
 <repo de Arkana>/
 ├── arkana-incoming/            cola de entrada. Solo se versionan .gitignore y .gitkeep: el resto es local
 ├── arkana-knowledge/<topic>/<slug>.md      notas
-├── arkana-docs/                documentos de origen (los originales, tal cual los entregó el cliente)
-│   └── md/                     su versión en Markdown, con el MISMO árbol: arkana-docs/a/b.pdf → arkana-docs/md/a/b.pdf.md
+├── arkana-docs/
+│   ├── src/                    los originales, tal cual los entregó el cliente; intactos y de solo lectura (0444)
+│   ├── md/                     su versión en Markdown, con el MISMO árbol: arkana-docs/src/a/b.pdf → arkana-docs/md/a/b.pdf.md
+│   └── out/                    documentos elaborados a petición de la persona usuaria, siempre en duplas (ver abajo)
 └── arkana-project.json         registro de componentes (lo crea /arkana-evolve:apply)
 ```
 
-Los documentos de la carpeta `arkana-docs/` son la fuente; los de `arkana-docs/md/` son la versión transformada para que la IA los lea, y es la que `query` consulta.
+Los documentos de `arkana-docs/src/` son la fuente y la prueba (no se editan: `validate` compara su sha256 con el que guarda su Markdown, y `ingest` los deja en solo lectura; git no versiona ese permiso y un sync desde Windows lo pierde, así que la garantía real es el hash). Los de `arkana-docs/md/` son la versión transformada para que la IA los lea, y es la que `query` consulta.
+
+**`arkana-docs/out/`: documentos elaborados, siempre en duplas.** Cada documento que Arkana elabora a petición de la persona usuaria son dos ficheros en la misma carpeta y con el mismo nombre:
+
+```text
+arkana-docs/out/informe-x.md      fuente de la verdad: la información
+arkana-docs/out/informe-x.docx    renderización de informe-x.md en el formato que pidió la persona usuaria
+```
+
+El `.md` manda: el render se regenera a partir de él (nunca al revés) y puede haber varios (`informe-x.docx`, `informe-x.pdf`). Un `.md` sin render es un entregable en Markdown y es válido; un render sin su `.md` no se puede regenerar ni auditar, y `validate` lo avisa (`WARN|out`). La estructura de subcarpetas de `out/` es libre. Hoy `out/` no se indexa en `query` ni hay un skill que escriba en ella: es la carpeta y su regla.
 
 ## 2. Identidad: UUID y alias
 
@@ -38,7 +49,7 @@ Topics: `decision`, `lesson`, `pending`, `contract`, `reference`, `methodology`.
 1. **`ingest scan`** lista lo pendiente: tamaño, tipo, si ya es estable (que no se esté copiando), duplicados por **sha256** y conversión disponible.
 2. **Clasificar** —nota de conocimiento o documento— es decisión con la persona usuaria: si hay duda, se le pregunta explicando cuál es.
 3. **Conversión:** `md` sin más; `docx` y `pptx` con la biblioteca estándar (macros rechazadas, límites de zip); `pdf` con `pdftotext` si está instalado. Sin herramienta, o con un PDF sin texto, **lo lee el modelo** y escribe el Markdown (`--md-file F --conversion modelo --coverage completa|parcial`), y se pide a la persona usuaria que instale `poppler-utils`; `ingest reconvert` lo rehace cuando haya herramienta.
-4. **`ingest add`** mueve el original a `arkana-docs/<dest-dir>/`, guarda su Markdown y registra sha256, tipo, tamaño y conversión. Rechaza enlaces simbólicos, punteros git-lfs, macros y duplicados.
+4. **`ingest add`** mueve el original a `arkana-docs/src/<dest-dir>/` (de solo lectura), guarda su Markdown en `arkana-docs/md/<dest-dir>/` y registra sha256, tipo, tamaño y conversión. Rechaza enlaces simbólicos, punteros git-lfs, macros y duplicados.
 
 Sin tope de tamaño (git-lfs cuando el repo lo permita). Los secretos que lleven los documentos son naturaleza del cliente: no bloquean la ingesta y nunca se repiten sus valores.
 
@@ -64,7 +75,7 @@ Los hooks no ingieren nada: solo avisan. Ingerir es `/arkana-knowledge:ingest`.
 | `add` / `modify` / `delete` | crea, versiona o borra (lógico) una nota |
 | `query --q` / `query --id` | busca en notas y documentos (`--topic --component --kind --include-deleted`) o muestra una |
 | `ingest scan\|convert\|add\|reconvert` | documentos |
-| `validate` | solo lectura: frontmatter, UUID únicos, componentes contra el registro, Changelog, sha256 de los originales, huérfanos de `arkana-docs/`, punteros git-lfs, catálogo antiguo y cola de `arkana-incoming/` |
+| `validate` | solo lectura: frontmatter, UUID únicos, componentes contra el registro, Changelog, sha256 de los originales, huérfanos de `arkana-docs/src/`, originales sueltos del layout anterior (`WARN|suelto`), la regla de duplas de `arkana-docs/out/`, punteros git-lfs, catálogo antiguo y cola de `arkana-incoming/` |
 | `reindex` | reconstruye el índice local |
 
 ## 7. Skills

@@ -12,7 +12,7 @@
   Opciones comunes: --home DIR (carpeta del repo de Arkana; por defecto se localiza)  --dry-run (add, modify, delete, reindex, install, ingest add|reconvert)  --json
 
 Carpetas fijas del repo de ARKANA: `arkana-incoming/` (cola local; solo se versiona su `.gitkeep`), `arkana-knowledge/<topic>/<slug>.md` (decisiones, lecciones,
-metodología…) y `arkana-docs/` (documentos de origen) con `arkana-docs/md/` (su versión en Markdown, que es lo que se consulta).
+metodología…) y `arkana-docs/` con `src/` (originales, solo lectura), `md/` (su versión en Markdown, que es lo que se consulta).
 La identidad de una nota o de un documento es su UUID (`id`); el slug es solo el nombre del fichero. `components` guarda los componentes por su id del registro del
 proyecto (o `all`): renombrar un componente no toca ningún documento; `query` y los informes muestran siempre el alias. Una nota termina en `## Changelog`
 (una línea por versión; `modify` nunca la pisa). Topics: decision, lesson, pending, contract, reference, methodology. El catálogo ya no se versiona: el índice es
@@ -32,10 +32,10 @@ sys.path.insert(0, HERE)
 import common as C  # noqa: E402  (añade el núcleo al sys.path)
 import docs  # noqa: E402
 from arkana_core import datafiles, locate, output, project  # noqa: E402
-from common import DOCS, INCOMING, KError, MD, ROOT, TOPICS  # noqa: E402
+from common import DOCS, INCOMING, KError, MD, OUT, ROOT, SRC, TOPICS  # noqa: E402
 
 INDEX_REL = os.path.join("arkana-knowledge", "index.json")
-FOLDERS = [ROOT, DOCS, MD, INCOMING]
+FOLDERS = [ROOT, DOCS, SRC, MD, OUT, INCOMING]
 INCOMING_GITIGNORE = "*\n!.gitignore\n!.gitkeep\n"
 MAX_BODY = 400_000
 
@@ -115,7 +115,7 @@ def entries(home):
     for ruta, m, _ in docs.iter_docs(home):
         res.append({"id": m["id"], "kind": "document", "titulo": m.get("titulo", ""), "fecha": m.get("fecha", ""), "autor": m.get("autor", ""),
                     "components": m.get("components", []), "etiquetas": m.get("etiquetas", []), "resumen": m.get("resumen", ""), "state": m.get("state") or "active",
-                    "ruta": ruta, "original": os.path.join(DOCS, m.get("original", "")), "sha256": m.get("sha256", ""), "mime": m.get("mime", ""),
+                    "ruta": ruta, "original": os.path.join(SRC, m.get("original", "")), "sha256": m.get("sha256", ""), "mime": m.get("mime", ""),
                     "conversion": m.get("conversion", ""), "cobertura": m.get("cobertura", "")})
     return sorted(res, key=lambda e: (e["kind"], e["id"]))
 
@@ -236,6 +236,29 @@ def cmd_install(a, home, rep):
     rep.add("OK", "indice", "índice local " + ("(se generaría)" if a.dry_run else "generado"))
 
 
+def elaborados(home, rep):
+    """`arkana-docs/out/`: cada documento elaborado es una dupla. `<nombre>.md` es la fuente de la verdad y `<nombre>.<ext>` (docx, pdf, pptx, html…) su renderización en el
+    formato que pidió la persona usuaria. Un render sin su `.md` no se puede regenerar ni auditar: WARN. Un `.md` sin render es un entregable en Markdown y es válido."""
+    base = os.path.join(home, OUT)
+    fuentes = rendes = 0
+    for root, dirs, files in os.walk(base):
+        dirs[:] = sorted(d for d in dirs if not d.startswith("."))
+        nombres = set(files)
+        for f in sorted(files):
+            if f.startswith("."):
+                continue
+            stem, ext = os.path.splitext(f)
+            if ext.lower() == ".md":
+                fuentes += 1
+            elif stem + ".md" in nombres:
+                rendes += 1
+            else:
+                rep.add("WARN", "out", f"{os.path.relpath(os.path.join(root, f), home)} es un render sin su fuente {stem}.md en la misma carpeta: "
+                        "cada documento elaborado es una dupla (.md fuente + render); crea el .md o borra el render")
+    if fuentes or rendes:
+        rep.add("INFO", "out", f"{fuentes} documentos elaborados (fuente .md) y {rendes} renders")
+
+
 def cmd_validate(a, home, rep):
     ids, errs = {}, 0
     doc_ids = {m["id"] for _, m, _ in docs.iter_docs(home)}
@@ -289,7 +312,7 @@ def cmd_validate(a, home, rep):
         bad = [c for c in meta.get("components", []) if not C.component_ok(home, c)]
         if bad:
             pro.append("componentes desconocidos: " + ", ".join(bad))
-        orig = os.path.join(home, DOCS, meta.get("original", "-"))
+        orig = os.path.join(home, SRC, meta.get("original", "-"))
         originales.add(os.path.normpath(orig))
         if not os.path.isfile(orig):
             pro.append(f"falta el original {meta.get('original')}")
@@ -302,9 +325,9 @@ def cmd_validate(a, home, rep):
             rep.add("FAIL", f"doc:{i}", f"{ruta}: " + "; ".join(pro))
         elif meta.get("conversion") == "modelo" and meta.get("cobertura") not in ("completa",):
             rep.add("INFO", f"doc:{i}", f"{meta.get('original')}: Markdown hecho por el modelo ({meta.get('cobertura')}); `ingest reconvert` lo mejora si hay herramienta")
-    base = os.path.join(home, DOCS)
+    base = os.path.join(home, SRC)
     for root, dirs, files in os.walk(base):
-        dirs[:] = sorted(d for d in dirs if d != "md" and not d.startswith("."))
+        dirs[:] = sorted(d for d in dirs if not d.startswith("."))
         for f in files:
             p = os.path.normpath(os.path.join(root, f))
             if f.startswith(".") or p in originales:
@@ -312,7 +335,12 @@ def cmd_validate(a, home, rep):
             if C.is_lfs_pointer(p):
                 rep.add("WARN", "huerfano", f"{os.path.relpath(p, home)} es un puntero de git-lfs sin su Markdown: pídele a la persona usuaria que instale git-lfs y ejecute `git lfs pull`, y luego ingiérelo con /arkana-knowledge:ingest")
                 continue
-            rep.add("WARN", "huerfano", f"{os.path.relpath(p, home)} está en {DOCS}/ sin su Markdown: ingiérelo con /arkana-knowledge:ingest")
+            rep.add("WARN", "huerfano", f"{os.path.relpath(p, home)} está en {SRC}/ sin su Markdown: ingiérelo con /arkana-knowledge:ingest")
+    if os.path.isdir(os.path.join(home, DOCS)):
+        sueltos = [n for n in sorted(os.listdir(os.path.join(home, DOCS))) if n not in ("src", "md", "out") and not n.startswith(".")]
+        for n in sueltos:                                                    # layout anterior: los originales colgaban directamente de arkana-docs/
+            rep.add("WARN", "suelto", f"{DOCS}/{n} está fuera de src/, md/ y out/: los originales van en {SRC}/ (/arkana-evolve:apply los mueve)")
+    elaborados(home, rep)
     for d in FOLDERS:
         if not os.path.isdir(os.path.join(home, d)):
             rep.add("WARN", "carpeta", f"falta {d}/: /arkana-knowledge:install (o un git pull: llevan su .gitkeep)")
