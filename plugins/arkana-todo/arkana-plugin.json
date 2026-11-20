@@ -8,7 +8,7 @@
     {
       "path": "arkana-todo/todos.json",
       "class": "data",
-      "description": "la lista de tareas (id, título, estado open|done|deleted, prioridad, vencimiento, componente, notas); el borrado es lógico y viaja en export/import con --include-data"
+      "description": "la lista de tareas (id, título, estado pending|in-progress|paused|blocked|done|rejected|removed, prioridad critical|high|medium|low, vencimiento, componente (alias o *), notas); el borrado es lógico y viaja en export/import con --include-data"
     }
   ]
 }

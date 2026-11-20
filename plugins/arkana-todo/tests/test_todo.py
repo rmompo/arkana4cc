@@ -59,16 +59,16 @@ class TestCiclo(Base):
         self.assertIn("t-001", self.ok("add", "--title", "Rotar claves", "--priority", "high", "--due", "2099-01-01"))
         self.ok("add", "--title", "Limpiar ramas")
         out = self.ok("list")
-        self.assertIn("INFO|t-001|[open] Rotar claves · high · vence 2099-01-01", out)
+        self.assertIn("| t-001 | high | * | Rotar claves (vence 2099-01-01) | pending |", out)
         self.assertIn("t-002", out)
         self.ok("done", "--id", "t-001")
         self.assertNotIn("t-001", self.ok("list"))
         t = self.tareas()[0]
         self.assertEqual((t["estado"], t["cerrada"] != ""), ("done", True))
-        self.assertIn("t-001", self.ok("list", "--state", "done"))
+        self.assertIn("t-001", self.ok("list", "--status", "done"))
         self.assertIn("ya estaba cerrada", self.ok("done", "--id", "t-001"))
         self.ok("done", "--id", "t-001", "--reopen")
-        self.assertEqual((self.tareas()[0]["estado"], self.tareas()[0]["cerrada"]), ("open", ""))
+        self.assertEqual((self.tareas()[0]["estado"], self.tareas()[0]["cerrada"]), ("pending", ""))
 
     def test_add_funciona_sin_install_previo(self):
         self.ok("add", "--title", "Primera")
@@ -78,7 +78,7 @@ class TestCiclo(Base):
         self.ok("add", "--title", "Borrable")
         self.ok("delete", "--id", "t-001")
         self.assertNotIn("t-001", self.ok("list"))
-        self.assertIn("t-001", self.ok("list", "--state", "deleted"))
+        self.assertIn("t-001", self.ok("list", "--status", "removed"))
         self.assertEqual(self.td("done", "--id", "t-001").returncode, 2)               # una borrada no se cierra
         self.ok("modify", "--id", "t-001", "--restore")
         self.assertIn("t-001", self.ok("list"))
@@ -110,7 +110,7 @@ class TestCiclo(Base):
         out = self.ok("list")
         self.assertLess(out.index("Vencida"), out.index("Futura"))
         self.assertLess(out.index("Futura"), out.index("Sin fecha"))
-        self.assertIn("VENCIDA", out)
+        self.assertIn("⚠ vencida", out)
         solo = self.ok("list", "--overdue")
         self.assertIn("Vencida", solo); self.assertNotIn("Futura", solo)
         self.assertIn("Sin fecha", self.ok("list", "--priority", "low"))
@@ -119,6 +119,102 @@ class TestCiclo(Base):
         self.ok("add", "--title", "J")
         d = json.loads(self.ok("list", "--json"))
         self.assertEqual((d["plugin"], d["skill"], d["status"]), ("arkana-todo", "list", "ok"))
+
+
+class TestModeloDeEstados(Base):
+    def alta(self):
+        self.ok("add", "--title", "Baja", "--priority", "low")
+        self.ok("add", "--title", "Critica", "--priority", "critical", "--component", "api")
+        self.ok("add", "--title", "Media")
+        self.ok("add", "--title", "Alta | con barra", "--priority", "high")
+        self.ok("add", "--title", "Bloqueada", "--priority", "high")
+        self.ok("modify", "--id", "t-005", "--status", "blocked")
+        self.ok("add", "--title", "En marcha", "--priority", "medium")
+        self.ok("modify", "--id", "t-006", "--status", "in-progress")
+        self.ok("add", "--title", "Hecha"); self.ok("done", "--id", "t-007")
+        self.ok("add", "--title", "Rechazada"); self.ok("modify", "--id", "t-008", "--status", "rejected")
+        self.ok("add", "--title", "Quitada"); self.ok("delete", "--id", "t-009")
+        self.ok("add", "--title", "Pausada"); self.ok("modify", "--id", "t-010", "--status", "paused")
+
+    def test_valores_por_defecto(self):
+        self.ok("add", "--title", "X")
+        t = self.tareas()[0]
+        self.assertEqual((t["estado"], t["prioridad"], t["componente"]), ("pending", "medium", "*"))
+
+    def test_una_tabla_por_estado_con_la_cabecera_pedida(self):
+        self.alta()
+        out = self.ok("list")
+        cab = "| identificador | prioridad | componente | descripcion | estado |"
+        self.assertEqual(out.count(cab), 4)                                        # pending, in-progress, paused, blocked
+        orden = [out.index(f"### {e} (") for e in ("pending", "in-progress", "paused", "blocked")]
+        self.assertEqual(orden, sorted(orden))
+
+    def test_por_defecto_no_salen_done_rejected_ni_removed(self):
+        self.alta()
+        out = self.ok("list")
+        for e in ("Hecha", "Rechazada", "Quitada"):
+            self.assertNotIn(e, out)
+        for e in ("done", "rejected", "removed"):
+            self.assertNotIn(f"### {e}", out)
+        todo = self.ok("list", "--status", "all")
+        for e in ("### done (1)", "### rejected (1)", "### removed (1)", "Hecha", "Rechazada", "Quitada"):
+            self.assertIn(e, todo)
+        solo = self.ok("list", "--status", "done,rejected")
+        self.assertIn("Hecha", solo); self.assertIn("Rechazada", solo); self.assertNotIn("Quitada", solo); self.assertNotIn("### pending", solo)
+
+    def test_dentro_de_cada_tabla_se_ordena_por_prioridad(self):
+        self.alta()
+        out = self.ok("list")
+        pend = out[out.index("### pending"):out.index("### in-progress")]
+        self.assertEqual([pend.index(x) for x in ("Critica", "Alta", "Media", "Baja")], sorted(pend.index(x) for x in ("Critica", "Alta", "Media", "Baja")))
+
+    def test_la_barra_del_titulo_se_escapa_y_el_componente_se_muestra(self):
+        self.alta()
+        out = self.ok("list")
+        self.assertIn("Alta \\| con barra", out)
+        self.assertIn("| t-002 | critical | api | Critica | pending |", out)
+
+    def test_filtro_por_componente_incluye_las_de_todos(self):
+        self.alta()
+        out = self.ok("list", "--component", "api")
+        self.assertIn("Critica", out); self.assertIn("Media", out)                  # `*` afecta a todos los componentes
+
+    def test_transiciones_y_cierre(self):
+        self.ok("add", "--title", "A")
+        self.ok("modify", "--id", "t-001", "--status", "done")
+        self.assertNotEqual(self.tareas()[0]["cerrada"], "")
+        self.ok("modify", "--id", "t-001", "--status", "paused")
+        self.assertEqual((self.tareas()[0]["estado"], self.tareas()[0]["cerrada"]), ("paused", ""))
+        self.assertEqual(self.td("modify", "--id", "t-001", "--status", "hecho").returncode, 2)
+        self.ok("delete", "--id", "t-001")
+        self.assertEqual(self.td("modify", "--id", "t-001", "--status", "pending").returncode, 2)   # borrada: solo --restore
+        self.ok("modify", "--id", "t-001", "--restore")
+        self.assertEqual(self.tareas()[0]["estado"], "pending")
+
+    def test_sin_tareas(self):
+        self.assertIn("Sin tareas", self.ok("list"))
+
+    def test_json_sigue_siendo_el_formato_comun(self):
+        self.alta()
+        d = json.loads(self.ok("list", "--json"))
+        self.assertTrue(all(i["status"] == "INFO" or i["status"] == "info" for i in d["items"]))
+        self.assertEqual(len(d["items"]), 7)
+
+    def test_valores_antiguos_se_leen_se_avisan_y_fix_los_migra(self):
+        write(self.store, json.dumps({"version": 1, "next": 4, "tareas": [
+            {"id": "t-001", "titulo": "A", "estado": "open", "prioridad": "normal", "vence": "", "componente": "", "creada": AYER, "cerrada": "", "notas": ""},
+            {"id": "t-002", "titulo": "B", "estado": "deleted", "prioridad": "high", "vence": "", "componente": "all", "creada": AYER, "cerrada": "", "notas": ""},
+            {"id": "t-003", "titulo": "C", "estado": "done", "prioridad": "low", "vence": "", "componente": "api", "creada": AYER, "cerrada": AYER, "notas": ""}]}))
+        self.assertIn("| t-001 | medium | * | A | pending |", self.ok("list"))
+        out = self.ok("validate")
+        self.assertIn("WARN|valores-antiguos", out)
+        antes = read(self.store)
+        self.assertIn("DRY|", self.ok("fix", "--dry-run")); self.assertEqual(read(self.store), antes)
+        self.ok("fix")
+        self.assertEqual([(t["estado"], t["prioridad"], t["componente"]) for t in self.tareas()],
+                         [("pending", "medium", "*"), ("removed", "high", "*"), ("done", "low", "api")])
+        self.assertNotIn("valores-antiguos", self.ok("validate"))
+        self.assertIn("nada que reparar", self.ok("fix"))
 
 
 class TestValidacion(Base):
@@ -137,7 +233,8 @@ class TestValidacion(Base):
               json.dumps({"schema": 1, "arkana": {"alias": "ARKANA", "path": "."}, "components": [{"alias": "api", "type": "maven", "path": "back"}]}))
         self.ok("add", "--title", "ok", "--component", "api")
         self.assertEqual(self.td("add", "--title", "mal", "--component", "nadie").returncode, 2)
-        self.ok("add", "--title", "todos", "--component", "all")
+        self.ok("add", "--title", "todos", "--component", "*")
+        self.assertEqual(self.tareas()[-1]["componente"], "*")
 
     def test_sin_workspace_falla_con_codigo_3(self):
         r = subprocess.run([sys.executable, "-I", TD, "--home", os.path.join(self.h, "no-existe"), "list"], capture_output=True, text=True, env=ENV)
@@ -147,8 +244,8 @@ class TestValidacion(Base):
         self.assertIn("WARN|almacen", self.ok("validate"))                          # sin almacén: aviso, no fallo
         self.ok("add", "--title", "A", "--due", AYER)
         out = self.ok("validate")
-        self.assertIn("OK|almacen|1 tareas, 1 abiertas", out); self.assertIn("WARN|vencidas", out)
-        d = json.loads(read(self.store)); d["tareas"][0]["estado"] = "raro"; d["tareas"].append(dict(d["tareas"][0], estado="open"))
+        self.assertIn("OK|almacen|1 tareas, 1 activas", out); self.assertIn("WARN|vencidas", out)
+        d = json.loads(read(self.store)); d["tareas"][0]["estado"] = "raro"; d["tareas"].append(dict(d["tareas"][0], estado="pending"))
         write(self.store, json.dumps(d))
         r = self.td("validate")
         self.assertEqual(r.returncode, 1)
@@ -175,7 +272,7 @@ class TestValidacion(Base):
         self.ok("fix")
         self.ok("validate")
         d = json.loads(read(self.store))
-        self.assertEqual((d["next"], d["tareas"][0]["titulo"], d["tareas"][0]["estado"]), (6, "Vieja", "open"))
+        self.assertEqual((d["next"], d["tareas"][0]["titulo"], d["tareas"][0]["estado"]), (6, "Vieja", "pending"))
         self.assertIn("nada que reparar", self.ok("fix"))
 
 
