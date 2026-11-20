@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-workspace
 
-> **Estado:** `beta` | **Versión:** `6.2.38`
+> **Estado:** `beta` | **Versión:** `6.2.39`
 
 ---
 
@@ -32,6 +32,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 
 | Versión | Cambios |
 |---------|---------|
+| 6.2.39 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 6.2.38 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 6.2.37 | El registro de workspaces vive en ~/.arkana/workspaces.json (el antiguo se lee y se migra) |
 | 6.2.36 | component: component: pide usuario y correo git al anadir un componente y, si tiene remoto, usuario y clave del token; la identidad se aplica al repo; credentials set pide el valor sin mostrarlo |

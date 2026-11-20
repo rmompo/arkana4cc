@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-agentic
 
-> **Estado:** `beta` | **Versión:** `0.10.26`
+> **Estado:** `beta` | **Versión:** `0.10.27`
 
 ---
 
@@ -31,6 +31,7 @@ Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verif
 
 | Versión | Cambios |
 |---------|---------|
+| 0.10.27 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 0.10.26 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 0.10.25 | Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json |
 | 0.10.24 | Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7 |
