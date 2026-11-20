@@ -124,12 +124,12 @@ def check_component(home, v):
     if v == "arkana":
         return v
     try:
-        al = manifest.load(home).aliases()
+        ws = manifest.load(home)
     except Exception:
-        return v                                                  # sin manifiesto no se puede validar
-    c = manifest.canon(v)
-    if c not in al:
-        raise TError(f"componente desconocido: {v} (válidos: {', '.join(al)}, arkana, *)", 2)
+        return manifest.canon(v)                                  # sin manifiesto no se puede validar
+    c = ws.key(v)                                                 # alias, carpeta o módulo (o con alias:/dir:/mod:)
+    if not ws.has(c):
+        raise TError(f"componente desconocido: {v} (válidos: {', '.join(manifest.display(a) for a in ws.aliases())}, *)", 2)
     return c
 
 
@@ -192,7 +192,7 @@ def table(tareas, estado):
         desc = esc(t["titulo"])
         if t.get("vence"):
             desc += f" ({'⚠ vencida ' if overdue(t) else 'vence '}{t['vence']})"
-        L.append(f"| {t['id']} | {t.get('prioridad', 'medium')} | {t.get('componente') or ALL} | {desc} | {t['estado']} |")
+        L.append(f"| {t['id']} | {t.get('prioridad', 'medium')} | {manifest.display(t['componente']) if t.get('componente') not in (None, '', ALL) else ALL} | {desc} | {t['estado']} |")
     return L
 
 
