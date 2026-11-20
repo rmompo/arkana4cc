@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-evolve
 
-> **Estado:** `beta` | **Versión:** `0.5.11`
+> **Estado:** `beta` | **Versión:** `0.5.13`
 
 ---
 
@@ -14,8 +14,8 @@ Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y 
 
 | Skill | Versión | Descripción |
 |-------|---------|-------------|
-| `apply` | 7 | Aplica las migraciones pendientes de Arkana (registro del proyecto con UUID, carpetas fijas…) en orden, de forma idempotente y con copia de seguridad. Siempre ensaya primero con --dry-run y pide confirmación; nunca hace commit ni push. Acepta --dry-run, --to N y --json. |
-| `check` | 4 | Diagnóstico de solo lectura de la evolución de Arkana - sello de layout del repo, migraciones aplicadas y pendientes, e integridad de lo ya aplicado. Avisa si el repo va por delante de esta instalación. Acepta --json. |
+| `apply` | 12 | Aplica las migraciones pendientes de Arkana (registro del proyecto con UUID, carpetas fijas…) en orden, de forma idempotente y con copia de seguridad. Siempre ensaya primero con --dry-run y pide confirmación; nunca hace commit ni push. Acepta --dry-run, --to N y --json. |
+| `check` | 13 | Diagnóstico de solo lectura de la evolución de Arkana - sello de layout del repo, migraciones aplicadas y pendientes, e integridad de lo ya aplicado. Avisa si el repo va por delante de esta instalación. Acepta --json. |
 
 ---
 
@@ -23,6 +23,8 @@ Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y 
 
 | Versión | Cambios |
 |---------|---------|
+| 0.5.13 | check: check: avisa tambien de la copia de la statusline anterior; tests de cobertura de la cadena de migraciones |
+| 0.5.12 | apply: apply: la descripcion recoge todo lo que migra (tareas, .gitignore de .arkana, arkana-docs en src, md y out y registro de usuario) |
 | 0.5.11 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 0.5.10 | Migracion 0001: crea las carpetas finales de arkana-docs (src, md y out) con .gitkeep y no la carpeta contenedora |
 | 0.5.9 | Migracion 0008: arkana-docs/ en src/, md/ y out/, layout 8 |
