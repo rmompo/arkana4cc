@@ -68,7 +68,7 @@ class TestMigracion0008(unittest.TestCase):
             r = lab.run("apply", "--dry-run")
             self.assertIn("DRY|0008:mover|arkana-docs/manual.pdf → arkana-docs/src/manual.pdf", r.stdout)
             self.assertTrue(existe(lab, "arkana-docs/manual.pdf"))
-            self.assertFalse(existe(lab, "arkana-docs/out"))
+            self.assertFalse(existe(lab, "arkana-docs/src/manual.pdf"))                         # el ensayo no mueve nada
             lab.run("apply")
             self.assertIn("nada que hacer", lab.run("apply").stdout)
             self.assertNotIn("WARN|", lab.run("check").stdout)
