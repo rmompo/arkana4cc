@@ -1,6 +1,6 @@
 {
   "name": "arkana-note",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Notas de la persona usuaria en un workspace de Arkana: locales, sin red, con título, texto y componente (alias o * para todos); borrado lógico; salen en el BRIEF de la sesión (install, add, list, modify, delete)",
   "author": {
     "name": "R. Mompó Pavesi"
