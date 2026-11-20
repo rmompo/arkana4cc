@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-todo
 
-> **Estado:** `beta` | **Versión:** `1.1.24`
+> **Estado:** `beta` | **Versión:** `1.1.25`
 
 ---
 
@@ -29,6 +29,7 @@ Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: loca
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.25 | Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas |
 | 1.1.24 | modify: modify: nuevo --status y componente * para todos; removed solo sale con --restore |
 | 1.1.23 | list: list: una tabla por estado (identificador, prioridad, componente, descripcion, estado) ordenadas por prioridad; done, rejected y removed ocultos por defecto |
 | 1.1.22 | fix: Modelo nuevo: migra los valores antiguos (open, deleted, normal, all) a los actuales |

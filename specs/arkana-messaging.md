@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-messaging
 
-> **Estado:** `beta` | **Versión:** `2.1.17`
+> **Estado:** `beta` | **Versión:** `2.1.18`
 
 ---
 
@@ -29,6 +29,7 @@ Mensajes entre los componentes de un workspace de Arkana: put, get, delete (lóg
 
 | Versión | Cambios |
 |---------|---------|
+| 2.1.18 | Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas |
 | 2.1.17 | Núcleo 1.8.0 vendorizado: campos mode, ref, watch y checks_skip del componente, esquema 2 del manifiesto y LAYOUT_KNOWN |
 | 2.1.16 | sync: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
 | 2.1.15 | query: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |

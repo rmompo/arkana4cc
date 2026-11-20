@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-agentic
 
-> **Estado:** `beta` | **Versión:** `0.10.22`
+> **Estado:** `beta` | **Versión:** `0.10.23`
 
 ---
 
@@ -31,6 +31,7 @@ Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verif
 
 | Versión | Cambios |
 |---------|---------|
+| 0.10.23 | Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas |
 | 0.10.22 | stop requiring a plugins folder to recognise the Arkana repo |
 | 0.10.21 | Núcleo 1.8.0 vendorizado: campos mode, ref, watch y checks_skip del componente, esquema 2 del manifiesto y LAYOUT_KNOWN |
 | 0.10.20 | stop: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
