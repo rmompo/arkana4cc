@@ -1,6 +1,6 @@
 {
   "name": "arkana-todo",
-  "version": "1.1.27",
+  "version": "1.1.28",
   "description": "Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: local, sin red, con prioridad, vencimiento y componente, cierre reversible y borrado lógico (add, list, done, modify, delete)",
   "author": {
     "name": "R. Mompó Pavesi"

@@ -26,7 +26,7 @@ Orden fijo; cada paso se ensaya (`--dry-run`), se confirma y se aplica. Repetir 
 | 4 | `statusline` | arkana-statusline | `~/.claude/arkana-statusline/` y `statusLine` de `~/.claude/settings.json` |
 | 5 | `messaging` | arkana-messaging | `.arkana/arkana-messaging/` y ajustes de usuario |
 | 6 | `agentic` | arkana-agentic | `.arkana/arkana-agentic/` y ajustes de usuario |
-| 7 | `knowledge` | arkana-knowledge | `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/` |
+| 7 | `knowledge` | arkana-knowledge | `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/{src,md,out}/` |
 | 8 | `todo` | arkana-todo | `.arkana/arkana-todo/` |
 | 9 | `note` | arkana-note | `.arkana/arkana-note/` |
 | 10 | `permisos` | arkana-workspace | `.claude/settings.local.json` de ARKANA |
