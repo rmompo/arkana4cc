@@ -81,6 +81,13 @@ class TestLocate(unittest.TestCase):
             self.assertFalse(os.path.exists(locate.legacy_registry_path()))
             self.assertEqual([w["arkana"] for w in locate.read_registry()], [lab.arkana])
 
+    def test_registrar_sin_nombre_conserva_el_que_ya_tenia_la_entrada(self):
+        with common.Lab() as lab:
+            lab.registrar()
+            self.assertTrue(locate.register(lab.arkana, "mi-proyecto"))                      # con nombre explícito se cambia
+            self.assertFalse(locate.register(lab.arkana))                                    # sin nombre: no lo pisa
+            self.assertEqual([w["name"] for w in locate.read_registry()], ["mi-proyecto"])
+
     def test_el_registro_nuevo_manda_sobre_el_antiguo(self):
         with common.Lab() as lab:
             lab.registrar()
