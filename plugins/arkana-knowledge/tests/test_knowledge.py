@@ -60,8 +60,8 @@ class Base(unittest.TestCase):
 
 class Notas(Base):
     def test_install_crea_carpetas_fijas(self):
-        for d in ("arkana-incoming", "arkana-knowledge", "arkana-docs", os.path.join("arkana-docs", "src"), os.path.join("arkana-docs", "md"), os.path.join("arkana-docs", "out")):
-            self.assertTrue(os.path.isfile(self.path(d, ".gitkeep")), d)
+        for d in ("arkana-incoming", "arkana-knowledge", os.path.join("arkana-docs", "src"), os.path.join("arkana-docs", "md"), os.path.join("arkana-docs", "out")):
+            self.assertTrue(os.path.isfile(self.path(d, ".gitkeep")), d)                            # cada carpeta FINAL lleva su .gitkeep
         self.assertIn("!.gitkeep", read(self.path("arkana-incoming", ".gitignore")))
         self.assertEqual(self.kn("install").returncode, 0)
 
