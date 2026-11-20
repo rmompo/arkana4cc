@@ -134,8 +134,9 @@ class TestApply0001(unittest.TestCase):
             self.assertEqual([c["alias"] for c in p["components"]], ["arkana", "api"])
             ids = [c["id"] for c in p["components"]]
             self.assertTrue(all(UUID_RX.match(i) for i in ids) and len(set(ids)) == 2)
-            for rel in ("arkana-incoming/.gitkeep", "arkana-incoming/.gitignore", "arkana-knowledge/.gitkeep", "arkana-docs/.gitkeep", "arkana-docs/md/.gitkeep"):
+            for rel in ("arkana-incoming/.gitkeep", "arkana-incoming/.gitignore", "arkana-knowledge/.gitkeep", "arkana-docs/src/.gitkeep", "arkana-docs/md/.gitkeep", "arkana-docs/out/.gitkeep"):
                 self.assertTrue(os.path.isfile(os.path.join(lab.arkana, rel)), rel)
+            self.assertFalse(os.path.exists(os.path.join(lab.arkana, "arkana-docs", ".gitkeep")))       # arkana-docs/ no es una carpeta final: solo agrupa
             self.assertEqual(lab.read("arkana-incoming/.gitignore"), "*\n!.gitignore\n!.gitkeep\n")
             bak = os.path.join(lab.arkana, ".arkana", "arkana-workspace", "bak")
             copias = [f for f in os.listdir(bak) if f.startswith("evolve-")]
@@ -169,7 +170,7 @@ class TestApply0001(unittest.TestCase):
     def test_no_pisa_lo_que_ya_existe(self):
         with Lab() as lab:
             lab.write("arkana-incoming/nota.txt", "ya había algo")
-            lab.write("arkana-docs/.gitkeep", "")
+            lab.write("arkana-docs/md/.gitkeep", "")
             lab.write("arkana-incoming/.gitignore", "*.tmp\n")
             r = lab.run("apply")
             self.assertEqual(r.returncode, 0, r.stdout)
@@ -211,9 +212,9 @@ class TestApply0001(unittest.TestCase):
 
     def test_cambios_sin_commitear_en_lo_que_se_va_a_escribir_se_niegan(self):
         with Lab() as lab:
-            lab.write("arkana-docs/.gitkeep", "")
+            lab.write("arkana-docs/md/.gitkeep", "")
             git(lab.arkana, "add", "-A"); git(lab.arkana, "commit", "-q", "-m", "base")
-            lab.write("arkana-docs/.gitkeep", "modificado a mano")
+            lab.write("arkana-docs/md/.gitkeep", "modificado a mano")
             r = lab.run("apply")
             self.assertEqual(r.returncode, 3, r.stdout)
             self.assertIn("cambios sin commitear", r.stdout)

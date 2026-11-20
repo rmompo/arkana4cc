@@ -5,7 +5,7 @@ de ARKANA, cada una con su `.gitkeep` para que existan en cualquier clon sin ins
 
   arkana-incoming/   cola local de entrada de documentos (solo se versiona `.gitkeep` y el `.gitignore` interno, que ignora el resto)
   arkana-knowledge/  decisiones, lecciones y metodología
-  arkana-docs/       documentos de origen; `arkana-docs/md/` guarda sus versiones en Markdown
+  arkana-docs/       src/ (originales), md/ (su Markdown) y out/ (documentos elaborados); cada carpeta final con su .gitkeep
 
 No pisa nada de lo que existe. Si `arkana-project.json` ya existe (otra persona migró y empujó), no regenera ningún UUID: solo comprueba que los alias del
 manifiesto local estén en el registro y anota la migración como aplicada en esta instalación.
@@ -29,8 +29,9 @@ FILES = [  # (carpeta, fichero, contenido)
     ("arkana-incoming", ".gitkeep", ""),
     ("arkana-incoming", ".gitignore", INCOMING_GITIGNORE),
     ("arkana-knowledge", ".gitkeep", ""),
-    ("arkana-docs", ".gitkeep", ""),
+    (os.path.join("arkana-docs", "src"), ".gitkeep", ""),      # las carpetas finales llevan .gitkeep para que git las versione; arkana-docs/ solo las agrupa
     (os.path.join("arkana-docs", "md"), ".gitkeep", ""),
+    (os.path.join("arkana-docs", "out"), ".gitkeep", ""),
 ]
 
 
