@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-messaging
 
-> **Estado:** `beta` | **Versión:** `2.1.20`
+> **Estado:** `beta` | **Versión:** `2.1.21`
 
 ---
 
@@ -29,6 +29,7 @@ Mensajes entre los componentes de un workspace de Arkana: put, get, delete (lóg
 
 | Versión | Cambios |
 |---------|---------|
+| 2.1.21 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 2.1.20 | Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json |
 | 2.1.19 | Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7 |
 | 2.1.18 | Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas |

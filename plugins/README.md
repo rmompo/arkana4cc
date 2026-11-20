@@ -59,7 +59,7 @@ Los metadatos no ensucian los repos del proyecto: están en `.arkana/` (ignorada
 | Herramientas del proyecto: versión, ruta, paquetes globales, registros por ámbito, URL y puertos a comprobar | `arkana-workspace/tools.json` (`/arkana-workspace:config tools`) | la ruta no |
 | Credenciales (solo nombres de clave en el manifiesto) | `.credentials` (modo 600; denegado a todos, workers incluidos) | nunca |
 | Registro del proyecto: UUID y alias de cada pieza y sello de layout | `arkana-project.json` (raíz de ARKANA, **versionado**) | por git |
-| Carpetas fijas del repo de ARKANA: entrada de documentos, conocimiento y documentos de origen | `arkana-incoming/` (solo `.gitkeep`), `arkana-knowledge/`, `arkana-docs/` (con `md/`) | por git |
+| Carpetas fijas del repo de ARKANA: entrada de documentos, conocimiento y documentos de origen | `arkana-incoming/` (solo `.gitkeep`), `arkana-knowledge/`, `arkana-docs/` (con `src/`, `md/` y `out/`) | por git |
 | Mensajes, planes y libro de sesiones | `arkana-messaging/`, `arkana-agentic/` | datos locales |
 
 **Directrices de commit.** Cada componente, **incluida ARKANA**, elige su formato (`conventional` por defecto: `tipo(scope): descripción`; `ia4d`, opcional: `verbo(scope) descripción`) y puede fijar los dominios de correo del autor (`--git-email-domain`). La convención la inyecta el hook de sesión en el contexto de cada pieza; no se escribe en ningún fichero de los repos. Siempre en inglés, ≤72 caracteres, sin punto final y **sin `Co-Authored-By`, que nunca se permite y no es configurable**.

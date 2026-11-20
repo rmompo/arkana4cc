@@ -30,7 +30,10 @@ Arkana es una herramienta general para gobernar proyectos de varias piezas en re
 ├── arkana-project.json              registro del proyecto (versionado): UUID, alias y nombre-módulo (`module`, opcional) de cada pieza y sello `layout`
 ├── arkana-incoming/                 entrada de documentos; solo `.gitkeep` y su `.gitignore` interno se versionan
 ├── arkana-knowledge/                notas versionadas en git (<topic>/<slug>.md); su índice es local y derivado (.arkana/arkana-knowledge/index.json)
-├── arkana-docs/                     documentos de origen (versionado); `md/` guarda sus versiones en Markdown
+├── arkana-docs/                     versionado; tres subcarpetas con el mismo árbol de nombres:
+│   ├── src/                         los originales, intactos y de solo lectura
+│   ├── md/                          su versión en Markdown (`src/a/b.pdf` → `md/a/b.pdf.md`)
+│   └── out/                         documentos elaborados a petición, siempre en duplas: `x.md` (fuente) + `x.docx`… (render)
 └── .gitignore                       ignora `/.arkana/` (lo deja `layout init`, o la migración 0007 en instalaciones antiguas)
 ```
 
@@ -47,7 +50,7 @@ Cada plugin declara en su `arkana-plugin.json` qué guarda y de qué clase es ca
 | `local` | Propio de esta instalación (rutas, estado, copias, cerrojos) | nunca | nunca |
 | `secret` | Credenciales | solo la **referencia** (el nombre de la clave) | nunca |
 
-**Fuera de `.arkana/`.** El conocimiento de `arkana-knowledge` (notas en `arkana-knowledge/<topic>/*.md`, documentos de origen en `arkana-docs/` y su versión en Markdown en `arkana-docs/md/`) está en la raíz del repositorio de ARKANA y **se versiona con git**: es la forma de compartirlo entre todas las personas usuarias, por lo que no forma parte de `export`/`import`.
+**Fuera de `.arkana/`.** El conocimiento de `arkana-knowledge` (notas en `arkana-knowledge/<topic>/*.md`, documentos de origen en `arkana-docs/src/`, su versión en Markdown en `arkana-docs/md/` y los elaborados en `arkana-docs/out/`) está en la raíz del repositorio de ARKANA y **se versiona con git**: es la forma de compartirlo entre todas las personas usuarias, por lo que no forma parte de `export`/`import`.
 
 ## Manifiesto `core/workspace.json`
 

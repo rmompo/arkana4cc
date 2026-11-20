@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-todo
 
-> **Estado:** `beta` | **Versión:** `1.1.27`
+> **Estado:** `beta` | **Versión:** `1.1.28`
 
 ---
 
@@ -29,6 +29,7 @@ Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: loca
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.28 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 1.1.27 | Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json |
 | 1.1.26 | Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7 |
 | 1.1.25 | Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas |
