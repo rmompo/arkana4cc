@@ -35,7 +35,7 @@ from arkana_core import datafiles, locate, output, project  # noqa: E402
 from common import DOCS, INCOMING, KError, MD, OUT, ROOT, SRC, TOPICS  # noqa: E402
 
 INDEX_REL = os.path.join("arkana-knowledge", "index.json")
-FOLDERS = [ROOT, DOCS, SRC, MD, OUT, INCOMING]
+FOLDERS = [ROOT, SRC, MD, OUT, INCOMING]                  # las carpetas FINALES (hojas): cada una lleva su .gitkeep para que git la versione; arkana-docs/ solo las agrupa
 INCOMING_GITIGNORE = "*\n!.gitignore\n!.gitkeep\n"
 MAX_BODY = 400_000
 
