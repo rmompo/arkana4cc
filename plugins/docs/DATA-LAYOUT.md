@@ -5,7 +5,7 @@ Arkana es una herramienta general para gobernar proyectos de varias piezas en re
 ## Mapa
 
 ```
-<repo de Arkana>/
+<repo de Arkana>/                    (repo git propio; los plugins NO viven aquí: se instalan desde el marketplace)
 ├── .arkana/
 │   ├── arkana.json                  versión de esquema, nombre del workspace y `root` (relativa; por defecto `..`)
 │   ├── .credentials                 CLAVE=valor, modo 600; nunca se exporta ni se versiona; denegado a todos, workers incluidos
@@ -31,7 +31,7 @@ Arkana es una herramienta general para gobernar proyectos de varias piezas en re
 ├── arkana-incoming/                 entrada de documentos; solo `.gitkeep` y su `.gitignore` interno se versionan
 ├── arkana-knowledge/                notas versionadas en git (<topic>/<slug>.md); su índice es local y derivado (.arkana/arkana-knowledge/index.json)
 ├── arkana-docs/                     documentos de origen (versionado); `md/` guarda sus versiones en Markdown
-└── plugins/                         los plugins y el marketplace `arkana`; los contratos comunes están en `plugins/docs/`
+└── .gitignore                       ignora `/.arkana/` (lo deja `layout init`, o la migración 0007 en instalaciones antiguas)
 ```
 
 Fuera del repo, por usuario: `~/.arkana-workspaces.json` (localizador: raíces de workspace conocidas) y `~/.claude/arkana-statusline/` (copia instalada de la statusline).
