@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-statusline
 
-> **Estado:** `beta` | **Versión:** `1.1.14`
+> **Estado:** `beta` | **Versión:** `1.1.15`
 
 ---
 
@@ -25,6 +25,7 @@ Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y esta
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.15 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 1.1.14 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 1.1.13 | Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json |
 | 1.1.12 | Nucleo 1.10.0 vendorizado: LAYOUT_KNOWN 7 |

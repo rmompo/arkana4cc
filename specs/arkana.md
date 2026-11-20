@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana
 
-> **Estado:** `beta` | **Versión:** `1.1.8`
+> **Estado:** `beta` | **Versión:** `1.1.9`
 
 ---
 
@@ -22,6 +22,7 @@ Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (w
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.9 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 1.1.8 | install: install: el paso knowledge garantiza el andamiaje completo con .gitkeep en cada carpeta final |
 | 1.1.7 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 1.1.6 | Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json |

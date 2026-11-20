@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-knowledge
 
-> **Estado:** `beta` | **Versión:** `2.0.25`
+> **Estado:** `beta` | **Versión:** `2.0.26`
 
 ---
 
@@ -29,6 +29,7 @@ Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y d
 
 | Versión | Cambios |
 |---------|---------|
+| 2.0.26 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 2.0.25 | install: install: las carpetas finales (src, md, out, incoming y knowledge) llevan .gitkeep; arkana-docs/ ya no |
 | 2.0.24 | fix: fix: indica que hacer con originales sueltos y renders sin fuente |
 | 2.0.23 | install: install: crea tambien arkana-docs/src/ y arkana-docs/out/ |

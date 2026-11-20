@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-evolve
 
-> **Estado:** `beta` | **Versión:** `0.5.10`
+> **Estado:** `beta` | **Versión:** `0.5.11`
 
 ---
 
@@ -23,6 +23,7 @@ Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y 
 
 | Versión | Cambios |
 |---------|---------|
+| 0.5.11 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 0.5.10 | Migracion 0001: crea las carpetas finales de arkana-docs (src, md y out) con .gitkeep y no la carpeta contenedora |
 | 0.5.9 | Migracion 0008: arkana-docs/ en src/, md/ y out/, layout 8 |
 | 0.5.8 | apply mueve el registro de workspaces de ~/.arkana-workspaces.json a ~/.arkana/workspaces.json |
