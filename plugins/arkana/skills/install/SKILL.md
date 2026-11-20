@@ -1,8 +1,8 @@
 ---
 name: install
-description: Monta de una vez el espacio de trabajo mínimo de Arkana - comprueba que están los plugins arkana-*, crea la disposición de .arkana y el registro del proyecto, instala statusline, mensajería, orquestación, conocimiento y tareas, aplica los permisos, revisa credenciales y herramientas y verifica todo. No añade componentes - al terminar sugiere dar de alta el primero. Repetible e idempotente, con ensayo previo de cada paso. Also invoked explicitly as /arkana:install
+description: Monta de una vez el espacio de trabajo mínimo de Arkana - comprueba que están los plugins arkana-*, crea la disposición de .arkana y el registro del proyecto, instala statusline, mensajería, orquestación, conocimiento, tareas y notas, aplica los permisos, revisa credenciales y herramientas y verifica todo. No añade componentes - al terminar sugiere dar de alta el primero. Repetible e idempotente, con ensayo previo de cada paso. Also invoked explicitly as /arkana:install
 allowed-tools: [AskUserQuestion]
-version: 1
+version: 2
 ---
 
 # arkana:install
@@ -35,6 +35,7 @@ Líneas `ESTADO|ID|detalle` (`OK`, `INFO`, `WARN`, `FAIL`) y una línea `PASO|id
    | `agentic` ⚠ | carpetas de orquestación y plugin habilitado | toca ajustes de usuario |
    | `knowledge` | carpetas `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/` e índice | — |
    | `todo` | lista de tareas local | — |
+| `note` | almacén de notas local | — |
    | `permisos` | permisos de ARKANA (modelo en `/arkana-workspace:rew-grants`) | solo añade lo que falta; deja copia |
    | `credenciales` | diagnóstico | si falta una clave, indica `credentials.py set <CLAVE>` (valor por stdin); nunca pidas un token por argumento |
    | `herramientas` | lista las herramientas declaradas | ver abajo |

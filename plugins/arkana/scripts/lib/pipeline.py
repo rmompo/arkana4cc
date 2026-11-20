@@ -27,7 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN_ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 MARKETPLACE = "arkana"
 REQUIRED = ["arkana-workspace", "arkana-evolve", "arkana-statusline", "arkana-messaging",
-            "arkana-agentic", "arkana-knowledge", "arkana-todo"]
+            "arkana-agentic", "arkana-knowledge", "arkana-todo", "arkana-note"]
 
 
 def _version_key(v):
@@ -109,6 +109,8 @@ def build_steps(home, roots, dry_flag=True):
          lambda f: py("arkana-knowledge", "scripts/lib/knowledge.py", "install", *f)),
         ("todo", "arkana-todo", "Tareas: lista local",
          lambda f: py("arkana-todo", "scripts/lib/todo.py", "install", *f)),
+        ("note", "arkana-note", "Notas: almacén local",
+         lambda f: py("arkana-note", "scripts/lib/note.py", "install", *f)),
         ("permisos", "arkana-workspace", "Permisos de ARKANA (R/E/W)",
          lambda f: py("arkana-workspace", "scripts/lib/permissions.py", "apply", "--home", q(home), *f)),
         ("credenciales", "arkana-workspace", "Credenciales: solo diagnóstico",

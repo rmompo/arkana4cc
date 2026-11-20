@@ -12,7 +12,7 @@ Punto de entrada de Arkana: **un solo comando** que monta el espacio de trabajo 
 
 | Skill | Qué hace |
 |-------|----------|
-| `install` | Comprueba plugins, crea `.arkana/` y el registro del proyecto, instala statusline, mensajería, orquestación, conocimiento y tareas, aplica permisos, revisa credenciales y herramientas, verifica y sugiere el primer componente. |
+| `install` | Comprueba plugins, crea `.arkana/` y el registro del proyecto, instala statusline, mensajería, orquestación, conocimiento, tareas y notas, aplica permisos, revisa credenciales y herramientas, verifica y sugiere el primer componente. |
 
 ## Pipeline
 
@@ -27,10 +27,11 @@ Orden fijo; cada paso se ensaya (`--dry-run`), se confirma y se aplica. Repetir 
 | 5 | `agentic` | arkana-agentic | `.arkana/arkana-agentic/` y ajustes de usuario |
 | 6 | `knowledge` | arkana-knowledge | `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/` |
 | 7 | `todo` | arkana-todo | `.arkana/arkana-todo/` |
-| 8 | `permisos` | arkana-workspace | `.claude/settings.local.json` de ARKANA |
-| 9 | `credenciales` | arkana-workspace | nada (diagnóstico) |
-| 10 | `herramientas` | arkana-workspace | `tools.json` solo si se declaran; **nunca instala nada** |
-| 11 | `verificacion` | arkana-workspace | nada (diagnóstico) |
+| 8 | `note` | arkana-note | `.arkana/arkana-note/` |
+| 9 | `permisos` | arkana-workspace | `.claude/settings.local.json` de ARKANA |
+| 10 | `credenciales` | arkana-workspace | nada (diagnóstico) |
+| 11 | `herramientas` | arkana-workspace | `tools.json` solo si se declaran; **nunca instala nada** |
+| 12 | `verificacion` | arkana-workspace | nada (diagnóstico) |
 
 Después: `/arkana-workspace:component add` para el primer componente.
 
