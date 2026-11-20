@@ -17,6 +17,7 @@ Arkana no sabe nada de ningún proyecto concreto: los componentes, sus rutas, ti
 
 | Plugin | Responsabilidad | Depende de | Hooks |
 |---|---|---|---|
+| [`arkana`](arkana/README.md) | Punto de entrada: `/arkana:install` monta de una vez el espacio de trabajo mínimo (todo menos los componentes) y sugiere añadir el primero | los demás `arkana-*` | — |
 | [`arkana-workspace`](arkana-workspace/README.md) | El workspace: componentes (manifiesto), permisos R/E/W, credenciales, herramientas, red/VPN, convención de commits, `export`/`import`/`handover` | — | `SessionStart` (resumen `BRIEF`) |
 | [`arkana-messaging`](arkana-messaging/README.md) | Mensajes entre componentes (avisos, tareas, revisiones, preguntas y directrices permanentes), con almacén local | `arkana-workspace` | `SessionStart`, `UserPromptSubmit`, `Stop` |
 | [`arkana-agentic`](arkana-agentic/README.md) | Orquestación: plan aprobado por ti, un worker sin shell por tarea, verificación por script, ramas `arkana-worker/<plan>` | `arkana-workspace` | `SessionStart`, `SessionEnd` (libro de sesiones) |
@@ -25,16 +26,19 @@ Arkana no sabe nada de ningún proyecto concreto: los componentes, sus rutas, ti
 | [`arkana-todo`](arkana-todo/README.md) | Lista de tareas pendientes de la persona usuaria: local, con prioridad, vencimiento y componente; cierre reversible y borrado lógico (`add`, `list`, `done`, `modify`, `delete`) | — | — |
 | [`arkana-evolve`](arkana-evolve/README.md) | Evolución de una instalación: migraciones numeradas, idempotentes y con `--dry-run` (`apply`, `check`); crea el registro del proyecto con UUID y las carpetas fijas | — | — |
 
-Todos ofrecen los verbos `install`, `check` y `fix`, salvo `arkana-evolve`, que ofrece `check` y `apply`.
+Todos (salvo `arkana`, que solo ofrece `install`) ofrecen los verbos `install`, `check` y `fix`, salvo `arkana-evolve`, que ofrece `check` y `apply`.
 
 ## Puesta en marcha
 
 ```bash
 claude plugin marketplace add <ruta>
+claude plugin install arkana@arkana              # el instalador guiado (/arkana:install)
 claude plugin install arkana-workspace@arkana     # y el resto que quieras: arkana-messaging, arkana-agentic, arkana-statusline, arkana-knowledge, arkana-todo, arkana-evolve
 ```
 
-Después, desde la carpeta de Arkana y en este orden:
+**Atajo:** instala los plugins y, desde la carpeta de Arkana, ejecuta `/arkana:install`: encadena los pasos 1, 3, 4 (herramientas solo se diagnostican), 5 y los permisos del 6, y al terminar sugiere el paso 2 (el primer componente).
+
+Paso a paso, desde la carpeta de Arkana y en este orden:
 
 1. `/arkana-workspace:install` crea `.arkana/` y el manifiesto (solo con ARKANA).
 2. `/arkana-workspace:component add` da de alta cada componente (alias, ruta, tipo, remoto, formato de commit…).

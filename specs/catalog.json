@@ -7,6 +7,37 @@
   "docs_language": "es",
   "plugins": [
     {
+      "name": "arkana",
+      "description": "Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente",
+      "category": "other",
+      "status": "beta",
+      "version": "1.1.1",
+      "spec": "specs/arkana.md",
+      "path": "plugins/arkana",
+      "skills": [
+        {
+          "name": "install",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Se crea la skill: pipeline de instalación de todo el espacio de trabajo mínimo y sugerencia del primer componente"
+            }
+          ]
+        }
+      ],
+      "changelog": [
+        {
+          "version": "1.1.1",
+          "changes": "install: Se crea la skill: pipeline de instalación de todo el espacio de trabajo mínimo y sugerencia del primer componente"
+        },
+        {
+          "version": "1.1.0",
+          "changes": "Bootstrap: plugin registered in catalog.json"
+        }
+      ]
+    },
+    {
       "name": "arkana-agentic",
       "description": "Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verificación por scripts, límites y control (estado, parada, recuperación).",
       "category": "other",
