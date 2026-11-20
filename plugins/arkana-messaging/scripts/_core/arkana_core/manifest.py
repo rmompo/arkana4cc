@@ -5,13 +5,18 @@ Ficheros (bajo la carpeta `.arkana/` del repo de Arkana):
   core/workspace.json               manifiesto portable: bloque `arkana` y lista `components` (se exporta)
   arkana-workspace/local.json       datos de esta instalación: `paths` absolutas por alias, `git` personal (no se exporta)
 
-Identificadores: el alias canónico va en minúsculas (`arkana`, `app`, `api`…); ` ARKANA ` es solo cómo se muestra.
+Identificadores: el alias canónico va en minúsculas (`arkana`, `app`, `api`…) y se acepta en cualquier caso; **se muestra siempre en MAYÚSCULAS** (`ARKANA`, `APP`…).
+
+Tres nombres por componente (más el `id` UUID del registro): el **alias** (el normal: lo que se guarda y se muestra en la statusline), la **carpeta real**
+(último tramo de su ruta) y el **nombre-módulo** (`module` en `arkana-project.json`, compartido; opcional; por defecto cuenta como el alias en los commits).
+Cualquiera de los tres sirve para referirse a un componente (`Workspace.key`), sin prefijo se prueba en ese orden, o con prefijo para forzar el tipo:
+`alias:webapp`, `dir:md-espacioinquilino-backend`, `mod:viso_rest_inquilino`. Ninguno puede repetirse entre componentes, sin distinguir mayúsculas.
 """
 import json
 import os
 import re
 
-from . import locate, schema as _schema
+from . import locate, project, schema as _schema
 
 WORKSPACE_JSON = os.path.join("core", "workspace.json")
 LOCAL_JSON = os.path.join("arkana-workspace", "local.json")
@@ -38,10 +43,25 @@ def canon(alias):
     return (alias or "").strip().lower()
 
 
+KINDS = ("alias", "dir", "mod")
+COMMIT_FORMATS = ("conventional", "ia4d")
+_CF_RX = re.compile(r"^(conventional|ia4d)(\((\{alias\}|\{module\})\))?$")
+
+
+def parse_commit_format(value):
+    """`commit_format` → (formato, origen del scope). `ia4d`, `conventional` (scope = alias) o `ia4d({module})`, `conventional({module})` (scope = módulo;
+    sin módulo se usa el alias). `{alias}` explícito equivale a no decir nada. ValueError si no se reconoce."""
+    v = (value or "conventional").strip().lower()
+    m = _CF_RX.match(v)
+    if not m:
+        raise ValueError(f"commit_format desconocido: {value!r} (usa conventional o ia4d, y opcionalmente `({{module}})`: ia4d({{module}}))")
+    return m.group(1), ("module" if m.group(3) == "{module}" else "alias")
+
+
 def display(alias):
-    """Cómo se muestra un alias (ARKANA en mayúsculas; el resto tal cual)."""
-    a = canon(alias)
-    return "ARKANA" if a == "arkana" else a
+    """Cómo se muestra un alias: siempre en MAYÚSCULAS (ARKANA, WEBAPP…), para distinguirlo de la carpeta y del nombre-módulo, que van en minúsculas.
+    Internamente el alias se guarda y se compara en minúsculas (`canon`): se acepta en cualquier caso."""
+    return canon(alias).upper()
 
 
 def load_schema(name):
@@ -113,6 +133,74 @@ class Workspace:
         for c in data.get("components", []):
             self._blocks[c["alias"]] = c
         self._ids = {str(b["id"]).lower(): a for a, b in self._blocks.items() if b.get("id")}     # id → alias (los bloques pueden llevar el `id` del registro)
+        self._reg = None
+        self._names = None
+
+    def _registry(self):
+        if self._reg is None:
+            self._reg = project.Registry.load(self.home)
+        return self._reg
+
+    def module(self, alias):
+        """Nombre-módulo de una pieza (del registro compartido); "" si no tiene."""
+        a = self.key(alias)
+        b = self._blocks.get(a, {})
+        reg = self._registry()
+        return reg.module_of(b.get("id") or a)
+
+    def folder(self, alias):
+        """Carpeta real de una pieza: el último tramo de su ruta."""
+        return os.path.basename(os.path.normpath(self.path(alias)))
+
+    def _name_maps(self):
+        if self._names is None:
+            dirs, mods = {}, {}
+            for a in self._blocks:
+                dirs.setdefault(self.folder(a).lower(), a)
+                m = self.module(a)
+                if m:
+                    mods.setdefault(m, a)
+            self._names = (dirs, mods)
+        return self._names
+
+    def match(self, x):
+        """(alias, tipo) de una pieza dada por alias, id, carpeta o módulo (tipo: alias, id, dir o mod); (None, None) si no se conoce.
+        Con prefijo (`alias:`, `dir:`, `mod:`) solo se mira ese tipo."""
+        k = canon(x)
+        kind = None
+        head, sep, rest = k.partition(":")
+        if sep and head in KINDS:
+            kind, k = head, rest.strip()
+        if kind in (None, "alias"):
+            if k in self._blocks:
+                return k, "alias"
+            if kind is None and k in self._ids:
+                return self._ids[k], "id"
+        dirs, mods = self._name_maps()
+        if kind in (None, "dir") and k in dirs:
+            return dirs[k], "dir"
+        if kind in (None, "mod") and k in mods:
+            return mods[k], "mod"
+        return None, None
+
+    def name_conflicts(self):
+        """Nombres repetidos entre componentes (alias, carpeta y módulo, sin distinguir mayúsculas): lista de textos; vacía si no hay."""
+        users = {}
+        for a in self._blocks:
+            for kind, n in (("alias", a), ("carpeta", self.folder(a).lower()), ("módulo", self.module(a))):
+                if n:
+                    users.setdefault(n, {}).setdefault(a, kind)
+        return [f"el nombre '{n}' lo usan varios componentes: " + ", ".join(f"{a} ({k})" for a, k in sorted(u.items()))
+                for n, u in sorted(users.items()) if len(u) > 1]
+
+    def commit_scope(self, alias):
+        """Scope de los commits de una pieza: su módulo si su `commit_format` lo pide con `({module})` y lo tiene; si no, el alias."""
+        a = self.key(alias)
+        try:
+            _, kind = parse_commit_format(self._blocks[a].get("commit_format"))
+        except (KeyError, ValueError):
+            return a
+        return (self.module(a) if kind == "module" else "") or a
 
     def flags(self, alias):
         """`component_flags` de una pieza (alias o id)."""
@@ -120,9 +208,9 @@ class Workspace:
         return component_flags(self.get(k), k == "arkana")
 
     def key(self, x):
-        """Alias canónico de una pieza dada por alias o por id (el valor tal cual si no se conoce)."""
-        k = canon(x)
-        return self._ids.get(k, k)
+        """Alias canónico de una pieza dada por alias, id, carpeta o módulo (el valor tal cual, en minúsculas, si no se conoce)."""
+        a, _ = self.match(x)
+        return a if a else canon(x)
 
     def id_of(self, alias):
         return self._blocks.get(self.key(alias), {}).get("id")

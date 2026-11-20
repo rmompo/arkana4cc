@@ -216,7 +216,7 @@ def index_entry(m):
 
 def recipients(ws, spec, sender):
     """(para, destinatarios): lo escrito (canónico, `all` conservado) y los destinatarios reales de este momento."""
-    items = [manifest.canon(x) for x in re.split(r"[,\s]+", spec or "all") if x]
+    items = [ws.key(x) for x in re.split(r"[,\s]+", spec or "all") if x]
     if not items:
         raise MessageError("put", "--to vacío", 2)
     para = ["all"] if "all" in items else sorted(dict.fromkeys(items))
@@ -403,7 +403,7 @@ def put_mutate(a, rep, store, who, home, ws):
             m["repeticion"] = nuevo
             nota = nuevo
         elif accion in ("delivered", "executed"):
-            alias = manifest.canon(a.para_alias)
+            alias = ws.key(a.para_alias)
             if alias not in recipients_of(m, ws):
                 raise MessageError("put", f"{alias} no es destinatario de {nid}")
             clave = "entregas" if accion == "delivered" else "ejecuciones"
@@ -430,7 +430,7 @@ def confirm(m, a, who, ws, accion, nota):
         raise MessageError("put", f"{nid} es un repeat: no se cierra (se da de baja con delete)")
     dest = recipients_of(m, ws)
     if a.para_alias:
-        alias = manifest.canon(a.para_alias)
+        alias = ws.key(a.para_alias)
         if alias != who and who != "arkana" and m.get("de") != who:
             raise MessageError("put", "solo ARKANA o el remitente pueden confirmar por otro componente")
     elif who in dest:
@@ -506,7 +506,7 @@ def human_detail(d):
 
 def select_msgs(a, msgs, who, ws):
     """Filtros comunes de `get` y `query` (todo en memoria: no escribe nada)."""
-    para, de = (manifest.canon(a.para) if a.para else None), (manifest.canon(a.de) if a.de else None)
+    para, de = (ws.key(a.para) if a.para else None), (ws.key(a.de) if a.de else None)
     sel = []
     for d in msgs:
         est = d.get("estado")
