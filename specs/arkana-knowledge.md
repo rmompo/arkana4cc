@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-knowledge
 
-> **Estado:** `beta` | **Versión:** `2.0.18`
+> **Estado:** `beta` | **Versión:** `2.0.19`
 
 ---
 
@@ -29,6 +29,7 @@ Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y d
 
 | Versión | Cambios |
 |---------|---------|
+| 2.0.19 | Nucleo 1.9.0 vendorizado: nombre-modulo compartido, resolucion por alias, carpeta o modulo y alias mostrados en mayusculas |
 | 2.0.18 | Núcleo 1.8.0 vendorizado: campos mode, ref, watch y checks_skip del componente, esquema 2 del manifiesto y LAYOUT_KNOWN |
 | 2.0.17 | query: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
 | 2.0.16 | modify: Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor) |
