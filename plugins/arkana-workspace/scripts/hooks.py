@@ -77,21 +77,22 @@ def messaging_pending(st, aliases):
 
 
 TODO_MAX = 5
-PRIO = {"high": 0, "normal": 1, "low": 2}
+PRIO = {"critical": 0, "high": 1, "medium": 2, "normal": 2, "low": 3}      # `normal` = valor antiguo de medium
+TODO_ACTIVE = ("pending", "open", "in-progress", "paused", "blocked")             # `open` = valor antiguo de pending
 
 
 def todo_pending(st):
-    """Tareas abiertas de arkana-todo, ya ordenadas como `list` (vencimiento, prioridad, id): [(id, título, prioridad, vence, componente, vencida)].
+    """Tareas activas de arkana-todo (pending, in-progress, paused, blocked), por prioridad, vencimiento e id: [(id, título, prioridad, vence, componente, vencida, estado)].
     Lectura local sin importar el plugin; cualquier dato raro se ignora."""
     d = datafiles.read_json(os.path.join(st, "arkana-todo", "todos.json"), {}) or {}
     hoy = datetime.date.today().isoformat()
     res = []
     for t in d.get("tareas", []) if isinstance(d, dict) else []:
-        if not isinstance(t, dict) or t.get("estado") != "open" or not t.get("titulo"):
+        if not isinstance(t, dict) or t.get("estado") not in TODO_ACTIVE or not t.get("titulo"):
             continue
         vence = str(t.get("vence") or "")
-        res.append((str(t.get("id", "")), str(t["titulo"]), str(t.get("prioridad") or "normal"), vence, str(t.get("componente") or ""), bool(vence) and vence < hoy))
-    return sorted(res, key=lambda r: (r[3] or "9999", PRIO.get(r[2], 1), r[0]))
+        res.append((str(t.get("id", "")), str(t["titulo"]), str(t.get("prioridad") or "medium"), vence, str(t.get("componente") or ""), bool(vence) and vence < hoy, str(t["estado"])))
+    return sorted(res, key=lambda r: (PRIO.get(r[2], 2), r[3] or "9999", r[0]))
 
 
 def statusline_installed():
@@ -101,8 +102,9 @@ def statusline_installed():
 
 
 def todo_line(i, t):
-    id_, titulo, prio, vence, comp, vencida = t
-    extra = [x for x in (prio if prio != "normal" else "", ("⚠ vencida " if vencida else "vence ") + vence if vence else "", comp) if x]
+    id_, titulo, prio, vence, comp, vencida, estado = t
+    extra = [x for x in (prio if prio not in ("medium", "normal") else "", estado if estado not in ("pending", "open") else "",
+                         ("⚠ vencida " if vencida else "vence ") + vence if vence else "", comp if comp not in ("", "*", "all") else "") if x]
     return f"{i}. {titulo} [{id_}]" + (f" ({', '.join(extra)})" if extra else "")
 
 
@@ -124,7 +126,7 @@ def brief(git, msgs, plan, todos=()):
     if plan:
         qs.append("- Use '/arkana-agentic:status' - progress and cost of the active plan")
     if todos:
-        qs.append("- Use '/arkana-todo:list' - open tasks with priority and due date")
+        qs.append("- Use '/arkana-todo:list' - active tasks grouped by status, with priority and due date")
     qs.append("- Use '/arkana-knowledge:ingest' - turn what is waiting in arkana-incoming/ into notes and documents")
     qs.append("- Use '/arkana-evolve:check' - check whether this installation needs migrations (then '/arkana-evolve:apply')")
     out = ["****** [ARKANA] BRIEF ******", "", "### QUICK START", *qs]

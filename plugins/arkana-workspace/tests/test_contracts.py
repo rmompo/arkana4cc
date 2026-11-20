@@ -15,7 +15,8 @@ PLUGINS = os.path.abspath(os.path.join(E.PLUGIN, ".."))
 
 class TestContratos(unittest.TestCase):
     def test_contratos_validos(self):
-        nombres = [d for d in sorted(os.listdir(PLUGINS)) if os.path.isfile(os.path.join(PLUGINS, d, ".claude-plugin", "plugin.json"))]
+        # `arkana` (el instalador) no es un plugin gestionado: no tiene contrato y su nombre no cumple `arkana-<nombre>`
+        nombres = [d for d in sorted(os.listdir(PLUGINS)) if d.startswith("arkana-") and os.path.isfile(os.path.join(PLUGINS, d, ".claude-plugin", "plugin.json"))]
         self.assertIn("arkana-workspace", nombres)
         for d in nombres:
             self.assertEqual(contract.load(os.path.join(PLUGINS, d))["plugin"], d)
