@@ -1,0 +1,228 @@
+{
+  "type": "object",
+  "required": [
+    "schema",
+    "arkana",
+    "components"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "jira": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "token_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "arkana": {
+      "type": "object",
+      "required": [
+        "alias",
+        "path"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "alias": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "remote": {
+          "type": "string"
+        },
+        "remote_host": {
+          "type": "string"
+        },
+        "branches": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "main": {
+              "type": "string"
+            },
+            "develop": {
+              "type": "string"
+            }
+          }
+        },
+        "git": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "token_ref": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            },
+            "email_domains": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9.-]+$"
+              }
+            }
+          }
+        },
+        "commit_format": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "alias",
+          "type",
+          "path"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "alias": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "node",
+              "maven",
+              "docs",
+              "generic"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "remote": {
+            "type": "string"
+          },
+          "remote_host": {
+            "type": "string"
+          },
+          "branches": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "main": {
+                "type": "string"
+              },
+              "develop": {
+                "type": "string"
+              }
+            }
+          },
+          "git": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "token_ref": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "email_domains": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9.-]+$"
+                }
+              }
+            }
+          },
+          "commit_format": {
+            "type": "string"
+          },
+          "vpn": {
+            "type": "boolean"
+          },
+          "statusline": {
+            "type": "boolean"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "tool",
+                "version"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "tool": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "version": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "work",
+              "reference"
+            ]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "watch": {
+            "type": "boolean"
+          },
+          "checks_skip": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
