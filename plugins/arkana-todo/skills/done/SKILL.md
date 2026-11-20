@@ -2,7 +2,7 @@
 name: done
 description: Cierra una tarea de la lista (o la reabre con --reopen). Acepta --dry-run y --json. Also invoked explicitly as /arkana-todo:done
 allowed-tools: []
-version: 12
+version: 21
 ---
 
 # arkana-todo:done
@@ -11,4 +11,4 @@ version: 12
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/todo.py" done --id t-001 [--reopen] [--dry-run] [--json]
 ```
 
-Guarda la fecha de cierre; `--reopen` la borra y deja la tarea abierta. Una tarea borrada no se puede cerrar: restáurala antes con `/arkana-todo:modify --restore`. Es idempotente.
+Guarda la fecha de cierre; `--reopen` la borra y deja la tarea en `pending`. Para otros estados (`in-progress`, `paused`, `blocked`, `rejected`) usa `/arkana-todo:modify --status`. Una tarea borrada no se puede cerrar: restáurala antes con `/arkana-todo:modify --restore`. Es idempotente.
