@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-workspace
 
-> **Estado:** `beta` | **Versión:** `6.2.31`
+> **Estado:** `beta` | **Versión:** `6.2.32`
 
 ---
 
@@ -32,6 +32,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 
 | Versión | Cambios |
 |---------|---------|
+| 6.2.32 | BRIEF: las tareas activas de arkana-todo salen por prioridad con su estado (nuevo modelo de estados y prioridades) |
 | 6.2.31 | stop requiring a plugins folder to recognise the Arkana repo |
 | 6.2.30 | rew-grants: rew-grants: solo lectura para todos sobre un componente de referencia |
 | 6.2.29 | status: status: sección de referencias aparte y sin vigilar |
