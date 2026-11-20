@@ -1,3 +1,4 @@
+import json
 import os
 import unittest
 
@@ -55,9 +56,37 @@ class TestLocate(unittest.TestCase):
 
     def test_registro_ilegible_se_trata_como_vacio(self):
         with common.Lab() as lab:
+            os.makedirs(os.path.dirname(locate.registry_path()), exist_ok=True)
             with open(locate.registry_path(), "w") as f:
                 f.write("{no es json")
             self.assertEqual(locate.read_registry(), [])
+
+    def test_el_registro_vive_en_la_carpeta_de_usuario_de_arkana(self):
+        with common.Lab() as lab:
+            lab.registrar()
+            self.assertEqual(locate.registry_path(), os.path.join(os.path.expanduser("~"), ".arkana", "workspaces.json"))
+            self.assertTrue(os.path.isfile(locate.registry_path()))
+            self.assertFalse(os.path.exists(locate.legacy_registry_path()))
+            self.assertEqual(locate.find_home(cwd=os.path.join(lab.ws, "md-backend")), lab.arkana)
+
+    def test_el_registro_antiguo_se_sigue_leyendo_y_se_migra_al_registrar(self):
+        with common.Lab() as lab:
+            antiguo = {"workspaces": [{"name": "viejo", "arkana": lab.arkana, "root": lab.ws}]}
+            with open(locate.legacy_registry_path(), "w") as f:
+                json.dump(antiguo, f)
+            self.assertEqual(locate.find_home(cwd=os.path.join(lab.ws, "md-backend")), lab.arkana)      # se lee sin migrar
+            self.assertFalse(os.path.exists(locate.registry_path()))
+            self.assertTrue(lab.registrar())                                                             # al registrar: mueve y conserva las entradas
+            self.assertTrue(os.path.isfile(locate.registry_path()))
+            self.assertFalse(os.path.exists(locate.legacy_registry_path()))
+            self.assertEqual([w["arkana"] for w in locate.read_registry()], [lab.arkana])
+
+    def test_el_registro_nuevo_manda_sobre_el_antiguo(self):
+        with common.Lab() as lab:
+            lab.registrar()
+            with open(locate.legacy_registry_path(), "w") as f:
+                json.dump({"workspaces": [{"name": "x", "arkana": "/otro", "root": "/otro"}]}, f)
+            self.assertEqual([w["arkana"] for w in locate.read_registry()], [lab.arkana])
 
 
 if __name__ == "__main__":
