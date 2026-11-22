@@ -3,7 +3,7 @@
 Barra de estado de Claude Code para Arkana. Muestra **en dos líneas** ARKANA y cada componente del proyecto (el workspace es ARKANA más el proyecto) con su estado git, el plan activo de `arkana-agentic`, el coste (del plan y de la sesión), el modelo y el uso (contexto, sesión de 5 h y semana). Es **solo para workspaces de Arkana**: un despachador de usuario decide en cada render qué statusline se ve según la carpeta (ver [Qué statusline se ve](#qué-statusline-se-ve)). Se adapta al ancho del terminal.
 
 ```
-ØARKANA@develop:◌13✚113●84⇡2⇣3 | [▶] 002/007 api@P2611030652-ysov:T002 Añadir el perfil | P0.40 S1.23 Sonnet 5.5 m C61 S0 W19
+ØARKANA@~/devbox/projects/personal/arkana4cc:◌13✚113●84⇡2⇣3 | [▶] 002/007 api@P2611030652-ysov:T002 Añadir el perfil | P0.40 S1.23 Sonnet 5.5 m C61 S0 W19
 app@develop:✓⇣? api@develop:◌1 app-web@develop:✓⇣? app-ui@develop:●2⇣5
 ```
 
@@ -65,12 +65,12 @@ Orden de preferencia: **Arkana → plugin4cc → otra**. En ARKANA y en sus comp
 ### Estructura
 
 ```
-Línea 1:  ØARKANA@rama:indicadores | [estado] descripción del plan | P S coste  modelo (esfuerzo)  C S W uso      [ REQUIRED /arkana-evolve:apply ]
+Línea 1:  ØARKANA@directorio:indicadores | [estado] descripción del plan | P S coste  modelo (esfuerzo)  C S W uso      [ REQUIRED /arkana-evolve:apply ]
 Línea 2:  componente componente componente …
 (línea extra, solo si procede)  ⚠ workspace no cargado: …
 ```
 
-- **Línea 1.** El componente ARKANA va siempre entero, seguido de las secciones del plan, el coste, el modelo y el uso.
+- **Línea 1.** El componente ARKANA, seguido de las secciones del plan, el coste, el modelo y el uso. En lugar de la rama, ARKANA muestra el **directorio de trabajo** de la sesión (`workspace.project_dir`, con el home como `~`): `ØARKANA@~/devbox/projects/personal/arkana4cc:✓`. Si la línea no cabe, **primero cede la descripción del plan** y después la ruta se acorta con `…` como en `p4cc-statusline`: se sustituyen niveles del más alto al más bajo, uno a uno, sin tocar nunca el último (`~/…/projects/personal/arkana4cc` → `~/…/…/personal/arkana4cc` → `~/…/…/…/arkana4cc`) y, si ni así cabe, los niveles ocultos se juntan (`~/… …/arkana4cc`). Los indicadores (`◌ ✚ ● ⇡ ⇣`, `✓`) siguen siendo los del repo de ARKANA, y los demás componentes de la línea 2 conservan su rama.
 - **Línea 2.** Los demás componentes, en el orden del manifiesto. Si no caben, pasan a más líneas (ver «Ancho estrecho»). Si no hay más componentes, no hay segunda línea.
 - **Fuera de un workspace** (sin ARKANA localizable) solo hay **una pieza**: el directorio de trabajo, mostrado con su nombre de carpeta como alias y como componente actual; la statusline es una sola línea (más plan, coste, modelo y uso).
 - **Separadores.** En la línea 1 hay dos barras ` | ` en **azul oscuro** (tras ARKANA y tras el plan); el coste, el modelo y el uso van separados por un espacio. Los componentes de la línea 2 van separados por un espacio.

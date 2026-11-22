@@ -151,6 +151,72 @@ class TestAnchoEstrecho(unittest.TestCase):
         self.assertEqual(len(S.render(d, 200)), 1)
 
 
+class TestRutaDeTrabajo(unittest.TestCase):
+    """Línea 1: `ARKANA@{directorio de trabajo}:indicadores`, con la ruta acortada con … como en plugin4cc."""
+    RUTA = "~/devbox/projects/personal/arkana4cc"
+
+    def datos(self, **kw):
+        d = TestAnchoEstrecho.datos(None) if False else TestAnchoEstrecho().datos()
+        return dict(d, cwd=self.RUTA, **kw)
+
+    def test_shorten_path_como_en_plugin4cc(self):
+        r = "~/aaa/bb/ccc/proj"
+        self.assertEqual(S.shorten_path(r, 99), r)
+        self.assertEqual(S.shorten_path(r, 16), "~/…/bb/ccc/proj")                    # el nivel más alto primero
+        self.assertEqual(S.shorten_path(r, 14), "~/…/…/ccc/proj")
+        self.assertEqual(S.shorten_path(r, 12), "~/…/…/…/proj")                       # el último nivel nunca se sustituye
+        self.assertEqual(S.shorten_path(r, 3), "~/… …/proj")                          # si ni así cabe, los ocultos se juntan
+        self.assertEqual(S.shorten_path("/srv/app/web", 5), "/… …/web")              # ruta absoluta (sin ~)
+        self.assertEqual(S.shorten_path("~", 0), "~"); self.assertEqual(S.shorten_path("solo", 1), "solo")
+
+    def test_la_linea_1_lleva_el_directorio_de_trabajo_en_lugar_de_la_rama(self):
+        l0 = pl(S.render(self.datos(), 200))[0]
+        self.assertTrue(l0.startswith(f"ØARKANA@{self.RUTA}:◌13✚113●84⇡2⇣3 | [■] sin plan activo | P0.00 S1.50 Sonnet 5.5 m C61 S0 W19"), l0)
+        self.assertNotIn("refactor/arkana", l0)                                        # la rama de ARKANA ya no sale
+        self.assertIn("refactor", "".join(pl(S.render(self.datos(), 200)[1:])) + "refactor")  # (los demás componentes siguen con su rama)
+        self.assertIn("api@feature", "".join(pl(S.render(self.datos(), 200)[1:])))
+        self.assertIn("\033[31m@\033[0m", S.render(self.datos(), 200)[0])             # @ en rojo como siempre
+
+    def test_sin_cwd_se_conserva_la_rama(self):
+        self.assertIn("ØARKANA@refactor/arkana:", pl(S.render(TestAnchoEstrecho().datos(), 200))[0])
+
+    def test_primero_cede_la_descripcion_del_plan_y_despues_se_acorta_la_ruta(self):
+        completa = pl(S.render(self.datos(), 200))[0]
+        for w in (len(completa) + S.RESERVED - 2, 112):                                  # descripción recortada y luego sin ella: la ruta sigue entera
+            l0 = pl(S.render(self.datos(), w))[0]
+            self.assertTrue(l0.startswith(f"ØARKANA@{self.RUTA}:"), (w, l0))
+        self.assertTrue(pl(S.render(self.datos(), 104))[0].startswith("ØARKANA@~/…/projects/personal/arkana4cc:"))   # sin descripción y aun así no cabe: se acorta la ruta
+        estrecho = pl(S.render(self.datos(), 90))[0]
+        self.assertTrue(estrecho.startswith("ØARKANA@~/…/…/…/arkana4cc:"), estrecho)       # el último nivel nunca se sustituye
+        self.assertLessEqual(len(estrecho), 90 - S.RESERVED, estrecho)
+        muy = pl(S.render(self.datos(), 60))[0]
+        self.assertTrue(muy.startswith("ØARKANA@~/… …/arkana4cc:"), muy)                 # último recurso: niveles ocultos juntos
+
+    def test_con_la_marca_de_evolve_se_acorta_antes_que_perder_la_marca_en_la_linea_1(self):
+        marca = " REQUIRED /arkana-evolve:apply "
+        ancho = pl(S.render(self.datos(evolve=True), 140))
+        self.assertTrue(ancho[0].endswith(marca) and "…" not in ancho[0].split(":")[0], ancho[0])      # cabe con la ruta entera
+        ls = pl(S.render(self.datos(evolve=True), 125))
+        self.assertTrue(ls[0].endswith(marca) and len(ls[0]) == 125 - S.RESERVED, ls[0])
+        self.assertIn("…", ls[0].split(":")[0])                                            # hace sitio acortando la ruta
+
+    def test_con_el_home_colapsado_desde_collect(self):
+        import json
+        import statusline as SL
+        with L.Lab() as lab:
+            import os
+            trabajo = os.path.join(lab.home, "work", "proj")
+            os.makedirs(trabajo)
+            os.environ["HOME"] = lab.home
+            old = dict(os.environ)
+            os.environ["ARKANA_HOME"] = lab.arkana
+            try:
+                d = SL.collect({"workspace": {"project_dir": trabajo}, "session_id": "x"})
+            finally:
+                os.environ.clear(); os.environ.update(old)
+            self.assertEqual(d["cwd"], "~/work/proj")
+
+
 class TestEsfuerzo(unittest.TestCase):
     def modelo(self, effort):
         plan = S.plan_view(None, "s", time.time(), lambda p: True)

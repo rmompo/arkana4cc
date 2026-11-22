@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Statusline de Arkana (dos líneas). Lee el JSON de Claude Code por stdin y escribe las líneas a stdout. Solo biblioteca estándar.
 
-Cada componente se muestra como `ALIAS@rama:indicadores`, sin fondos de relleno: el alias en naranja (brillante el del directorio actual), la `@` y los `:` en rojo, el nombre de la
+Cada componente se muestra como `ALIAS@rama:indicadores` (ARKANA, en la línea 1, muestra el directorio de trabajo en lugar de la rama), sin fondos de relleno: el alias en naranja (brillante el del directorio actual), la `@` y los `:` en rojo, el nombre de la
 rama en gris (gris brillante la del componente actual) e indicadores en inverso, pegados y sin espacios (`◌353●6⇣?`), cada uno con texto negro sobre el color de su estado: ◌ sin seguimiento (rojo), ✚ preparados,
 ● modificados, ⇡ commits sin subir y ⇣ por bajar (amarillo) y ✓ si el local está limpio (verde); todo git local salvo ⇣ y solo los distintos de cero. ⇣ es lo único que depende
 del remoto: el número si el último fetch de ese componente fue hace menos de 30 min, `⇣?` en su mismo hueco si no se sabe; sin rama remota no hay ⇡ ni ⇣.
@@ -166,15 +166,33 @@ def branch_label(s, branch_max=None):
     return " ".join(p + q for p, q, _ in branch_parts(s, branch_max))
 
 
-def entry(item, branch_max=None, alias_max=None):
-    """(texto plano, texto con ANSI) de un componente: `ALIAS@rama:indicadores`. @ y : rojos, rama en gris (más claro la del actual) e indicadores en inverso."""
+def shorten_path(path, maxlen):
+    """Acorta una ruta a `maxlen` columnas sustituyendo niveles por `…` del más alto al más bajo (el último nunca): `~/a/b/c/proj` → `~/…/b/c/proj` → `~/…/…/c/proj` → `~/…/…/…/proj`.
+    Si ni así cabe, los niveles ocultos se juntan en `… …`: `~/… …/proj` (puede seguir sin caber)."""
+    if len(path) <= maxlen:
+        return path
+    prefix, rest = ("~", path[1:]) if path.startswith("~") else ("", path)
+    parts = [x for x in rest.split("/") if x]
+    n = len(parts)
+    if n < 2:
+        return path
+    for k in range(1, n):
+        cand = prefix + "".join("/…" if i < k else "/" + parts[i] for i in range(n))
+        if len(cand) <= maxlen:
+            return cand
+    return prefix + "/… …/" + parts[-1]
+
+
+def entry(item, branch_max=None, alias_max=None, branch_text=None):
+    """(texto plano, texto con ANSI) de un componente: `ALIAS@rama:indicadores`. @ y : rojos, rama en gris (más claro la del actual) e indicadores en inverso.
+    `branch_text` sustituye a la rama (lo usa la línea 1 para mostrar el directorio de trabajo)."""
     alias = item["alias"] if not alias_max or item["current"] else trunc(item["alias"], alias_max)
     a_ansi = f"{ALIAS_CUR if item['current'] else ALIAS_OTHER}{alias}{RESET}"
     s = item["state"]
     if s is None:
         return alias + " —", a_ansi + " " + c(GRAY, "—")
     parts = branch_parts(s, None if item["current"] else branch_max)
-    branch, ind = parts[0][0], parts[1:]
+    branch, ind = (branch_text if branch_text is not None else parts[0][0]), parts[1:]
     base = BRANCH_CUR if item["current"] else BRANCH_OTHER
     head = f"{a_ansi}{c(RED, '@')}{base}{branch}{RESET}"
     if not ind:
@@ -314,7 +332,13 @@ def render(data, width):
     def linea1(room):
         first = ""
         if head:                                                         # ARKANA (o la única pieza) va entera delante del plan, el coste, el modelo y el uso
-            plain, ansi = entry(head[0])
+            cwd = data.get("cwd")                                        # con workspace: ARKANA@{directorio de trabajo}, acortado con … si no cabe (la descripción del plan cede antes)
+            btxt = None
+            if cwd:
+                base, _ = entry(head[0], branch_text="")
+                minimo = len(ANSI.sub("", line2(data["plan"], data["session_cost"], data["model"], data["effort"], data["usage"], 0)))
+                btxt = shorten_path(cwd, room - len(LOGO) - len(base) - len(BAR_PLAIN) - minimo)
+            plain, ansi = entry(head[0], branch_text=btxt)
             first = c(B_YELLOW, LOGO) + ansi + BAR_ANSI                  # Ø (amarillo brillante, siempre) delante de ARKANA
             room = room - len(LOGO) - len(plain) - len(BAR_PLAIN)
         return first + line2(data["plan"], data["session_cost"], data["model"], data["effort"], data["usage"], room)
@@ -421,6 +445,12 @@ def collect(inp):
     cost = float(cost) if isinstance(cost, (int, float)) else None
     if home:
         write_session_cost(home, sid, cost)
+    shown = None
+    if home:                                                             # directorio de trabajo con el home como ~ (lo muestra ARKANA en la línea 1)
+        shown = cwd
+        h = os.path.expanduser("~")
+        if h and h != "/" and (cwd == h or cwd.startswith(h.rstrip("/") + "/")):
+            shown = "~" + cwd[len(h.rstrip("/")):]
     evolve = False
     if home:                                                             # el repo está en un layout anterior al que conoce esta versión: faltan migraciones (/arkana-evolve:apply)
         try:
@@ -429,7 +459,7 @@ def collect(inp):
         except Exception:
             evolve = False
     cw, rl = inp.get("context_window") or {}, inp.get("rate_limits") or {}
-    return {"aviso": aviso, "evolve": evolve, "items": items, "plan": plan_view(linea, sid, time.time(), pid_alive), "session_cost": cost,
+    return {"aviso": aviso, "evolve": evolve, "cwd": shown, "items": items, "plan": plan_view(linea, sid, time.time(), pid_alive), "session_cost": cost,
             "model": (inp.get("model") or {}).get("display_name") or "", "effort": (inp.get("effort") or {}).get("level"),
             "usage": [("C", cw.get("used_percentage")), ("S", (rl.get("five_hour") or {}).get("used_percentage")),
                       ("W", (rl.get("seven_day") or {}).get("used_percentage"))]}
