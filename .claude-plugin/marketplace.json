@@ -50,7 +50,7 @@
     {
       "name": "arkana-evolve",
       "source": "./plugins/arkana-evolve",
-      "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (registro del proyecto con UUID, carpetas fijas, datos) de una versión a otra"
+      "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra, y actualizadores de máquina que dejan al día cada terminal tras actualizar Arkana (apply, check)"
     }
   ]
 }

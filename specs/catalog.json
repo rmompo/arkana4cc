@@ -400,13 +400,17 @@
     },
     {
       "name": "arkana-evolve",
-      "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra (apply, check)",
+      "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra, y actualizadores de máquina que dejan al día cada terminal tras actualizar Arkana (apply, check)",
       "category": "other",
       "status": "beta",
-      "version": "0.5.14",
+      "version": "0.6.0",
       "spec": "specs/arkana-evolve.md",
       "path": "plugins/arkana-evolve",
       "changelog": [
+        {
+          "version": "0.6.0",
+          "changes": "Actualizadores de maquina (scripts/lib/updaters): apply los ejecuta tras las migraciones y check los lista; u001 deja al dia la copia de la statusline de usuario ejecutando arkana-statusline fix; sustituye al aviso de copia antigua"
+        },
         {
           "version": "0.5.14",
           "changes": "check y apply: avisan tambien si la copia de la statusline de usuario es anterior al despachador (falta dispatch.py), aunque su nucleo sea reciente"
@@ -471,8 +475,12 @@
       "skills": [
         {
           "name": "apply",
-          "version": 13,
+          "version": 14,
           "changelog": [
+            {
+              "version": 14,
+              "changes": "apply: ejecuta tambien los actualizadores de maquina tras las migraciones (u001: copia de la statusline)"
+            },
             {
               "version": 13,
               "changes": "apply: el aviso de la statusline cubre la copia anterior al despachador"
@@ -501,8 +509,12 @@
         },
         {
           "name": "check",
-          "version": 14,
+          "version": 15,
           "changelog": [
+            {
+              "version": 15,
+              "changes": "check: lista los actualizadores de maquina (u001) como OK o pendientes"
+            },
             {
               "version": 14,
               "changes": "check: el aviso de la statusline cubre la copia anterior al despachador"
