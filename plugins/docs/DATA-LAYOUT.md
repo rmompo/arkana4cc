@@ -37,7 +37,7 @@ Arkana es una herramienta general para gobernar proyectos de varias piezas en re
 └── .gitignore                       ignora `/.arkana/` (lo deja `layout init`, o la migración 0007 en instalaciones antiguas)
 ```
 
-Fuera del repo, por usuario: `~/.arkana/workspaces.json` (localizador: raíces de todos los workspaces de esta máquina; antes `~/.arkana-workspaces.json`, que se lee y se mueve al registrar) y `~/.claude/arkana-statusline/` (copia instalada de la statusline).
+Fuera del repo, por usuario: `~/.arkana/workspaces.json` (localizador: raíces de todos los workspaces de esta máquina; antes `~/.arkana-workspaces.json`, que se lee y se mueve al registrar), `~/.claude/arkana-statusline/` (copia instalada del despachador de la statusline) y `~/.arkana/statusline.json` (proveedores de statusline y elección por componente).
 
 ## Clases de portabilidad
 

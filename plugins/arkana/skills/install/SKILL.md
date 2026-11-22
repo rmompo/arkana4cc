@@ -31,7 +31,7 @@ Líneas `ESTADO|ID|detalle` (`OK`, `INFO`, `WARN`, `FAIL`) y una línea `PASO|id
    | `git` | `git init` de la carpeta de ARKANA (rama `main`, sin commits) y su **usuario y correo** (a nivel de repo, nunca `~/.gitconfig`) | ver «Usuario, correo, remoto y token»: añade `--name` y `--email` a sus dos órdenes |
    | `layout` | `.arkana/` (y `/.arkana/` en el `.gitignore` de ARKANA), manifiesto con ARKANA, `local.json`, `tools.json`, registro del workspace | se niega si hay un plan activo |
    | `evolve` | migraciones: registro del proyecto con UUID y carpetas fijas | exige git; no hace commit |
-   | `statusline` ⚠ | copia la statusline a `~/.claude/arkana-statusline/` y activa `statusLine` | si ya hay otra, **no la pises**: explica y pregunta; solo entonces repite con `--replace` |
+   | `statusline` ⚠ | copia la statusline a `~/.claude/arkana-statusline/` y activa `statusLine` | si ya hay otra, explícalo: Arkana gobierna las statuslines y la ajena pasa a ser un proveedor (no se pierde; se sigue viendo fuera de ARKANA) |
    | `messaging` ⚠ | almacén de mensajes y plugin habilitado en `~/.claude/settings.json` | toca ajustes de usuario |
    | `agentic` ⚠ | carpetas de orquestación y plugin habilitado | toca ajustes de usuario |
    | `knowledge` | andamiaje de ARKANA: `arkana-incoming/` (con su `.gitignore`), `arkana-knowledge/` y `arkana-docs/{src,md,out}/`, cada carpeta final con su `.gitkeep`, e índice | `evolve` ya las crea; este paso lo garantiza |

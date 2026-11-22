@@ -23,7 +23,7 @@ Orden fijo; cada paso se ensaya (`--dry-run`), se confirma y se aplica. Repetir 
 | 1 | `git` | arkana | `git init` de la carpeta de ARKANA (si no es un repo) y su usuario y correo, a nivel de repo; sin commits |
 | 2 | `layout` | arkana-workspace | `.arkana/` (arkana.json, manifiesto, local.json, tools.json) y `~/.arkana/workspaces.json` |
 | 3 | `evolve` | arkana-evolve | registro del proyecto (`arkana-project.json`) y carpetas fijas; sin commit |
-| 4 | `statusline` | arkana-statusline | `~/.claude/arkana-statusline/` y `statusLine` de `~/.claude/settings.json` |
+| 4 | `statusline` | arkana-statusline | despachador en `~/.claude/arkana-statusline/` y `statusLine` de `~/.claude/settings.json` (si hay otra, pasa a ser un proveedor: con Arkana instalada, Arkana gobierna las statuslines) |
 | 5 | `messaging` | arkana-messaging | `.arkana/arkana-messaging/` y ajustes de usuario |
 | 6 | `agentic` | arkana-agentic | `.arkana/arkana-agentic/` y ajustes de usuario |
 | 7 | `knowledge` | arkana-knowledge | `arkana-incoming/`, `arkana-knowledge/`, `arkana-docs/{src,md,out}/` (andamiaje completo) |
