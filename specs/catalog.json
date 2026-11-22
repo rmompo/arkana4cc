@@ -11,14 +11,18 @@
       "description": "Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente",
       "category": "other",
       "status": "beta",
-      "version": "1.1.9",
+      "version": "1.1.10",
       "spec": "specs/arkana.md",
       "path": "plugins/arkana",
       "skills": [
         {
           "name": "install",
-          "version": 8,
+          "version": 9,
           "changelog": [
+            {
+              "version": 9,
+              "changes": "install: el paso statusline describe el despachador de usuario (la statusLine ajena pasa a ser un proveedor)"
+            },
             {
               "version": 8,
               "changes": "install: el paso knowledge garantiza el andamiaje completo con .gitkeep en cada carpeta final"
@@ -43,6 +47,10 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.10",
+          "changes": "install: el paso statusline describe el despachador de usuario (la statusLine ajena pasa a ser un proveedor)"
+        },
         {
           "version": "1.1.9",
           "changes": "Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente"
@@ -395,10 +403,14 @@
       "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra (apply, check)",
       "category": "other",
       "status": "beta",
-      "version": "0.5.13",
+      "version": "0.5.14",
       "spec": "specs/arkana-evolve.md",
       "path": "plugins/arkana-evolve",
       "changelog": [
+        {
+          "version": "0.5.14",
+          "changes": "check y apply: avisan tambien si la copia de la statusline de usuario es anterior al despachador (falta dispatch.py), aunque su nucleo sea reciente"
+        },
         {
           "version": "0.5.13",
           "changes": "check: check: avisa tambien de la copia de la statusline anterior; tests de cobertura de la cadena de migraciones"
@@ -459,8 +471,12 @@
       "skills": [
         {
           "name": "apply",
-          "version": 12,
+          "version": 13,
           "changelog": [
+            {
+              "version": 13,
+              "changes": "apply: el aviso de la statusline cubre la copia anterior al despachador"
+            },
             {
               "version": 12,
               "changes": "apply: la descripcion recoge todo lo que migra (tareas, .gitignore de .arkana, arkana-docs en src, md y out y registro de usuario)"
@@ -485,8 +501,12 @@
         },
         {
           "name": "check",
-          "version": 13,
+          "version": 14,
           "changelog": [
+            {
+              "version": 14,
+              "changes": "check: el aviso de la statusline cubre la copia anterior al despachador"
+            },
             {
               "version": 13,
               "changes": "check: avisa tambien de la copia de la statusline anterior; tests de cobertura de la cadena de migraciones"
@@ -1166,13 +1186,21 @@
     },
     {
       "name": "arkana-statusline",
-      "description": "Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión",
+      "description": "Statusline de Arkana en dos líneas, solo para workspaces de Arkana: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude. Un despachador de usuario elige entre la de Arkana, la de plugin4cc y otra según la carpeta; escribe el coste real de la sesión",
       "category": "other",
       "status": "beta",
-      "version": "1.1.15",
+      "version": "1.3.0",
       "spec": "specs/arkana-statusline.md",
       "path": "plugins/arkana-statusline",
       "changelog": [
+        {
+          "version": "1.2.0",
+          "changes": "Statusline de usuario como despachador: en ARKANA la de Arkana, en un componente la elegida (choose) y en otros sitios los proveedores (plugin4cc antes que otra); hooks SessionStart y UserPromptSubmit (pregunta por componente y recuperacion del hueco si un tercero lo pisa); skills nuevas choose, provider y uninstall"
+        },
+        {
+          "version": "1.3.0",
+          "changes": "Marca REQUIRED /arkana-evolve:apply en rojo brillante inverso a la derecha de la linea 1 cuando el layout del repo es anterior al conocido; barras y espacios como separadores en las lineas 1 y 2; el esfuerzo del modelo como circulo (○ ◔ ◑ ◕ ●)"
+        },
         {
           "version": "1.1.15",
           "changes": "Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente"
@@ -1241,8 +1269,16 @@
       "skills": [
         {
           "name": "check",
-          "version": 5,
+          "version": 7,
           "changelog": [
+            {
+              "version": 7,
+              "changes": "check: la statusLine ajena se recupera con fix o install (con Arkana instalada gobierna Arkana, sin --replace)"
+            },
+            {
+              "version": 6,
+              "changes": "check: diagnostica el despachador de usuario, los proveedores y la eleccion por componente"
+            },
             {
               "version": 5,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1258,9 +1294,27 @@
           ]
         },
         {
-          "name": "fix",
-          "version": 6,
+          "name": "choose",
+          "version": 1,
           "changelog": [
+            {
+              "version": 1,
+              "changes": "Se crea la skill: elegir que statusline se ve en un componente (arkana, other o ask)"
+            }
+          ]
+        },
+        {
+          "name": "fix",
+          "version": 8,
+          "changelog": [
+            {
+              "version": 8,
+              "changes": "fix: recupera el hueco de statusLine si otra herramienta lo piso tras instalar Arkana y deja a la otra como proveedor"
+            },
+            {
+              "version": 7,
+              "changes": "fix: reinstala la copia del despachador y activa statusLine si falta"
+            },
             {
               "version": 6,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1277,8 +1331,16 @@
         },
         {
           "name": "install",
-          "version": 7,
+          "version": 9,
           "changelog": [
+            {
+              "version": 9,
+              "changes": "install: con Arkana instalada gobierna Arkana (sin --replace) y detecta el script de plugin4cc como proveedor"
+            },
+            {
+              "version": 8,
+              "changes": "install: instala el despachador de usuario; la statusLine ajena pasa a ser un proveedor"
+            },
             {
               "version": 7,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -1290,6 +1352,16 @@
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "provider",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Se crea la skill: gestionar los proveedores de statusline y la recuperacion automatica del hueco"
             }
           ]
         },
@@ -1308,6 +1380,16 @@
             {
               "version": 0,
               "changes": "Bootstrap: imported from existing SKILL.md"
+            }
+          ]
+        },
+        {
+          "name": "uninstall",
+          "version": 1,
+          "changelog": [
+            {
+              "version": 1,
+              "changes": "Se crea la skill: devolver la statusLine de usuario al proveedor y borrar la copia antes de desinstalar"
             }
           ]
         }

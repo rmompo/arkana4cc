@@ -1,12 +1,12 @@
 # Especificación del plugin: arkana-statusline
 
-> **Estado:** `beta` | **Versión:** `1.1.15`
+> **Estado:** `beta` | **Versión:** `1.3.0`
 
 ---
 
 ## Descripción general
 
-Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude; se adapta al ancho y escribe el coste real de la sesión
+Statusline de Arkana en dos líneas, solo para workspaces de Arkana: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude. Un despachador de usuario elige entre la de Arkana, la de plugin4cc y otra según la carpeta; escribe el coste real de la sesión
 
 ---
 
@@ -14,10 +14,13 @@ Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y esta
 
 | Skill | Versión | Descripción |
 |-------|---------|-------------|
-| `check` | 5 | Diagnóstico de solo lectura de la statusline - python3 y git, copia instalada al día, `statusLine` activa y nuestra, otros plugins de statusline que podrían pisarla y prueba de humo. Nunca corrige. Acepta --json. |
-| `fix` | 6 | Reinstala la copia de la statusline si está desactualizada y activa `statusLine` si no hay ninguna. Nunca sustituye la de otro (eso es install --replace). Con copia .bak. Acepta --dry-run y --json. |
-| `install` | 7 | Instala la statusline de Arkana en ~/.claude/arkana-statusline/ (statusline.sh, statusline.py y arkana_core) y activa `statusLine` en ~/.claude/settings.json. Una statusLine ajena solo se sustituye con --replace (copia de los ajustes en bak/). Acepta --dry-run y --json. |
+| `check` | 7 | Diagnóstico de solo lectura de la statusline - python3 y git, copia instalada al día, `statusLine` de usuario del despachador, proveedores, elección por componente, otros plugins de statusline y prueba de humo. Nunca corrige. Acepta --home y --json. |
+| `choose` | 1 | Elige qué statusline se ve al abrir Claude Code en un componente gobernado por ARKANA - la de Arkana, la que ya tenga configurada (proveedores) o volver a preguntar. En la carpeta de ARKANA siempre se ve la de Arkana. Acepta --dry-run, --home y --json. |
+| `fix` | 8 | Reinstala la copia del despachador de la statusline si está desactualizada, activa `statusLine` si no hay ninguna y, si otra herramienta la pisó tras instalar Arkana, la recupera dejando a la otra como proveedor. Sin instalación previa no sustituye la de otro (eso es install). Con copia .bak. Acepta --dry-run y --json. |
+| `install` | 9 | Instala el despachador de la statusline de Arkana en ~/.claude/arkana-statusline/ (statusline.sh, dispatch.py, statusline.py y arkana_core) y lo activa como `statusLine` de usuario; en ARKANA se ve la de Arkana y en otros sitios la que hubiera. Con Arkana instalada, Arkana gobierna las statuslines: ocupa el hueco y la statusLine ajena que hubiera pasa a ser un proveedor (copia de los ajustes en bak/). Acepta --dry-run y --json. |
+| `provider` | 1 | Gestiona los proveedores de la statusline (las otras statuslines que se ven fuera de ARKANA o cuando no se elige la de Arkana) y la recuperación automática del hueco - list, add, remove y auto on|off. Un proveedor es un comando con prioridad (plugin4cc 20, otra 30; gana el menor). Acepta --dry-run y --json. |
 | `refresh` | 8 | Hace `git fetch` de los componentes (con comprobación de DNS y tope de 20 s por repo) para que ⇣ (commits por bajar) de la statusline esté al día. Solo descarga referencias: no toca ficheros ni ramas locales. Acepta --component, --no-fetch y --json. |
+| `uninstall` | 1 | Retira el despachador de la statusline de Arkana - devuelve la `statusLine` de usuario al proveedor de mayor prioridad (o la quita si no hay) y borra la copia de ~/.claude/arkana-statusline. Hazlo antes de desinstalar el plugin. Acepta --dry-run y --json. |
 
 ---
 
@@ -25,6 +28,8 @@ Statusline de Arkana en dos líneas: ARKANA y los componentes con su rama y esta
 
 | Versión | Cambios |
 |---------|---------|
+| 1.3.0 | Marca REQUIRED /arkana-evolve:apply en rojo brillante inverso a la derecha de la linea 1 cuando el layout del repo es anterior al conocido; barras y espacios como separadores en las lineas 1 y 2; el esfuerzo del modelo como circulo (○ ◔ ◑ ◕ ●) |
+| 1.2.0 | Statusline de usuario como despachador: en ARKANA la de Arkana, en un componente la elegida (choose) y en otros sitios los proveedores (plugin4cc antes que otra); hooks SessionStart y UserPromptSubmit (pregunta por componente y recuperacion del hueco si un tercero lo pisa); skills nuevas choose, provider y uninstall |
 | 1.1.15 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 1.1.14 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 1.1.13 | Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json |

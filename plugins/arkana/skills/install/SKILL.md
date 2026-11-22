@@ -2,7 +2,7 @@
 name: install
 description: Monta de una vez el espacio de trabajo mínimo de Arkana - comprueba que están los plugins arkana-*, inicia el git de ARKANA y pide usuario y correo (y el token si va a un remoto), crea la disposición de .arkana y el registro del proyecto, instala statusline, mensajería, orquestación, conocimiento, tareas y notas, aplica los permisos, revisa credenciales y herramientas y verifica todo. No añade componentes - al terminar sugiere dar de alta el primero. Repetible e idempotente, con ensayo previo de cada paso. Also invoked explicitly as /arkana:install
 allowed-tools: [AskUserQuestion]
-version: 8
+version: 9
 ---
 
 # arkana:install

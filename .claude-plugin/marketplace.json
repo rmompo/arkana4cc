@@ -25,7 +25,7 @@
     {
       "name": "arkana-statusline",
       "source": "./plugins/arkana-statusline",
-      "description": "Statusline en dos líneas: ARKANA y los componentes con su rama y estado git, plan activo, coste y uso; se adapta al ancho y escribe el coste real de la sesión"
+      "description": "Statusline de Arkana en dos líneas, solo para workspaces de Arkana: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude. Un despachador de usuario elige entre la de Arkana, la de plugin4cc y otra según la carpeta; escribe el coste real de la sesión"
     },
     {
       "name": "arkana-agentic",
