@@ -3,8 +3,8 @@
 Barra de estado de Claude Code para Arkana. Muestra **en dos líneas** ARKANA y cada componente del proyecto (el workspace es ARKANA más el proyecto) con su estado git, el plan activo de `arkana-agentic`, el coste (del plan y de la sesión), el modelo y el uso (contexto, sesión de 5 h y semana). Es **solo para workspaces de Arkana**: un despachador de usuario decide en cada render qué statusline se ve según la carpeta (ver [Qué statusline se ve](#qué-statusline-se-ve)). Se adapta al ancho del terminal.
 
 ```
-ØARKANA@develop:◌13✚113●84⇡2⇣3 · [▶] 002/007 api@P2611030652-ysov:T002 Añadir el perfil · P0.40 S1.23 · Sonnet 5.5 (medium) · C61 S0 W19
-app@develop:✓⇣? · api@develop:◌1 · app-web@develop:✓⇣? · app-ui@develop:●2⇣5
+ØARKANA@develop:◌13✚113●84⇡2⇣3 | [▶] 002/007 api@P2611030652-ysov:T002 Añadir el perfil | P0.40 S1.23 Sonnet 5.5 ◔ C61 S0 W19
+app@develop:✓⇣? api@develop:◌1 app-web@develop:✓⇣? app-ui@develop:●2⇣5
 ```
 
 Visión de conjunto de los plugins de Arkana: [`../README.md`](../README.md).
@@ -65,15 +65,16 @@ Orden de preferencia: **Arkana → plugin4cc → otra**. En ARKANA y en sus comp
 ### Estructura
 
 ```
-Línea 1:  ØARKANA@rama:indicadores · [estado] descripción del plan · P S coste · modelo (esfuerzo) · C S W uso
-Línea 2:  componente · componente · componente …
+Línea 1:  ØARKANA@rama:indicadores | [estado] descripción del plan | P S coste  modelo (esfuerzo)  C S W uso      [ REQUIRED /arkana-evolve:apply ]
+Línea 2:  componente componente componente …
 (línea extra, solo si procede)  ⚠ workspace no cargado: …
 ```
 
 - **Línea 1.** El componente ARKANA va siempre entero, seguido de las secciones del plan, el coste, el modelo y el uso.
 - **Línea 2.** Los demás componentes, en el orden del manifiesto. Si no caben, pasan a más líneas (ver «Ancho estrecho»). Si no hay más componentes, no hay segunda línea.
 - **Fuera de un workspace** (sin ARKANA localizable) solo hay **una pieza**: el directorio de trabajo, mostrado con su nombre de carpeta como alias y como componente actual; la statusline es una sola línea (más plan, coste, modelo y uso).
-- **Separador.** Entre componentes y entre secciones va ` · ` con el punto en **azul oscuro**.
+- **Separadores.** En la línea 1 hay dos barras ` | ` en **azul oscuro** (tras ARKANA y tras el plan); el coste, el modelo y el uso van separados por un espacio. Los componentes de la línea 2 van separados por un espacio.
+- **Marca `REQUIRED /arkana-evolve:apply`.** Si el layout del repo de ARKANA (`arkana-project.json`) es anterior al que conoce esta versión, faltan migraciones: la línea 1 lleva, **todo a la derecha**, la marca ` REQUIRED /arkana-evolve:apply ` en **rojo brillante inverso**. Para hacerle sitio cede primero la descripción del plan; si lo que nunca se recorta ya llena la línea, la marca va sola, alineada a la derecha, en la línea siguiente. Desaparece al ejecutar `/arkana-evolve:apply`. Un repo por delante de esta versión (layout superior) no la muestra: es otro caso (actualizar el plugin).
 - Las secciones sin dato se omiten: sin modelo no hay bloque de modelo; los porcentajes que Claude Code no envía (`C`, `S`, `W`) no se pintan.
 
 ### Un componente: `ALIAS@rama:indicadores`
@@ -144,7 +145,7 @@ Detalles:
 | Sección | Ejemplo | Color | Fuente |
 |---|---|---|---|
 | Costes | `P0.40 S1.23` | rojo oscuro, sin fondo | `P`: gasto del plan (`gasto_usd` de `linea.json`); `S`: coste de la sesión (`cost.total_cost_usd` de Claude Code). Dos decimales, en dólares; `S0.00` si no hay dato |
-| Modelo | `Sonnet 5.5 (medium)` | magenta, sin fondo | `model.display_name` y, si existe, `effort.level` entre paréntesis |
+| Modelo | `Sonnet 5.5 ◔` | magenta, sin fondo | `model.display_name` y, si existe, `effort.level` como un círculo que se llena: `○` low · `◔` medium · `◑` high · `◕` xhigh · `●` max. Un nivel desconocido se muestra en texto entre paréntesis (`(nivel)`) |
 | Uso | `C61 S0 W19` | color del texto por tramo, sin fondo | `C` contexto (`context_window.used_percentage`), `S` ventana de 5 h (`rate_limits.five_hour`), `W` semana (`rate_limits.seven_day`) |
 
 Tramos del uso (valor redondeado): **0–40 verde, 41–75 amarillo, 76–100 rojo brillante**.
