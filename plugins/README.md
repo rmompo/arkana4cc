@@ -25,7 +25,7 @@ Arkana no sabe nada de ningún proyecto concreto: los componentes, sus rutas, ti
 | [`arkana-knowledge`](arkana-knowledge/README.md) | Conocimiento del proyecto, versionado en git y gestionado por las personas usuarias (`add`, `modify`, `delete`, `query`); funciona como un pseudo-RAG: notas con UUID (changelog por nota) y documentos de origen con su versión en Markdown, indexados en local; los documentos entran por `arkana-incoming/` con `ingest` | — | — |
 | [`arkana-todo`](arkana-todo/README.md) | Lista de tareas pendientes de la persona usuaria: local, con prioridad, vencimiento y componente; cierre reversible y borrado lógico (`add`, `list`, `done`, `modify`, `delete`) | — | — |
 | [`arkana-note`](arkana-note/README.md) | Notas de la persona usuaria: locales, con título, texto y componente (alias o `*`); borrado lógico; salen en el BRIEF de la sesión (`add`, `list`, `modify`, `delete`) | — | — |
-| [`arkana-evolve`](arkana-evolve/README.md) | Evolución de una instalación: migraciones numeradas, idempotentes y con `--dry-run` (`apply`, `check`); crea el registro del proyecto con UUID y las carpetas fijas | — | — |
+| [`arkana-evolve`](arkana-evolve/README.md) | Evolución de una instalación: migraciones numeradas, idempotentes y con `--dry-run` (`apply`, `check`) y actualizadores de máquina que dejan al día cada terminal tras actualizar Arkana; crea el registro del proyecto con UUID y las carpetas fijas | — | — |
 
 Todos (salvo `arkana`, que solo ofrece `install`) ofrecen los verbos `install`, `check` y `fix`, salvo `arkana-evolve`, que ofrece `check` y `apply`.
 

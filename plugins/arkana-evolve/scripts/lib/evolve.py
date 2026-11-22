@@ -2,12 +2,16 @@
 """Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run (solo biblioteca estándar).
 
   check  [--home DIR] [--json]                          solo lectura: migraciones aplicadas y pendientes, y el sello del layout
-  apply  [--dry-run] [--to N] [--home DIR] [--json]     aplica las pendientes en orden (las `b*` de base, antes que las numéricas)
+  apply  [--dry-run] [--to N] [--home DIR] [--json]     aplica las pendientes en orden (las `b*` de base, antes que las numéricas) y, después, los actualizadores
 
 Una migración es un módulo de `migrations/` con: `ID`, `TITLE`, `SCOPE` (`shared`, `local` o ambos), `touches(ctx)` (rutas relativas a la carpeta
 de ARKANA que escribe en el repo), `detect(ctx)` (¿está pendiente? idempotente), `apply(ctx, rep)` y `verify(ctx)` (lista de problemas).
 `shared` = cambia ficheros versionados del repo de ARKANA: una persona migra, commitea y empuja, y el resto hace pull y vuelve a ejecutar `apply`
 (solo se aplica su parte local). `local` = cambia `.arkana/`.
+
+Un **actualizador** es un módulo de `updaters/` (`u001_…`) con `ID`, `TITLE`, `detect(ctx)` y `apply(ctx, rep)`: converge lo de **esta máquina** que queda fuera del repo y de `.arkana/`
+(p. ej. la copia de la statusline en `~/.claude`) tras actualizar los plugins de Arkana. Es idempotente y no lleva sello ni exige git: `check` lo muestra pendiente o al día y
+`apply` lo ejecuta tras las migraciones (no con `--to N`, que se detiene en una migración). Sirve para que cada terminal que actualiza Arkana quede al día con un solo `apply`.
 
 Reglas: nunca hace commit ni push; el ámbito `shared` exige repo git y que las rutas que va a escribir no tengan cambios sin commitear; antes de
 tocar `.arkana/` deja una copia `tar.gz` en `.arkana/arkana-workspace/bak/`. El estado local está en `.arkana/arkana-evolve/state.json`; el sello
@@ -24,12 +28,14 @@ import tarfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "_core"))
-from arkana_core import CORE_VERSION, datafiles, locate, output  # noqa: E402
+from arkana_core import datafiles, locate, output  # noqa: E402
 
 MIGRATIONS_DIR = os.path.join(HERE, "migrations")
+UPDATERS_DIR = os.path.join(HERE, "updaters")
 PROJECT_FILE = "arkana-project.json"
 STATE_REL = os.path.join("arkana-evolve", "state.json")
 REQUIRED = ("ID", "TITLE", "SCOPE", "touches", "detect", "apply", "verify")
+REQUIRED_UPDATER = ("ID", "TITLE", "detect", "apply")
 
 
 class EError(Exception):
@@ -98,6 +104,40 @@ def load_migrations(directory=MIGRATIONS_DIR):
     return sorted(mods, key=sort_key)
 
 
+def load_updaters(directory=UPDATERS_DIR):
+    ups = []
+    if not os.path.isdir(directory):
+        return ups
+    for f in sorted(os.listdir(directory)):
+        if not re.match(r"^u\d+_[a-z0-9_]+\.py$", f):
+            continue
+        spec = importlib.util.spec_from_file_location("arkana_evolve_" + f[:-3], os.path.join(directory, f))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        falta = [a for a in REQUIRED_UPDATER if not hasattr(mod, a)]
+        if falta:
+            raise EError(f"el actualizador {f} no define: {', '.join(falta)}")
+        ups.append(mod)
+    return ups
+
+
+def run_updaters(ctx, rep):
+    """Ejecuta los actualizadores de máquina pendientes (idempotentes, sin sello). Un fallo se avisa pero no deshace lo ya migrado."""
+    hechos = 0
+    for u in load_updaters():
+        try:
+            pendiente = u.detect(ctx)
+        except Exception as e:                                   # un actualizador roto nunca debe tirar el apply
+            rep.add("WARN", u.ID, f"no se pudo comprobar: {e}")
+            continue
+        if not pendiente:
+            continue
+        rep.add("INFO", u.ID, f"{u.TITLE} (actualizador de máquina)")
+        u.apply(ctx, rep)
+        hechos += 1
+    return hechos
+
+
 def latest_layout(mods):
     return max([int(m.ID) for m in mods if not is_baseline(m)] or [0])
 
@@ -140,38 +180,12 @@ def find_home(arg):
     return home
 
 
-def statusline_copy_outdated():
-    """Qué le pasa a la copia de la statusline (`~/.claude/arkana-statusline`), o None si está al día o no hay copia: `"anterior al despachador"` si le falta `dispatch.py`
-    (instalada antes de que la statusline de usuario fuese un despachador), o la versión de su núcleo si es anterior a la de este plugin.
-    Es un dato de usuario fuera del repo: ninguna migración lo toca, pero tras actualizar los plugins hay que refrescarlo con `/arkana-statusline:fix`."""
-    d = os.path.join(os.path.expanduser("~"), ".claude", "arkana-statusline")
-    if os.path.isfile(os.path.join(d, "statusline.sh")) and not os.path.isfile(os.path.join(d, "dispatch.py")):
-        return "anterior al despachador"
-    f = os.path.join(d, "arkana_core", "__init__.py")
-    try:
-        with open(f, encoding="utf-8") as fh:
-            m = re.search(r'CORE_VERSION\s*=\s*"([\d.]+)"', fh.read())
-    except OSError:
-        return None
-    if not m:
-        return None
-    ver = lambda v: tuple(int(x) for x in v.split("."))
-    return m.group(1) if ver(m.group(1)) < ver(CORE_VERSION) else None
-
-
 def migrar_registro(ctx, rep):
     """El registro de workspaces pasó de `~/.arkana-workspaces.json` a `~/.arkana/workspaces.json`: se mueve (conservando sus entradas) la primera vez que se aplica."""
     if os.path.isfile(locate.legacy_registry_path()) and not os.path.isfile(locate.registry_path()):
         if not ctx.dry:
             locate.register(ctx.home)
         rep.add("DRY" if ctx.dry else "OK", "registro-usuario", f"{locate.legacy_registry_path()} {'se movería a' if ctx.dry else 'movido a'} {locate.registry_path()}")
-
-
-def aviso_statusline(rep):
-    old = statusline_copy_outdated()
-    if old:
-        que = "es anterior al despachador de statusline (falta dispatch.py)" if old == "anterior al despachador" else f"lleva el núcleo {old}, anterior al de esta instalación"
-        rep.add("WARN", "statusline", f"la copia de la statusline (~/.claude/arkana-statusline) {que}: ejecuta /arkana-statusline:fix")
 
 
 # ---------- check ----------
@@ -185,7 +199,6 @@ def cmd_check(a, ctx, rep):
         rep.add("WARN", "layout", f"el repo está en layout {layout}; la última migración es {latest}: ejecuta /arkana-evolve:apply")
     else:
         rep.add("OK", "layout", f"layout {layout} (al día)")
-    aviso_statusline(rep)
     for m in mods:
         if m.detect(ctx):
             rep.add("WARN", m.ID, f"pendiente: {m.TITLE} → /arkana-evolve:apply")
@@ -196,6 +209,13 @@ def cmd_check(a, ctx, rep):
                     rep.add("WARN", m.ID, f"aplicada, pero {p}")
             else:
                 rep.add("OK", m.ID, f"aplicada: {m.TITLE}")
+    for u in load_updaters():
+        try:
+            pendiente = u.detect(ctx)
+        except Exception as e:
+            rep.add("WARN", u.ID, f"no se pudo comprobar: {e}")
+            continue
+        rep.add("WARN" if pendiente else "OK", u.ID, f"pendiente (actualizador de máquina): {u.TITLE} → /arkana-evolve:apply" if pendiente else f"al día: {u.TITLE}")
 
 
 # ---------- apply ----------
@@ -251,6 +271,8 @@ def cmd_apply(a, ctx, rep):
         if not ctx.dry:
             settle(ctx, mods, before=None if hasta is None else hasta + 1)
         migrar_registro(ctx, rep)
+        if hasta is None:
+            run_updaters(ctx, rep)
         rep.add("OK", "apply", f"nada que hacer: layout {project_layout(ctx)}, sin migraciones pendientes")
         return
     done, backed = [], False
@@ -285,8 +307,9 @@ def cmd_apply(a, ctx, rep):
         pending = []
     if not ctx.dry:
         settle(ctx, mods, before=None if hasta is None else hasta + 1)
-    aviso_statusline(rep)
     migrar_registro(ctx, rep)
+    if hasta is None:
+        run_updaters(ctx, rep)
     if ctx.dry:
         rep.add("DRY", "apply", f"{len(done)} migraciones se aplicarían; no se ha escrito nada")
     else:

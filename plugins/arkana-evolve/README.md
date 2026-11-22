@@ -7,7 +7,11 @@ Es uno de los plugins del marketplace `arkana` (visión de conjunto en [`../READ
 
 **Registro de usuario.** `apply` mueve `~/.arkana-workspaces.json` a `~/.arkana/workspaces.json` (conservando las entradas de todos los workspaces) la primera vez; mientras tanto el antiguo se sigue leyendo.
 
-**Aviso de la statusline.** `check` y `apply` avisan (`WARN|statusline`) si la copia de `~/.claude/arkana-statusline` lleva un núcleo anterior al de esta instalación o es anterior al despachador de statusline (le falta `dispatch.py`): es un dato de usuario fuera del repo que ninguna migración toca; se refresca con `/arkana-statusline:fix`.
+**Actualizadores de máquina.** Además de las migraciones del repo, `check` y `apply` llevan **actualizadores**: scripts de `scripts/lib/updaters/` (`u001_…`) que dejan al día lo que Arkana deja en **esta máquina**, fuera del repo y de `.arkana/`. Así, cada terminal que actualiza los plugins de Arkana queda al día con un solo `/arkana-evolve:apply`, sin pasos manuales. `check` los muestra (`WARN|u001|pendiente (actualizador de máquina)` o `OK|u001|al día`) y `apply` los ejecuta **después** de las migraciones (no con `--to N`). Son idempotentes, no llevan sello ni exigen git ni copia de `.arkana/`, y un fallo se avisa (`FAIL`) sin deshacer lo ya migrado.
+
+| Id | Qué hace |
+|---|---|
+| `u001` | **Statusline de usuario.** Si hay una copia del despachador en `~/.claude/arkana-statusline` y su contenido difiere del que trae el plugin `arkana-statusline` instalado (versión nueva del renderizador, del despachador o del núcleo), ejecuta `arkana-statusline fix`: la reinstala (con copia de los ajustes) y, si otra herramienta pisó la `statusLine` de usuario, la recupera dejando a la otra como proveedor. Sin copia instalada, o sin ese plugin, no hace nada: evolve no depende de ningún otro plugin, solo lo invoca si está (lo busca junto a este o en la caché de Claude Code; `ARKANA_STATUSLINE_PLUGIN` fuerza una carpeta). |
 
 ## Skills
 
@@ -27,6 +31,7 @@ Salida `ESTADO|ID|detalle` y `RESUMEN|n FAIL|n WARN` ([`OUTPUT-CONTRACT`](../doc
 
 ## Cómo funciona
 
+- **Actualizadores.** Módulos de `scripts/lib/updaters/` (`u001_…`) con `ID`, `TITLE`, `detect(ctx)` y `apply(ctx, rep)`. Convergen lo de la máquina (no del repo); `apply` los ejecuta tras las migraciones y `check` los lista. Se añaden igual que una migración: un módulo nuevo, con su test.
 - **Migraciones.** Módulos de `scripts/lib/migrations/` (`m0001_…`, `m0002_…`). Las `b*` son de **base** (formatos antiguos anteriores a la 0001) y se ejecutan antes que las numéricas. Cada una define `ID`, `TITLE`, `SCOPE`, `touches(ctx)`, `detect(ctx)` (¿está pendiente?), `apply(ctx, rep)` y `verify(ctx)`.
 - **Ámbito.** `shared`: cambia ficheros **versionados** del repo de ARKANA. Una persona migra, revisa `git status`, commitea y empuja; el resto hace pull y vuelve a ejecutar `apply`, que solo aplica su parte local. `local`: cambia `.arkana/` (copia `tar.gz` previa en `.arkana/arkana-workspace/bak/`, modo 600).
 - **Sellos.** El layout compartido está en `arkana-project.json` (`layout`; lo sube el motor tras cada migración numérica); lo aplicado en esta instalación, en `.arkana/arkana-evolve/state.json` (clase `local`).
