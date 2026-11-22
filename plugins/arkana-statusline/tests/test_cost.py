@@ -59,6 +59,17 @@ class TestCoste(unittest.TestCase):
             self.assertIn("P0.00 S1.00", lineas[0])
             self.assertFalse(os.path.exists(self.fichero(lab, "s")))
 
+    def test_la_marca_de_evolve_sale_solo_si_el_layout_del_repo_es_anterior_al_que_conoce_la_version(self):
+        from arkana_core import project
+        with L.Lab() as lab:
+            self.assertIn("REQUIRED /arkana-evolve:apply", S.plain(lab.run("arkana", columns=200).stdout))      # sin arkana-project.json: layout 0
+            L.wj(project.path(lab.arkana), {"layout": project.LAYOUT_KNOWN - 1})
+            self.assertIn("REQUIRED /arkana-evolve:apply", S.plain(lab.run("api", columns=200).stdout))
+            L.wj(project.path(lab.arkana), {"layout": project.LAYOUT_KNOWN})
+            self.assertNotIn("REQUIRED", lab.run("arkana", columns=200).stdout)                               # al día: ninguna marca
+            L.wj(project.path(lab.arkana), {"layout": project.LAYOUT_KNOWN + 1})
+            self.assertNotIn("REQUIRED", lab.run("arkana", columns=200).stdout)                               # por delante: es otro aviso (actualizar el plugin)
+
     def test_entrada_basura_y_workspace_sin_repos_nunca_rompen(self):
         with L.Lab() as lab:
             for entrada in ("", "{no json", "[]", "{}"):

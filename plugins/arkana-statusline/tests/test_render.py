@@ -68,11 +68,11 @@ class TestAnchoEstrecho(unittest.TestCase):
         return {"items": items(cur), "plan": S.plan_view(None, "s", time.time(), lambda p: True), "session_cost": 1.5, "model": "Sonnet 5.5", "effort": "medium",
                 "usage": [("C", 61), ("S", 0), ("W", 19)]}
 
-    def test_ancho_amplio_una_linea_con_separador_punto(self):
+    def test_ancho_amplio_una_linea_con_los_componentes_separados_por_un_espacio(self):
         ls = S.fit_line1(items(), 195)
         self.assertEqual(len(ls), 1)
-        self.assertIn(f" {S.DARK_BLUE}·{S.RESET} ", ls[0])                                   # separador: · en azul oscuro entre componentes
-        self.assertTrue(pl(ls)[0].startswith("ARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · app@develop:✓ · api@"))
+        self.assertNotIn("·", ls[0]); self.assertNotIn("|", ls[0])                                 # sin separadores visibles: solo un espacio entre componentes
+        self.assertTrue(pl(ls)[0].startswith("ARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 app@develop:✓ api@"))
 
     def test_primero_se_acortan_las_ramas_de_los_no_actuales(self):
         ls = pl(S.fit_line1(items(), 125))
@@ -94,12 +94,12 @@ class TestAnchoEstrecho(unittest.TestCase):
 
     def test_golden_a_cuatro_anchos(self):
         """Línea 1: ARKANA entero + plan, coste, modelo y uso. Línea 2 (y siguientes): los demás componentes."""
-        arkana = "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · [■]"
+        arkana = "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 | [■]"
         gold = {
-            200: ['app@develop:✓ · api@feature/una-rama-muy-larga:◌1⇣? · app-web@develop:✓ · app-ui@develop:●2⇣5 · docs@main:✓'],
-            120: ['app@develop:✓ · api@feature/una-rama-muy-larga:◌1⇣? · app-web@develop:✓ · app-ui@develop:●2⇣5 · docs@main:✓'],
-            80: ['app@develop:✓ · api@fe…:◌1⇣? · ap…@de…:✓ · ap…@de…:●2⇣5 · do…@ma…:✓'],
-            50: ['app@develop:✓ · api@fe…:◌1⇣? · ap…@de…:✓', 'ap…@de…:●2⇣5 · do…@ma…:✓'],
+            200: ['app@develop:✓ api@feature/una-rama-muy-larga:◌1⇣? app-web@develop:✓ app-ui@develop:●2⇣5 docs@main:✓'],
+            120: ['app@develop:✓ api@feature/una-rama-muy-larga:◌1⇣? app-web@develop:✓ app-ui@develop:●2⇣5 docs@main:✓'],
+            80: ['app@develop:✓ api@feat…:◌1⇣? app-web@deve…:✓ app-ui@deve…:●2⇣5 docs@main:✓'],
+            50: ['app@develop:✓ api@fe…:◌1⇣? ap…@de…:✓', 'ap…@de…:●2⇣5 do…@ma…:✓'],
         }
         for w, resto in gold.items():
             ls = pl(S.render(self.datos(), w))
@@ -107,17 +107,37 @@ class TestAnchoEstrecho(unittest.TestCase):
             self.assertEqual(ls[1:], resto, w)
             for ln in ls[1:]:
                 self.assertLessEqual(len(ln), w - S.RESERVED, (w, ln))
-        self.assertEqual(pl(S.render(self.datos(), 200))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · [■] sin plan activo · P0.00 S1.50 · Sonnet 5.5 (medium) · C61 S0 W19")
+        self.assertEqual(pl(S.render(self.datos(), 200))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 | [■] sin plan activo | P0.00 S1.50 Sonnet 5.5 ◔ C61 S0 W19")
         completa = pl(S.render(self.datos(), 200))[0]
         justa = pl(S.render(self.datos(), len(completa) + S.RESERVED - 4))[0]                   # 4 columnas menos: solo cede la descripción
-        self.assertTrue(justa.endswith("… · P0.00 S1.50 · Sonnet 5.5 (medium) · C61 S0 W19"), justa)
-        self.assertEqual(pl(S.render(self.datos(), 50))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 · [■] · P0.00 S1.50 · Sonnet 5.5 (medium) · C61 S0 W19")
+        self.assertTrue(justa.endswith("… | P0.00 S1.50 Sonnet 5.5 ◔ C61 S0 W19"), justa)
+        self.assertEqual(pl(S.render(self.datos(), 50))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 | [■] | P0.00 S1.50 Sonnet 5.5 ◔ C61 S0 W19")
 
     def test_la_marca_es_una_o_tachada_amarilla_brillante_delante_de_arkana(self):
         for w in (200, 50):
             l0 = S.render(self.datos(), w)[0]
             self.assertTrue(l0.startswith("\033[93mØ\033[0m") and "ARKANA" in l0[:40], repr(l0[:40]))      # amarillo brillante (93), siempre
         self.assertNotIn("Ø", "".join(pl(S.render(self.datos(), 200)[1:])))                              # solo una vez, al inicio de la línea 1
+
+    def test_la_marca_de_evolve_va_a_la_derecha_de_la_linea_1_en_rojo_brillante_inverso(self):
+        marca = " REQUIRED /arkana-evolve:apply "
+        ls = S.render(dict(self.datos(), evolve=True), 200)
+        l0 = pl(ls)[0]
+        self.assertTrue(l0.endswith(marca), l0)                                                      # todo a la derecha de la línea 1
+        self.assertEqual(len(l0), 200 - S.RESERVED)                                                  # justo hasta el margen derecho
+        self.assertTrue(ls[0].endswith("\033[7;91m" + marca + "\033[0m"), repr(ls[0][-40:]))         # rojo brillante (91) en inverso (7)
+        self.assertTrue(l0.startswith("ØARKANA@"), l0)                                               # ARKANA sigue entero y delante
+        self.assertEqual(len(ls), len(S.render(self.datos(), 200)))                                  # y no añade líneas
+        self.assertNotIn("REQUIRED", "".join(S.render(self.datos(), 200)))                           # sin la marca cuando no hace falta
+        l120 = pl(S.render(dict(self.datos(), evolve=True), 120))
+        self.assertTrue(l120[0].endswith(marca) and len(l120[0]) == 115, l120[0])                      # a 120 cabe en la línea 1 si cede la descripción del plan
+        self.assertNotIn("sin plan activo", l120[0])
+        for w in (80, 50):                                                                           # si lo que nunca se recorta ya llena la línea 1, la marca va sola debajo, a la derecha
+            sin, con = pl(S.render(self.datos(), w)), S.render(dict(self.datos(), evolve=True), w)
+            self.assertEqual(pl(con)[0], sin[0], w)                                                  # la línea 1 queda intacta
+            self.assertEqual(pl(con)[1], " " * (w - S.RESERVED - len(marca)) + marca, w)
+            self.assertEqual(pl(con)[2:], sin[1:], w)                                                # y el resto de líneas, igual
+            self.assertTrue(con[1].endswith("\033[7;91m" + marca + "\033[0m"))
 
     def test_si_el_manifiesto_no_carga_lo_dice_en_una_linea_en_vez_de_perderla(self):
         d = dict(self.datos(), items=items()[:1], aviso="workspace no cargado: manifiesto no válido")
@@ -131,16 +151,33 @@ class TestAnchoEstrecho(unittest.TestCase):
         self.assertEqual(len(S.render(d, 200)), 1)
 
 
+class TestEsfuerzo(unittest.TestCase):
+    def modelo(self, effort):
+        plan = S.plan_view(None, "s", time.time(), lambda p: True)
+        return A.sub("", S.line2(plan, 0.0, "Sonnet 5.5", effort, [("C", 61)], 195))
+
+    def test_cada_nivel_de_esfuerzo_tiene_su_circulo(self):
+        for nivel, simbolo in (("low", "○"), ("medium", "◔"), ("high", "◑"), ("xhigh", "◕"), ("max", "●")):
+            self.assertIn(f"Sonnet 5.5 {simbolo} C61", self.modelo(nivel), nivel)
+        self.assertIn("Sonnet 5.5 ◑ C61", self.modelo("HIGH"))                                        # sin distinguir mayúsculas
+        self.assertEqual(len({S.EFFORT_GLYPH[n] for n in S.EFFORT_GLYPH}), 5)                         # cinco símbolos distintos
+
+    def test_sin_nivel_o_con_uno_desconocido(self):
+        self.assertIn("Sonnet 5.5 C61", self.modelo(None))
+        self.assertIn("Sonnet 5.5 (ultra) C61", self.modelo("ultra"))                                 # en texto, no se pierde
+
+
 class TestLinea2(unittest.TestCase):
     def render2(self, plan, width=200, cost=0.0, usage=((("C", 61)), ("S", 0), ("W", 19))):
         return S.line2(plan, cost, "Sonnet 5.5", "medium", list(usage), width - S.RESERVED)
 
     def test_sin_plan_y_con_costes_y_bloques_por_umbral(self):
         l = self.render2(S.plan_view(None, "s", time.time(), lambda p: True), cost=0.0)
-        self.assertEqual(A.sub("", l), "[■] sin plan activo · P0.00 S0.00 · Sonnet 5.5 (medium) · C61 S0 W19")
+        self.assertEqual(A.sub("", l), "[■] sin plan activo | P0.00 S0.00 Sonnet 5.5 ◔ C61 S0 W19")
         self.assertIn("\033[31mP0.00 S0.00\033[0m", l)                                                          # costes: texto rojo oscuro, sin fondo
-        self.assertIn("\033[35mSonnet 5.5 (medium)\033[0m", l)                                                  # modelo: texto magenta, sin fondo
-        self.assertEqual(l.count(f" {S.DARK_BLUE}·{S.RESET} "), 3)                                           # tres separadores · en azul oscuro
+        self.assertIn("\033[35mSonnet 5.5 ◔\033[0m", l)                                                  # modelo: texto magenta, sin fondo
+        self.assertEqual(l.count(f" {S.DARK_BLUE}|{S.RESET} "), 1)                                           # una barra | en azul oscuro entre el plan y los costes
+        self.assertNotIn("·", A.sub("", l))                                                                    # y ningún punto: el resto va separado por un espacio
         self.assertNotIn("\033[7;", l); self.assertNotRegex(l, r"\033\[[0-9;]*;4[0-9]m|\033\[10[0-9]m")           # nada con fondo
         for v, fg in ((0, 32), (40, 32), (41, 33), (75, 33), (76, 91), (100, 91)):                          # uso: color del texto por tramo
             self.assertIn(f"\033[{fg}mC{v}\033[0m", S.line2(S.plan_view(None, "s", 0, lambda p: True), 0, "M", None, [("C", v)], 100), v)
@@ -163,7 +200,7 @@ class TestLinea2(unittest.TestCase):
                  "repo": "api", "asunto_corto": "Añadir el perfil", "worker_pid": 4242, "gasto_usd": 0.4, "session_id": "s"}
         v = S.plan_view(linea, "s", time.time(), lambda p: True)
         t = A.sub("", self.render2(v, cost=1.23))
-        self.assertTrue(t.startswith("[▶] 002/007 (✗1) api@P2611030652-ysov:T002 Añadir el perfil · P0.40 S1.23 · "), t)
+        self.assertTrue(t.startswith("[▶] 002/007 (✗1) api@P2611030652-ysov:T002 Añadir el perfil | P0.40 S1.23 "), t)
         self.assertEqual(S.plan_view(linea, "otra", time.time(), lambda p: True)["desc"], "sin plan activo")             # el plan es de otra sesión
         self.assertEqual(S.plan_view(linea, "s", time.time(), lambda p: False)["sym"], "✗")                    # worker muerto
         self.assertIn("/arkana-agentic:fix", S.plan_view(linea, "s", time.time(), lambda p: False)["desc"])

@@ -5,9 +5,9 @@ Cada componente se muestra como `ALIAS@rama:indicadores`, sin fondos de relleno:
 rama en gris (gris brillante la del componente actual) e indicadores en inverso, pegados y sin espacios (`◌353●6⇣?`), cada uno con texto negro sobre el color de su estado: ◌ sin seguimiento (rojo), ✚ preparados,
 ● modificados, ⇡ commits sin subir y ⇣ por bajar (amarillo) y ✓ si el local está limpio (verde); todo git local salvo ⇣ y solo los distintos de cero. ⇣ es lo único que depende
 del remoto: el número si el último fetch de ese componente fue hace menos de 30 min, `⇣?` en su mismo hueco si no se sabe; sin rama remota no hay ⇡ ni ⇣.
-Línea 1: la marca `Ø` (amarillo brillante, siempre), ARKANA y, separados por ` · ` (el punto en azul oscuro), `[■]` en inverso (texto negro sobre el color de su estado; gris en reposo) seguido de `sin plan activo` (con plan activo `[▶] 002/007 worker@plan:tarea descripción`), `P0.00 S0.00`
-(texto rojo oscuro, sin fondo; P plan, S sesión), `Sonnet 5.5 (medium)` (texto magenta, sin fondo) y `C61 S0 W19` (sin fondo; el color del texto según el tramo: 0–40 verde,
-41–75 amarillo, 76–100 rojo brillante). Línea 2: los demás componentes, separados también por ` · `.
+Línea 1: la marca `Ø` (amarillo brillante, siempre), ARKANA, ` | ` (la barra en azul oscuro), `[■]` en inverso (texto negro sobre el color de su estado; gris en reposo) seguido de `sin plan activo` (con plan activo `[▶] 002/007 worker@plan:tarea descripción`), otra barra y, separados por un espacio, `P0.00 S0.00`
+(texto rojo oscuro, sin fondo; P plan, S sesión), `Sonnet 5.5 ◔` (texto magenta, sin fondo; el nivel de esfuerzo `○ ◔ ◑ ◕ ●` = low, medium, high, xhigh, max) y `C61 S0 W19` (sin fondo; el color del texto según el tramo: 0–40 verde,
+41–75 amarillo, 76–100 rojo brillante). Línea 2: los demás componentes, separados por un espacio.
 
 Ancho estrecho (`fit_line1`, función pura, solo sobre los componentes de la línea 2): se acortan con `…` las ramas de los que no son el actual; luego sus alias; luego pasan
 a más líneas. Nunca se recortan los contadores, ARKANA, el componente actual ni el plan, el coste, el modelo y el uso (en la línea 1 solo cede la descripción del plan).
@@ -38,6 +38,9 @@ RED, GREEN = "\033[31m", "\033[32m"
 B_RED, B_GREEN, B_YELLOW, B_BLUE, B_CYAN = "\033[91m", "\033[92m", "\033[93m", "\033[94m", "\033[96m"
 IND_BG = {B_RED: "\033[30;41m", B_YELLOW: "\033[30;43m", B_GREEN: "\033[30;42m", B_CYAN: "\033[30;46m"}   # indicadores en inverso: texto negro sobre el color de su estado
 STATE_BG = {GRAY: "\033[30;100m", B_GREEN: "\033[30;102m", B_RED: "\033[30;101m", B_CYAN: "\033[30;106m", B_YELLOW: "\033[30;103m"}   # estado del plan `[■]` en inverso: texto negro sobre el color del símbolo
+EVOLVE_MARK = " REQUIRED /arkana-evolve:apply "                                   # marca a la derecha de la línea 1 cuando el repo necesita migraciones
+EVOLVE_STYLE = "\033[7;91m"                                                   # rojo brillante en inverso
+EFFORT_GLYPH = {"low": "○", "medium": "◔", "high": "◑", "xhigh": "◕", "max": "●"}      # nivel de esfuerzo del modelo: un círculo que se va llenando
 LOGO = "Ø"                                                                # marca de Arkana al inicio de la línea 1
 MAGENTA = "\033[35m"                                                          # modelo: texto magenta, sin fondo
 DARK_BLUE = "\033[34m"                                                        # separador ·: azul oscuro
@@ -181,7 +184,8 @@ def entry(item, branch_max=None, alias_max=None):
     return f"{alias}@{branch}:{plain_ind}", f"{head}{c(RED, ':')}{ansi_ind}"
 
 
-SEP_PLAIN, SEP_ANSI = " · ", f" {DARK_BLUE}·{RESET} "                  # separador entre componentes y entre secciones: · en azul oscuro
+SEP_PLAIN, SEP_ANSI = " ", " "                                            # separador entre los componentes de la línea 2: un espacio
+BAR_PLAIN, BAR_ANSI = " | ", f" {DARK_BLUE}|{RESET} "                       # separador de la línea 1 (tras ARKANA y tras el plan): | en azul oscuro
 LEVELS = [(None, None), (8, None), (5, None), (5, 4), (3, 3)]            # (máx. rama, máx. alias) de los componentes NO actuales
 
 
@@ -265,9 +269,10 @@ def plan_view(linea, sid, now, pid_alive):
 
 
 def line2(plan, session_cost, model, effort, usage, usable):
-    """Segmentos separados por ` · `: plan | `P0.00 S0.00` (rojo oscuro) | modelo (magenta) | `C35 S2 W6`. Solo se recorta la descripción del plan."""
+    """Plan, ` | ` y, separados por un espacio, `P0.00 S0.00` (rojo oscuro), modelo (magenta) y `C35 S2 W6`. Solo se recorta la descripción del plan."""
     cost = f"P{money(plan['gasto'])} S{money(session_cost or 0)}"
-    model_txt = f"{model}" + (f" ({effort})" if effort else "") if model else ""
+    glyph = EFFORT_GLYPH.get(str(effort).lower()) if effort else None
+    model_txt = f"{model}" + ((" " + glyph) if glyph else (f" ({effort})" if effort else "")) if model else ""   # un nivel desconocido se muestra en texto
     blocks = [pct_block(l, v) for l, v in usage if v is not None]
 
     def compose(desc):
@@ -290,7 +295,7 @@ def line2(plan, session_cost, model, effort, usage, usable):
             segs.append((c(MAGENTA, model_txt), model_txt))
         if blocks:
             segs.append((" ".join(a for a, _ in blocks), " ".join(p for _, p in blocks)))
-        return SEP_ANSI.join(a for a, _ in segs), len(SEP_PLAIN.join(p for _, p in segs))
+        return BAR_ANSI.join([segs[0][0], " ".join(a for a, _ in segs[1:])]), len(BAR_PLAIN.join([segs[0][1], " ".join(p for _, p in segs[1:])]))
 
     desc = plan["desc"]
     out, n = compose(desc)
@@ -305,13 +310,24 @@ def render(data, width):
     """Todas las líneas de la statusline como lista de cadenas con ANSI (función pura: no lee nada)."""
     usable = width - RESERVED
     head, rest = data["items"][:1], data["items"][1:]
-    first = ""
-    room = usable
-    if head:                                                             # ARKANA (o la única pieza) va entera delante del plan, el coste, el modelo y el uso
-        plain, ansi = entry(head[0])
-        first = c(B_YELLOW, LOGO) + ansi + SEP_ANSI                      # Ø (amarillo brillante, siempre) delante de ARKANA
-        room = usable - len(LOGO) - len(plain) - len(SEP_PLAIN)
-    lines = [first + line2(data["plan"], data["session_cost"], data["model"], data["effort"], data["usage"], room)]
+
+    def linea1(room):
+        first = ""
+        if head:                                                         # ARKANA (o la única pieza) va entera delante del plan, el coste, el modelo y el uso
+            plain, ansi = entry(head[0])
+            first = c(B_YELLOW, LOGO) + ansi + BAR_ANSI                  # Ø (amarillo brillante, siempre) delante de ARKANA
+            room = room - len(LOGO) - len(plain) - len(BAR_PLAIN)
+        return first + line2(data["plan"], data["session_cost"], data["model"], data["effort"], data["usage"], room)
+
+    line1, alone = linea1(usable), None
+    if data.get("evolve"):                                               # «REQUIRED /arkana-evolve:apply» en rojo brillante inverso, todo a la derecha de la primera línea
+        apretada = linea1(usable - len(EVOLVE_MARK) - 1)                 # primero cede la descripción del plan para hacerle sitio
+        libre = usable - len(ANSI.sub("", apretada)) - len(EVOLVE_MARK)
+        if libre >= 1:
+            line1 = apretada + " " * libre + c(EVOLVE_STYLE, EVOLVE_MARK)
+        else:                                                            # lo que nunca se recorta ya llena la línea: la marca va sola, a la derecha, justo debajo (no se corta ni recorta nada)
+            alone = " " * max(usable - len(EVOLVE_MARK), 0) + c(EVOLVE_STYLE, EVOLVE_MARK)
+    lines = [line1] + ([alone] if alone else [])
     if rest:                                                             # el resto de componentes, en la línea siguiente (más si no caben)
         lines += fit_line1(rest, usable)
     if data.get("aviso"):
@@ -405,8 +421,15 @@ def collect(inp):
     cost = float(cost) if isinstance(cost, (int, float)) else None
     if home:
         write_session_cost(home, sid, cost)
+    evolve = False
+    if home:                                                             # el repo está en un layout anterior al que conoce esta versión: faltan migraciones (/arkana-evolve:apply)
+        try:
+            from arkana_core import project
+            evolve = project.layout(home) < project.LAYOUT_KNOWN
+        except Exception:
+            evolve = False
     cw, rl = inp.get("context_window") or {}, inp.get("rate_limits") or {}
-    return {"aviso": aviso, "items": items, "plan": plan_view(linea, sid, time.time(), pid_alive), "session_cost": cost,
+    return {"aviso": aviso, "evolve": evolve, "items": items, "plan": plan_view(linea, sid, time.time(), pid_alive), "session_cost": cost,
             "model": (inp.get("model") or {}).get("display_name") or "", "effort": (inp.get("effort") or {}).get("level"),
             "usage": [("C", cw.get("used_percentage")), ("S", (rl.get("five_hour") or {}).get("used_percentage")),
                       ("W", (rl.get("seven_day") or {}).get("used_percentage"))]}
