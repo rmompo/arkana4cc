@@ -50,7 +50,7 @@ class TestCoste(unittest.TestCase):
             os.makedirs(fuera)
             subprocess.run(["git", "init", "-q", "-b", "main", fuera], check=True, env=L.GITENV)
             env = {k: v for k, v in lab.env.items() if k != "ARKANA_HOME"}
-            r = subprocess.run(["bash", os.path.join(L.SL, "statusline.sh")], input=json.dumps({"workspace": {"project_dir": fuera}, "model": {"display_name": "M"},
+            r = subprocess.run([sys.executable, "-I", os.path.join(L.SL, "statusline.py")], input=json.dumps({"workspace": {"project_dir": fuera}, "model": {"display_name": "M"},
                                "cost": {"total_cost_usd": 1.0}, "session_id": "s"}), capture_output=True, text=True, env=dict(env, COLUMNS="100"), cwd=lab.root)
             self.assertEqual(r.returncode, 0, r.stderr)
             lineas = S.plain(r.stdout).splitlines()
@@ -62,7 +62,7 @@ class TestCoste(unittest.TestCase):
     def test_entrada_basura_y_workspace_sin_repos_nunca_rompen(self):
         with L.Lab() as lab:
             for entrada in ("", "{no json", "[]", "{}"):
-                r = subprocess.run(["bash", os.path.join(L.SL, "statusline.sh")], input=entrada, capture_output=True, text=True, env=dict(lab.env, COLUMNS="80"), cwd=lab.root)
+                r = subprocess.run([sys.executable, "-I", os.path.join(L.SL, "statusline.py")], input=entrada, capture_output=True, text=True, env=dict(lab.env, COLUMNS="80"), cwd=lab.root)
                 self.assertEqual(r.returncode, 0, entrada)
                 self.assertTrue(r.stdout.strip(), entrada)
 

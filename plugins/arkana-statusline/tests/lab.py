@@ -59,6 +59,6 @@ class Lab:
                "context_window": {"used_percentage": 61}, "rate_limits": {"five_hour": {"used_percentage": 0}, "seven_day": {"used_percentage": 19}},
                "cost": {"total_cost_usd": 0.0}, "session_id": "sess-1"}
         inp.update(extra or {})
-        r = subprocess.run(["bash", os.path.join(SL, "statusline.sh")], input=json.dumps(inp), capture_output=True, text=True,
+        r = subprocess.run([sys.executable, "-I", os.path.join(SL, "statusline.py")], input=json.dumps(inp), capture_output=True, text=True,
                            env=dict(self.env, COLUMNS=str(columns), **(env or {})), cwd=self.root, timeout=30)
         return r
