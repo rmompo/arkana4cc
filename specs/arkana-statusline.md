@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-statusline
 
-> **Estado:** `beta` | **Versión:** `1.3.0`
+> **Estado:** `beta` | **Versión:** `1.3.1`
 
 ---
 
@@ -28,6 +28,7 @@ Statusline de Arkana en dos líneas, solo para workspaces de Arkana: ARKANA y lo
 
 | Versión | Cambios |
 |---------|---------|
+| 1.3.1 | statusline: el esfuerzo del modelo como letra (l m h H M = low, medium, high, xhigh, max) en lugar de circulo |
 | 1.3.0 | Marca REQUIRED /arkana-evolve:apply en rojo brillante inverso a la derecha de la linea 1 cuando el layout del repo es anterior al conocido; barras y espacios como separadores en las lineas 1 y 2; el esfuerzo del modelo como circulo (○ ◔ ◑ ◕ ●) |
 | 1.2.0 | Statusline de usuario como despachador: en ARKANA la de Arkana, en un componente la elegida (choose) y en otros sitios los proveedores (plugin4cc antes que otra); hooks SessionStart y UserPromptSubmit (pregunta por componente y recuperacion del hueco si un tercero lo pisa); skills nuevas choose, provider y uninstall |
 | 1.1.15 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |

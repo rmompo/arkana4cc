@@ -1189,10 +1189,14 @@
       "description": "Statusline de Arkana en dos líneas, solo para workspaces de Arkana: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude. Un despachador de usuario elige entre la de Arkana, la de plugin4cc y otra según la carpeta; escribe el coste real de la sesión",
       "category": "other",
       "status": "beta",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "spec": "specs/arkana-statusline.md",
       "path": "plugins/arkana-statusline",
       "changelog": [
+        {
+          "version": "1.3.1",
+          "changes": "statusline: el esfuerzo del modelo como letra (l m h H M = low, medium, high, xhigh, max) en lugar de circulo"
+        },
         {
           "version": "1.2.0",
           "changes": "Statusline de usuario como despachador: en ARKANA la de Arkana, en un componente la elegida (choose) y en otros sitios los proveedores (plugin4cc antes que otra); hooks SessionStart y UserPromptSubmit (pregunta por componente y recuperacion del hueco si un tercero lo pisa); skills nuevas choose, provider y uninstall"
