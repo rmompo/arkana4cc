@@ -1,6 +1,6 @@
 # arkana-statusline
 
-Barra de estado de Claude Code para Arkana. Muestra **en dos líneas** ARKANA y cada componente del proyecto (el workspace es ARKANA más el proyecto) con su estado git, el plan activo de `arkana-agentic`, el coste (del plan y de la sesión), el modelo y el uso (contexto, sesión de 5 h y semana). Funciona dentro y fuera de un workspace y se adapta al ancho del terminal.
+Barra de estado de Claude Code para Arkana. Muestra **en dos líneas** ARKANA y cada componente del proyecto (el workspace es ARKANA más el proyecto) con su estado git, el plan activo de `arkana-agentic`, el coste (del plan y de la sesión), el modelo y el uso (contexto, sesión de 5 h y semana). Es **solo para workspaces de Arkana**: un despachador de usuario decide en cada render qué statusline se ve según la carpeta (ver [Qué statusline se ve](#qué-statusline-se-ve)). Se adapta al ancho del terminal.
 
 ```
 ØARKANA@develop:◌13✚113●84⇡2⇣3 · [▶] 002/007 api@P2611030652-ysov:T002 Añadir el perfil · P0.40 S1.23 · Sonnet 5.5 (medium) · C61 S0 W19
@@ -12,12 +12,13 @@ Visión de conjunto de los plugins de Arkana: [`../README.md`](../README.md).
 ## Contenido
 
 1. [Cómo encaja con los demás plugins](#cómo-encaja-con-los-demás-plugins)
-2. [Formato](#formato)
-3. [Skills (referencia)](#skills-referencia): [`install`](#arkana-statuslineinstall), [`check`](#arkana-statuslinecheck), [`fix`](#arkana-statuslinefix), [`refresh`](#arkana-statuslinerefresh)
-4. [Coste real de la sesión](#coste-real-de-la-sesión)
-5. [Variables de entorno](#variables-de-entorno)
-6. [Instalación](#instalación)
-7. [Pruebas y desarrollo](#pruebas-y-desarrollo)
+2. [Qué statusline se ve](#qué-statusline-se-ve)
+3. [Formato](#formato)
+4. [Skills (referencia)](#skills-referencia): [`install`](#arkana-statuslineinstall), [`check`](#arkana-statuslinecheck), [`fix`](#arkana-statuslinefix), [`choose`](#arkana-statuslinechoose), [`uninstall`](#arkana-statuslineuninstall), [`provider`](#arkana-statuslineprovider), [`refresh`](#arkana-statuslinerefresh)
+5. [Coste real de la sesión](#coste-real-de-la-sesión)
+6. [Variables de entorno](#variables-de-entorno)
+7. [Instalación](#instalación)
+8. [Pruebas y desarrollo](#pruebas-y-desarrollo)
 
 ## Cómo encaja con los demás plugins
 
@@ -30,6 +31,34 @@ Visión de conjunto de los plugins de Arkana: [`../README.md`](../README.md).
 | `arkana-todo` | Sin relación. |
 
 `arkana-plugin.json` no declara dependencias: el plugin es autónomo y lleva su propia copia del núcleo `arkana_core` (necesaria porque la statusline la ejecuta Claude Code como comando de usuario, sin raíz de plugin).
+
+## Qué statusline se ve
+
+Claude Code admite **una** `statusLine` por ámbito. Arkana ocupa la de **usuario** (`~/.claude/settings.json`) con un **despachador** (`statusline.sh` → `dispatch.py`) que, en cada render, mira la carpeta en la que estás (`workspace.project_dir` de la entrada) y decide:
+
+| Dónde estás | Qué se ve |
+|---|---|
+| La carpeta de **ARKANA** (el orquestador) | La statusline de Arkana. Siempre, sin preguntar. |
+| Un **componente** gobernado por ARKANA (está en su manifiesto) | La de Arkana si la persona usuaria lo eligió para ese componente; si no (sin elegir o «otra»), la de los proveedores. |
+| Cualquier otro sitio | La de los proveedores; si no hay ninguno, **nada**. |
+
+Orden de preferencia: **Arkana → plugin4cc → otra**. En ARKANA y en sus componentes la de Arkana se **ejecuta siempre** (es la única escritora del coste real de la sesión) y solo se muestra cuando toca.
+
+**Elección por componente.** La primera vez que se abre Claude Code en un componente sin elección, el hook `SessionStart` pide a Claude que pregunte («¿la de Arkana o la que ya tienes?») y la respuesta se guarda con [`/arkana-statusline:choose`](#arkana-statuslinechoose). Es **por persona y por componente** y no se versiona (`~/.arkana/statusline.json`); se aplica en el siguiente render, sin reiniciar. Si nadie contesta, se sigue viendo la de los proveedores.
+
+**Proveedores.** Son las otras statuslines, registradas en `~/.arkana/statusline.json`:
+
+```json
+{"version": 1,
+ "providers": [{"id": "plugin4cc", "command": "bash ~/.claude/statusline-command.sh", "priority": 20}],
+ "components": {"/ruta/a/arkana|app": "arkana"}}
+```
+
+`install` registra como proveedor la `statusLine` de usuario que hubiera (`plugin4cc` con prioridad 20 si el comando contiene `statusline-command.sh`; `other-<hash del comando>` con 30 en cualquier otro caso, de modo que varias herramientas **conviven** sin sustituirse). Si existe `~/.claude/statusline-command.sh` (el script de plugin4cc), también se registra como `plugin4cc` aunque otra herramienta ocupe la `statusLine`. Gana el de **menor prioridad**; si un proveedor falla (código ≠ 0 o sin salida), se prueba el siguiente. Se gestionan a mano con [`/arkana-statusline:provider`](#arkana-statuslineprovider).
+
+**Control de la jerarquía frente a terceros.** Una statusline que no conozca esta jerarquía (y se autoinstale) puede volver a escribir la `statusLine` de usuario. Mientras Arkana haya ocupado el hueco, los hooks `SessionStart` y `UserPromptSubmit` lo detectan y **lo recuperan**: la que la pisó queda como proveedor (con su id por comando), se recoloca el despachador (con copia en `bak/`) y se avisa con un mensaje. `/arkana-statusline:fix` hace lo mismo. Si no hay instalación previa de Arkana (solo se copiaron los ficheros) o se ejecutó `provider auto off`, no se toca nada y `check` avisa.
+
+**Contrato para otros plugins de statusline (p. ej. plugin4cc).** El despachador ocupa la `statusLine` de usuario, así que un plugin que **se autoinstala** en `~/.claude/settings.json` no debe sobrescribirla: si ve `arkana-statusline/statusline.sh` en ella, debe **registrarse como proveedor** (añadir su entrada a `providers` con su `id`, su `command` y su `priority`, sin duplicarla) en lugar de escribir `statusLine`. Si no la ve, se instala como siempre. `check` avisa (`WARN|statusline`) si otro plugin la pisó y `fix` (o `install`) lo deja en orden.
 
 ## Formato
 
@@ -146,13 +175,16 @@ Ante cualquier excepción inesperada la statusline imprime `arkana-statusline: <
 
 ## Skills (referencia)
 
-Los skills están en `skills/`. `install`, `check` y `fix` ejecutan `scripts/lib/ops.py <subcomando>`; `refresh`, `scripts/lib/refresh.py`.
+Los skills están en `skills/`. `install`, `check`, `fix`, `choose`, `uninstall` y `provider` ejecutan `scripts/lib/ops.py <subcomando>`; `refresh`, `scripts/lib/refresh.py`.
 
 | Skill | Escribe | Red | Para qué |
 |---|---|---|---|
-| `install` | `~/.claude/arkana-statusline/`, `~/.claude/settings.json` | no | Instala o actualiza la copia y activa `statusLine` |
+| `install` | `~/.claude/arkana-statusline/`, `~/.claude/settings.json`, `~/.arkana/statusline.json` | no | Instala o actualiza la copia del despachador y activa `statusLine`; la ajena pasa a proveedor |
 | `check` | nada | no | Diagnóstico de solo lectura |
-| `fix` | igual que `install` (sin `--replace`) | no | Repara copia desactualizada o `statusLine` ausente |
+| `fix` | igual que `install` (sin tomar el hueco si Arkana nunca lo ocupó) | no | Repara copia desactualizada o `statusLine` ausente |
+| `choose` | `~/.arkana/statusline.json` | no | Qué se ve en un componente: Arkana, la que haya o volver a preguntar |
+| `uninstall` | `~/.claude/settings.json`, `~/.claude/arkana-statusline/` | no | Devuelve la `statusLine` al proveedor y borra la copia |
+| `provider` | `~/.arkana/statusline.json` | no | Lista, añade o quita proveedores; activa o desactiva la recuperación automática |
 | `refresh` | solo referencias remotas de git (`git fetch`) | sí | Deja `⇣` al día |
 
 **Salida común.** Una línea por comprobación `ESTADO|ID|detalle` (estados `OK`, `WARN`, `FAIL`, `INFO`, `DRY`) y al final `RESUMEN|n FAIL|n WARN`. Con `--json`: `{"plugin","skill","status","items":[{"id","status","detail","component"}],"summary":{"fail","warn","ok","info","dry"}}`. Códigos de salida: **0** sin fallos (los `WARN` no cuentan), **1** hay algún `FAIL`, **2** uso incorrecto (argumento desconocido o falta el subcomando; `-h` sale con 0), **3** precondición no cumplida (solo `refresh`, ver abajo).
@@ -161,17 +193,17 @@ Los skills están en `skills/`. `install`, `check` y `fix` ejecutan `scripts/lib
 
 **Para qué.** Instala la statusline en la máquina del usuario y la activa. Es el primer paso y también el modo de actualizarla tras cambiar el plugin. Funciona también fuera de un workspace.
 
-**Cuándo.** Una vez por máquina y después de cada actualización del plugin; con `--replace`, solo si el usuario decide sustituir una `statusLine` ajena.
+**Cuándo.** Una vez por máquina y después de cada actualización del plugin; la `statusLine` ajena que hubiera no se pierde: pasa a ser un proveedor.
 
 **Orden exacta.**
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" install [--replace] [--dry-run] [--json]
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" install [--dry-run] [--json]
 ```
 
 | Parámetro | Valores / por defecto | Efecto |
 |---|---|---|
-| `--replace` | opcional; por defecto no | Sustituye una `statusLine` ya configurada que **no es de Arkana** (un script propio, el antiguo `statusline-command.sh`, otro plugin). Sin él, una ajena se respeta y se avisa con `WARN`. Hace copia previa de los ajustes. |
+| `--replace` | opcional; se acepta por compatibilidad | Ya no hace falta: con Arkana instalada, `install` ocupa la `statusLine` de usuario y la que **no es de Arkana** (un script propio, `statusline-command.sh` de plugin4cc, otro plugin) pasa a ser un **proveedor** y se sigue viendo fuera de ARKANA. Hace copia previa de los ajustes. |
 | `--dry-run` | opcional; por defecto no | No escribe nada: cada cambio se informa como `DRY` y no se ejecuta la prueba de humo. |
 | `--json` | opcional; por defecto texto | Salida en JSON. |
 
@@ -179,34 +211,35 @@ Cualquier otro argumento termina con código 2.
 
 **Qué hace.**
 
-1. Compara por SHA-256 cada fichero instalado con su fuente: `statusline.sh`, `statusline.py` y todo `arkana_core/` (sin `tests` ni `__pycache__`). Si **alguno** difiere o falta, copia el conjunto completo a `~/.claude/arkana-statusline/` y deja `statusline.sh` ejecutable (`0755`). Si todo está igual: `OK|copia|copia al día`.
+1. Compara por SHA-256 cada fichero instalado con su fuente: `statusline.sh`, `dispatch.py`, `statusline.py` y todo `arkana_core/` (sin `tests` ni `__pycache__`). Si **alguno** difiere o falta, copia el conjunto completo a `~/.claude/arkana-statusline/` y deja `statusline.sh` ejecutable (`0755`). Si todo está igual: `OK|copia|copia al día`.
 2. Activa `statusLine` en `~/.claude/settings.json` como `{"type": "command", "command": "bash ~/.claude/arkana-statusline/statusline.sh"}`:
    - si ya es la de Arkana: `OK` sin cambios;
    - si no hay ninguna: la activa;
-   - si hay otra y **no** se pasó `--replace`: `WARN` y no la toca (el comando sigue exigiendo decisión del usuario);
-   - si hay otra y se pasó `--replace`: la sustituye.
+   - si hay otra: la registra antes como proveedor (`OK|proveedor`, en `~/.arkana/statusline.json`) y la sustituye: con Arkana instalada, Arkana gobierna.
 3. Habilita `enabledPlugins["arkana-statusline@arkana"] = true` en los mismos ajustes si no lo estaba.
 4. Si cambia `settings.json` y ya existía, deja antes una **copia de seguridad** en `~/.claude/arkana-statusline/bak/settings.json.<AAAAMMDDTHHMMSS>`; la escritura es atómica. Informa `INFO|recarga`: reinicia Claude Code o recarga los plugins para ver la nueva barra.
-5. **Prueba de humo** (no en `--dry-run`): ejecuta `bash ~/.claude/arkana-statusline/statusline.sh` con una entrada JSON mínima (`COLUMNS=120`, tope de 10 s). Pasa si el código de salida es 0, imprime **al menos una línea** y no contiene `arkana-statusline:` (el mensaje de error interno). Detalle: `N líneas, rc 0`; si falla, `WARN|humo|prueba de humo fallida (…)`.
+5. **Prueba de humo** (no en `--dry-run`): ejecuta `statusline.py` (el renderizador) y `statusline.sh` (el despachador) con una entrada JSON mínima (`COLUMNS=120`, tope de 10 s). Pasa si ambos terminan con código 0, el renderizador imprime **al menos una línea** y no contiene `arkana-statusline:` (el mensaje de error interno). Detalle: `N líneas, rc 0`; si falla, `WARN|humo|prueba de humo fallida (…)`.
 
 **Ejemplos.**
 
 ```
 $ /arkana-statusline:install --dry-run
 DRY|copia|18 ficheros se copiarían a ~/.claude/arkana-statusline
-WARN|statusline|hay otra statusLine activa (bash ~/.claude/statusline-command.sh): usa install --replace para sustituirla
+DRY|proveedor|la statusLine anterior queda como proveedor «plugin4cc» (prioridad 20) en ~/.arkana/statusline.json
+DRY|statusline|sustituye la statusLine anterior (copia de los ajustes en ~/.claude/arkana-statusline/bak/)
 DRY|plugin|arkana-statusline@arkana habilitado
-RESUMEN|0 FAIL|1 WARN
+RESUMEN|0 FAIL|0 WARN
 
-$ /arkana-statusline:install --replace
+$ /arkana-statusline:install
 OK|copia|18 ficheros copiados a ~/.claude/arkana-statusline
+OK|proveedor|la statusLine anterior queda como proveedor «plugin4cc» (prioridad 20) en ~/.arkana/statusline.json
 OK|statusline|sustituye la statusLine anterior (copia de los ajustes en ~/.claude/arkana-statusline/bak/)
 INFO|recarga|reinicia Claude Code o recarga los plugins para ver la nueva statusline
 OK|humo|3 líneas, rc 0
 RESUMEN|0 FAIL|0 WARN
 ```
 
-(Los ejemplos son ilustrativos: el número de ficheros y de líneas depende de la versión y del entorno.) **Regla del skill:** hacer siempre `--dry-run` primero y enseñar qué cambiaría; si hay una `statusLine` ajena, no pisarla sin preguntar al usuario. No usar a la vez otro plugin de statusline con autoinstalación (`check` los detecta).
+(Los ejemplos son ilustrativos: el número de ficheros y de líneas depende de la versión y del entorno.) **Regla del skill:** hacer siempre `--dry-run` primero y enseñar qué cambiaría; si hay una `statusLine` ajena, decir que pasa a ser un proveedor (no se pierde): con Arkana instalada, Arkana gobierna las statuslines y su jerarquía. No usar a la vez otro plugin de statusline con autoinstalación (`check` los detecta).
 
 ### `/arkana-statusline:check`
 
@@ -224,7 +257,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" check [--json]
 |---|---|---|
 | `--json` | opcional; por defecto texto | Salida en JSON. |
 
-`check` no admite `--dry-run` (ya es de solo lectura): pasarlo termina con código 2.
+`check` no admite `--dry-run` (ya es de solo lectura): pasarlo termina con código 2. Acepta `--home DIR` para leer las elecciones de un workspace concreto (por defecto se localiza).
 
 **Qué comprueba** (ids de la salida):
 
@@ -234,20 +267,22 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" check [--json]
 | `git` | `git` disponible | `FAIL` si falta |
 | `instalada` | (solo aparece si no hay copia) | `WARN`: no existe `~/.claude/arkana-statusline` → `/arkana-statusline:install` |
 | `copia` | todos los ficheros instalados coinciden (SHA-256) con los del plugin | `WARN`: **copia desactualizada** (cuántos ficheros y los tres primeros) → `/arkana-statusline:fix` |
-| `statusline` | `statusLine` apunta a `arkana-statusline/statusline.sh` | `WARN`: no hay `statusLine` → `install`; `WARN`: hay **otra `statusLine` ajena** activa → `install --replace`; `INFO`: no existe `~/.claude/settings.json` |
-| `otros-plugins` | ningún otro plugin habilitado cuyo nombre contenga «statusline» | `WARN`: lista los **plugins de statusline habilitados** (`enabledPlugins`) que pueden pisarla |
+| `statusline` | la `statusLine` de usuario es el despachador (`arkana-statusline/statusline.sh`) | `WARN`: no hay `statusLine` → `install`; `WARN`: la de usuario es **de otro** (p. ej. plugin4cc la volvió a escribir) → `fix` o `install`; `INFO`: no existe `~/.claude/settings.json` |
+| `proveedores` | (siempre `INFO`) | lista los proveedores con su prioridad, o `ninguno` |
+| `elecciones` | (`INFO`, solo con workspace) | lo elegido para cada componente: `arkana`, `other` o `sin elegir` |
+| `otros-plugins` | ningún otro plugin habilitado cuyo nombre contenga «statusline» | `INFO`: lista los **plugins de statusline habilitados** (`enabledPlugins`); deben registrarse como proveedor y no pisar la de usuario |
 | `humo` | la statusline instalada imprime al menos una línea con código 0 | `WARN`: `no está instalada`, no se pudo ejecutar, o falló |
 
 **Códigos de salida.** 0 si no hay `FAIL` (los `WARN` no cambian el código); 1 si falta `python3` o `git`.
 
-**Qué hacer con el resultado** (regla del skill): una sola línea si todo está `OK`; con `WARN`, proponer `/arkana-statusline:fix` (copia desactualizada) o `/arkana-statusline:install` (no instalada) y, si hay otra `statusLine`, `install --replace` con confirmación.
+**Qué hacer con el resultado** (regla del skill): una sola línea si todo está `OK`; con `WARN`, proponer `/arkana-statusline:fix` (copia desactualizada) o `/arkana-statusline:install` (no instalada) y, si hay otra `statusLine`, `/arkana-statusline:fix` o `install` (la ajena queda como proveedor).
 
 ```
 $ /arkana-statusline:check
 OK|python3|disponible
 OK|git|disponible
 OK|copia|copia al día
-OK|statusline|statusLine apunta a arkana-statusline
+OK|statusline|la statusLine de usuario es el despachador de arkana-statusline
 OK|otros-plugins|ningún otro plugin de statusline
 OK|humo|1 líneas, rc 0
 RESUMEN|0 FAIL|0 WARN
@@ -255,7 +290,7 @@ RESUMEN|0 FAIL|0 WARN
 
 ### `/arkana-statusline:fix`
 
-**Para qué.** Reinstala la copia si está desactualizada y activa `statusLine` si no hay ninguna. **Nunca sustituye la `statusLine` de otro**: eso es `install --replace`.
+**Para qué.** Reinstala la copia si está desactualizada y activa `statusLine` si no hay ninguna. Si Arkana ya había ocupado el hueco y otra herramienta lo pisó, lo recupera (la ajena pasa a ser un proveedor); **sin una instalación previa de Arkana no sustituye la `statusLine` de otro**: eso es `install`.
 
 **Cuándo.** Cuando `check` avisa de `copia` desactualizada o de que no hay `statusLine`, o cuando la barra muestra `⚠ workspace no cargado` por una copia vieja del núcleo.
 
@@ -270,16 +305,61 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" fix [--dry-run] [--json]
 | `--dry-run` | opcional; por defecto no | No escribe nada; cada cambio sale como `DRY`. |
 | `--json` | opcional; por defecto texto | Salida en JSON. |
 
-`fix` **no** admite `--replace` (exit 2). En la práctica ejecuta la misma lógica que `install` sin `--replace`: mismas escrituras (`~/.claude/arkana-statusline/`, `~/.claude/settings.json` con copia en `bak/`), misma prueba de humo, misma salida (la etiqueta del informe es `fix`). Si hay una `statusLine` ajena, la deja como está y avisa con `WARN`.
+`fix` **no** admite `--replace` (exit 2). En la práctica ejecuta la misma lógica que `install`, salvo que no toma el hueco si Arkana nunca lo ocupó: mismas escrituras (`~/.claude/arkana-statusline/`, `~/.claude/settings.json` con copia en `bak/`), misma prueba de humo, misma salida (la etiqueta del informe es `fix`). Si hay una `statusLine` ajena y Arkana ya había ocupado el hueco, la recupera y la deja como proveedor; si no, la deja como está y avisa con `WARN`.
 
-**Pasos del skill.** 1) `check`; 2) si hay `WARN` de `copia` o de `statusline` (sin ninguna activa), `fix --dry-run` y, con confirmación del usuario, `fix`; 3) si hay una `statusLine` ajena, informar y dejar la decisión (`install --replace`) al usuario.
+**Pasos del skill.** 1) `check`; 2) si hay `WARN` de `copia` o de `statusline` (sin ninguna activa), `fix --dry-run` y, con confirmación del usuario, `fix`; 3) si hay una `statusLine` ajena sin instalación previa de Arkana, informar y proponer `install`.
 
 ```
 $ /arkana-statusline:fix --dry-run
 DRY|copia|4 ficheros se copiarían a ~/.claude/arkana-statusline
-OK|statusline|statusLine ya apunta a arkana-statusline
+OK|statusline|la statusLine de usuario ya es el despachador de arkana-statusline
 RESUMEN|0 FAIL|0 WARN
 ```
+
+### `/arkana-statusline:choose`
+
+**Para qué.** Elegir qué statusline se ve al abrir Claude Code en un **componente** gobernado por ARKANA: la de Arkana, la que ya tenga configurada (proveedores) o volver a preguntar. En la carpeta de ARKANA no se elige: siempre se ve la de Arkana.
+
+**Cuándo.** Cuando el hook `SessionStart` pide la pregunta (primera vez en un componente sin elección) o cuando la persona usuaria quiere cambiarla.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" choose --component <alias> --use arkana|other|ask [--home DIR] [--dry-run] [--json]
+```
+
+| Parámetro | Valores / por defecto | Efecto |
+|---|---|---|
+| `--component` | alias del manifiesto; obligatorio | El componente. `arkana` se rechaza (exit 2), igual que uno desconocido. |
+| `--use` | `arkana`, `other` o `ask`; obligatorio | `arkana`: se ve la de Arkana. `other`: la de los proveedores. `ask`: borra la elección y se vuelve a preguntar. |
+| `--home` | opcional; por defecto se localiza | Carpeta de ARKANA; sin workspace termina con código 3. |
+| `--dry-run` / `--json` | opcional | Sin escribir / salida en JSON. |
+
+Guarda en `~/.arkana/statusline.json` (modo 0600), con la clave `<carpeta de ARKANA>|<alias>`. Se aplica en el siguiente render.
+
+### `/arkana-statusline:uninstall`
+
+**Para qué.** Retirar el despachador **antes de desinstalar el plugin**: devuelve la `statusLine` de usuario al proveedor de mayor prioridad (o la quita si no hay ninguno) y borra los ficheros de `~/.claude/arkana-statusline/`. Conserva las copias `bak/` y las elecciones de `~/.arkana/statusline.json`. Repetible: si la `statusLine` de usuario no es del despachador, no la toca.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" uninstall [--dry-run] [--json]
+```
+
+### `/arkana-statusline:provider`
+
+**Para qué.** Gestionar los **proveedores** (las otras statuslines) y la recuperación automática del hueco de `statusLine`.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" provider list [--json]
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" provider add --id <id> --command "<comando>" [--priority N] [--dry-run] [--json]
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" provider remove --id <id> [--dry-run] [--json]
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/lib/ops.py" provider auto on|off [--dry-run] [--json]
+```
+
+| Acción | Efecto |
+|---|---|
+| `list` | Una línea por proveedor (`id`, prioridad y comando) y el estado de la recuperación automática. |
+| `add` | Registra (o reemplaza si el `id` o el comando ya existen) un proveedor. Prioridad por defecto: 20 si el comando contiene `statusline-command.sh` (plugin4cc), 30 en otro caso. Sirve para una statusline que no se capturó sola. |
+| `remove` | Quita un proveedor por `id` (exit 1 si no existe). |
+| `auto on\|off` | Activa (por defecto) o desactiva que Arkana recupere el hueco cuando otra herramienta lo pisa. |
 
 ### `/arkana-statusline:refresh`
 
@@ -362,9 +442,9 @@ claude plugin marketplace add <ruta>      # una vez, si no está ya
 claude plugin install arkana-statusline@arkana
 ```
 
-Después, `/arkana-statusline:install` (con `--dry-run` primero), reiniciar Claude Code o recargar los plugins y `/arkana-statusline:check`. Una statusline la ejecuta Claude Code como **comando de usuario, sin raíz de plugin**: por eso `install` **copia** los ficheros a `~/.claude/arkana-statusline/` (`statusline.sh`, `statusline.py` y `arkana_core/`, que viajan juntos) y apunta `statusLine` a esa copia. Cuando se actualiza el plugin, hay que volver a ejecutar `install` (o `fix`) para refrescar la copia; `check` avisa si está desactualizada.
+Después, `/arkana-statusline:install` (con `--dry-run` primero), reiniciar Claude Code o recargar los plugins y `/arkana-statusline:check`. Una statusline la ejecuta Claude Code como **comando de usuario, sin raíz de plugin**: por eso `install` **copia** los ficheros a `~/.claude/arkana-statusline/` (`statusline.sh`, `dispatch.py`, `statusline.py` y `arkana_core/`, que viajan juntos) y apunta `statusLine` a esa copia. Cuando se actualiza el plugin, hay que volver a ejecutar `install` (o `fix`) para refrescar la copia; `check` avisa si está desactualizada.
 
-Dentro de `~/.claude/arkana-statusline/`: `statusline.sh`, `statusline.py`, `arkana_core/` y `bak/` (copias de `settings.json`).
+Dentro de `~/.claude/arkana-statusline/`: `statusline.sh`, `dispatch.py`, `statusline.py`, `arkana_core/` y `bak/` (copias de `settings.json`). Las elecciones y los proveedores están en `~/.arkana/statusline.json`.
 
 ## Pruebas y desarrollo
 
@@ -376,15 +456,16 @@ bash tests/run-tests.sh [-v|-q] [-k <patrón>]      # sin red, sin API y sin toc
 |---|---|
 | `tests/test_render.py` | render y ajuste de ancho |
 | `tests/test_cost.py` | escritura del coste de sesión |
-| `tests/test_ops.py` | `install`, `check` y `fix` |
+| `tests/test_ops.py` | `install`, `check`, `fix`, `choose`, `uninstall`, `provider`, la recuperación del hueco y los hooks |
+| `tests/test_dispatch.py` | el despachador: qué se ve según la carpeta, la elección y los proveedores |
 | `tests/test_refresh.py` | `refresh` |
 | `tests/lab.py` | utilidades de las pruebas |
 
 - **Render como función pura.** `render(data, width)` y `fit_line1(items, usable)` no leen nada: reciben los datos ya recogidos (`collect`) y devuelven las líneas. Las **pruebas doradas** fijan la salida a **200, 120, 80 y 50 columnas**.
-- **Entrada/salida.** `statusline.sh` hace `exec python3 -I statusline.py` (el `.py` hermano, resolviendo enlaces simbólicos); el render es Python estándar (solo biblioteca estándar) para poder probar el ancho como función pura. Lee el JSON de Claude Code por stdin y escribe las líneas por stdout. Se puede probar a mano:
+- **Entrada/salida.** `statusline.sh` hace `exec python3 -I dispatch.py` (el `.py` hermano, resolviendo enlaces simbólicos); el despachador ejecuta `statusline.py` o un proveedor con la misma entrada; el render es Python estándar (solo biblioteca estándar) para poder probar el ancho como función pura. Lee el JSON de Claude Code por stdin y escribe las líneas por stdout. Se puede probar a mano:
 
   ```bash
   echo '{"workspace":{"project_dir":"."},"model":{"display_name":"Sonnet 5.5"},"effort":{"level":"medium"},"session_id":"demo","context_window":{"used_percentage":61}}' | COLUMNS=120 bash statusline/statusline.sh
   ```
 - **Núcleo vendorizado.** La fuente de `arkana_core` está en `lib/arkana_core/`; este plugin lleva su copia en `scripts/_core/` (un plugin instalado no puede leer a otro). Se regenera con `bash ../../scripts/vendor-core.sh` (y `--check` verifica que está al día). `install` copia esa copia a `~/.claude/arkana-statusline/arkana_core/`.
-- `arkana-plugin.json` declara los skills (`install`, `check`, `fix`, `refresh`), el comando de `check` y el dato local `arkana-statusline/state/sessions/`.
+- `arkana-plugin.json` declara los skills (`install`, `check`, `fix`, `refresh`, `choose`, `uninstall`, `provider`), los hooks `SessionStart` y `UserPromptSubmit`, el comando de `check` y el dato local `arkana-statusline/state/sessions/`.
