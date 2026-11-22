@@ -3,7 +3,7 @@
 Barra de estado de Claude Code para Arkana. Muestra **en dos líneas** ARKANA y cada componente del proyecto (el workspace es ARKANA más el proyecto) con su estado git, el plan activo de `arkana-agentic`, el coste (del plan y de la sesión), el modelo y el uso (contexto, sesión de 5 h y semana). Es **solo para workspaces de Arkana**: un despachador de usuario decide en cada render qué statusline se ve según la carpeta (ver [Qué statusline se ve](#qué-statusline-se-ve)). Se adapta al ancho del terminal.
 
 ```
-ØARKANA@develop:◌13✚113●84⇡2⇣3 | [▶] 002/007 api@P2611030652-ysov:T002 Añadir el perfil | P0.40 S1.23 Sonnet 5.5 ◔ C61 S0 W19
+ØARKANA@develop:◌13✚113●84⇡2⇣3 | [▶] 002/007 api@P2611030652-ysov:T002 Añadir el perfil | P0.40 S1.23 Sonnet 5.5 m C61 S0 W19
 app@develop:✓⇣? api@develop:◌1 app-web@develop:✓⇣? app-ui@develop:●2⇣5
 ```
 
@@ -145,7 +145,7 @@ Detalles:
 | Sección | Ejemplo | Color | Fuente |
 |---|---|---|---|
 | Costes | `P0.40 S1.23` | rojo oscuro, sin fondo | `P`: gasto del plan (`gasto_usd` de `linea.json`); `S`: coste de la sesión (`cost.total_cost_usd` de Claude Code). Dos decimales, en dólares; `S0.00` si no hay dato |
-| Modelo | `Sonnet 5.5 ◔` | magenta, sin fondo | `model.display_name` y, si existe, `effort.level` como un círculo que se llena: `○` low · `◔` medium · `◑` high · `◕` xhigh · `●` max. Un nivel desconocido se muestra en texto entre paréntesis (`(nivel)`) |
+| Modelo | `Sonnet 5.5 m` | magenta, sin fondo | `model.display_name` y, si existe, `effort.level` como una letra: `l` low · `m` medium · `h` high · `H` xhigh · `M` max. Un nivel desconocido se muestra en texto entre paréntesis (`(nivel)`) |
 | Uso | `C61 S0 W19` | color del texto por tramo, sin fondo | `C` contexto (`context_window.used_percentage`), `S` ventana de 5 h (`rate_limits.five_hour`), `W` semana (`rate_limits.seven_day`) |
 
 Tramos del uso (valor redondeado): **0–40 verde, 41–75 amarillo, 76–100 rojo brillante**.

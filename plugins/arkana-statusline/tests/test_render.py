@@ -107,11 +107,11 @@ class TestAnchoEstrecho(unittest.TestCase):
             self.assertEqual(ls[1:], resto, w)
             for ln in ls[1:]:
                 self.assertLessEqual(len(ln), w - S.RESERVED, (w, ln))
-        self.assertEqual(pl(S.render(self.datos(), 200))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 | [■] sin plan activo | P0.00 S1.50 Sonnet 5.5 ◔ C61 S0 W19")
+        self.assertEqual(pl(S.render(self.datos(), 200))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 | [■] sin plan activo | P0.00 S1.50 Sonnet 5.5 m C61 S0 W19")
         completa = pl(S.render(self.datos(), 200))[0]
         justa = pl(S.render(self.datos(), len(completa) + S.RESERVED - 4))[0]                   # 4 columnas menos: solo cede la descripción
-        self.assertTrue(justa.endswith("… | P0.00 S1.50 Sonnet 5.5 ◔ C61 S0 W19"), justa)
-        self.assertEqual(pl(S.render(self.datos(), 50))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 | [■] | P0.00 S1.50 Sonnet 5.5 ◔ C61 S0 W19")
+        self.assertTrue(justa.endswith("… | P0.00 S1.50 Sonnet 5.5 m C61 S0 W19"), justa)
+        self.assertEqual(pl(S.render(self.datos(), 50))[0], "ØARKANA@refactor/arkana:◌13✚113●84⇡2⇣3 | [■] | P0.00 S1.50 Sonnet 5.5 m C61 S0 W19")
 
     def test_la_marca_es_una_o_tachada_amarilla_brillante_delante_de_arkana(self):
         for w in (200, 50):
@@ -156,11 +156,11 @@ class TestEsfuerzo(unittest.TestCase):
         plan = S.plan_view(None, "s", time.time(), lambda p: True)
         return A.sub("", S.line2(plan, 0.0, "Sonnet 5.5", effort, [("C", 61)], 195))
 
-    def test_cada_nivel_de_esfuerzo_tiene_su_circulo(self):
-        for nivel, simbolo in (("low", "○"), ("medium", "◔"), ("high", "◑"), ("xhigh", "◕"), ("max", "●")):
+    def test_cada_nivel_de_esfuerzo_tiene_su_letra(self):
+        for nivel, simbolo in (("low", "l"), ("medium", "m"), ("high", "h"), ("xhigh", "H"), ("max", "M")):
             self.assertIn(f"Sonnet 5.5 {simbolo} C61", self.modelo(nivel), nivel)
-        self.assertIn("Sonnet 5.5 ◑ C61", self.modelo("HIGH"))                                        # sin distinguir mayúsculas
-        self.assertEqual(len({S.EFFORT_GLYPH[n] for n in S.EFFORT_GLYPH}), 5)                         # cinco símbolos distintos
+        self.assertIn("Sonnet 5.5 h C61", self.modelo("HIGH"))                                        # sin distinguir mayúsculas
+        self.assertEqual(len({S.EFFORT_GLYPH[n] for n in S.EFFORT_GLYPH}), 5)                         # cinco letras distintas (H mayúscula es xhigh, M mayúscula es max)
 
     def test_sin_nivel_o_con_uno_desconocido(self):
         self.assertIn("Sonnet 5.5 C61", self.modelo(None))
@@ -173,9 +173,9 @@ class TestLinea2(unittest.TestCase):
 
     def test_sin_plan_y_con_costes_y_bloques_por_umbral(self):
         l = self.render2(S.plan_view(None, "s", time.time(), lambda p: True), cost=0.0)
-        self.assertEqual(A.sub("", l), "[■] sin plan activo | P0.00 S0.00 Sonnet 5.5 ◔ C61 S0 W19")
+        self.assertEqual(A.sub("", l), "[■] sin plan activo | P0.00 S0.00 Sonnet 5.5 m C61 S0 W19")
         self.assertIn("\033[31mP0.00 S0.00\033[0m", l)                                                          # costes: texto rojo oscuro, sin fondo
-        self.assertIn("\033[35mSonnet 5.5 ◔\033[0m", l)                                                  # modelo: texto magenta, sin fondo
+        self.assertIn("\033[35mSonnet 5.5 m\033[0m", l)                                                  # modelo: texto magenta, sin fondo
         self.assertEqual(l.count(f" {S.DARK_BLUE}|{S.RESET} "), 1)                                           # una barra | en azul oscuro entre el plan y los costes
         self.assertNotIn("·", A.sub("", l))                                                                    # y ningún punto: el resto va separado por un espacio
         self.assertNotIn("\033[7;", l); self.assertNotRegex(l, r"\033\[[0-9;]*;4[0-9]m|\033\[10[0-9]m")           # nada con fondo

@@ -6,7 +6,7 @@ rama en gris (gris brillante la del componente actual) e indicadores en inverso,
 ● modificados, ⇡ commits sin subir y ⇣ por bajar (amarillo) y ✓ si el local está limpio (verde); todo git local salvo ⇣ y solo los distintos de cero. ⇣ es lo único que depende
 del remoto: el número si el último fetch de ese componente fue hace menos de 30 min, `⇣?` en su mismo hueco si no se sabe; sin rama remota no hay ⇡ ni ⇣.
 Línea 1: la marca `Ø` (amarillo brillante, siempre), ARKANA, ` | ` (la barra en azul oscuro), `[■]` en inverso (texto negro sobre el color de su estado; gris en reposo) seguido de `sin plan activo` (con plan activo `[▶] 002/007 worker@plan:tarea descripción`), otra barra y, separados por un espacio, `P0.00 S0.00`
-(texto rojo oscuro, sin fondo; P plan, S sesión), `Sonnet 5.5 ◔` (texto magenta, sin fondo; el nivel de esfuerzo `○ ◔ ◑ ◕ ●` = low, medium, high, xhigh, max) y `C61 S0 W19` (sin fondo; el color del texto según el tramo: 0–40 verde,
+(texto rojo oscuro, sin fondo; P plan, S sesión), `Sonnet 5.5 m` (texto magenta, sin fondo; el nivel de esfuerzo `l m h H M` = low, medium, high, xhigh, max) y `C61 S0 W19` (sin fondo; el color del texto según el tramo: 0–40 verde,
 41–75 amarillo, 76–100 rojo brillante). Línea 2: los demás componentes, separados por un espacio.
 
 Ancho estrecho (`fit_line1`, función pura, solo sobre los componentes de la línea 2): se acortan con `…` las ramas de los que no son el actual; luego sus alias; luego pasan
@@ -40,7 +40,7 @@ IND_BG = {B_RED: "\033[30;41m", B_YELLOW: "\033[30;43m", B_GREEN: "\033[30;42m",
 STATE_BG = {GRAY: "\033[30;100m", B_GREEN: "\033[30;102m", B_RED: "\033[30;101m", B_CYAN: "\033[30;106m", B_YELLOW: "\033[30;103m"}   # estado del plan `[■]` en inverso: texto negro sobre el color del símbolo
 EVOLVE_MARK = " REQUIRED /arkana-evolve:apply "                                   # marca a la derecha de la línea 1 cuando el repo necesita migraciones
 EVOLVE_STYLE = "\033[7;91m"                                                   # rojo brillante en inverso
-EFFORT_GLYPH = {"low": "○", "medium": "◔", "high": "◑", "xhigh": "◕", "max": "●"}      # nivel de esfuerzo del modelo: un círculo que se va llenando
+EFFORT_GLYPH = {"low": "l", "medium": "m", "high": "h", "xhigh": "H", "max": "M"}        # nivel de esfuerzo del modelo: una letra (H mayúscula = xhigh, M mayúscula = max)
 LOGO = "Ø"                                                                # marca de Arkana al inicio de la línea 1
 MAGENTA = "\033[35m"                                                          # modelo: texto magenta, sin fondo
 DARK_BLUE = "\033[34m"                                                        # separador ·: azul oscuro
