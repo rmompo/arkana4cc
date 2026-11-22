@@ -144,6 +144,20 @@ class TestAvisoDeLaStatusline(unittest.TestCase):
                 f.write('CORE_VERSION = "99.0.0"\n')
             self.assertNotIn("statusline|", lab.run("check").stdout)
 
+    def test_avisa_si_la_copia_es_anterior_al_despachador_aunque_su_nucleo_sea_reciente(self):
+        with Lab() as lab:
+            d = os.path.join(lab.home, ".claude", "arkana-statusline")
+            os.makedirs(os.path.join(d, "arkana_core"))
+            with open(os.path.join(d, "arkana_core", "__init__.py"), "w") as f:
+                f.write('CORE_VERSION = "99.0.0"\n')
+            with open(os.path.join(d, "statusline.sh"), "w") as f:
+                f.write("#!/bin/bash\n")
+            r = lab.run("check").stdout
+            self.assertIn("WARN|statusline|", r); self.assertIn("anterior al despachador", r); self.assertIn("/arkana-statusline:fix", r)
+            with open(os.path.join(d, "dispatch.py"), "w") as f:
+                f.write("")
+            self.assertNotIn("statusline|", lab.run("check").stdout)                                   # con el despachador y un núcleo al día, nada
+
     def test_sin_copia_no_avisa(self):
         with Lab() as lab:
             self.assertNotIn("WARN|statusline", lab.run("check").stdout)

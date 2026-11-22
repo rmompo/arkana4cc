@@ -7,7 +7,7 @@ Es uno de los plugins del marketplace `arkana` (visión de conjunto en [`../READ
 
 **Registro de usuario.** `apply` mueve `~/.arkana-workspaces.json` a `~/.arkana/workspaces.json` (conservando las entradas de todos los workspaces) la primera vez; mientras tanto el antiguo se sigue leyendo.
 
-**Aviso de la statusline.** `check` y `apply` avisan (`WARN|statusline`) si la copia de `~/.claude/arkana-statusline` lleva un núcleo anterior al de esta instalación: es un dato de usuario fuera del repo que ninguna migración toca; se refresca con `/arkana-statusline:fix`.
+**Aviso de la statusline.** `check` y `apply` avisan (`WARN|statusline`) si la copia de `~/.claude/arkana-statusline` lleva un núcleo anterior al de esta instalación o es anterior al despachador de statusline (le falta `dispatch.py`): es un dato de usuario fuera del repo que ninguna migración toca; se refresca con `/arkana-statusline:fix`.
 
 ## Skills
 

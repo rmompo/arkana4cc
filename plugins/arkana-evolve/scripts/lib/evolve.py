@@ -141,9 +141,13 @@ def find_home(arg):
 
 
 def statusline_copy_outdated():
-    """Versión del núcleo de la copia de la statusline (`~/.claude/arkana-statusline`) si es anterior a la de este plugin; None si está al día o no hay copia.
+    """Qué le pasa a la copia de la statusline (`~/.claude/arkana-statusline`), o None si está al día o no hay copia: `"anterior al despachador"` si le falta `dispatch.py`
+    (instalada antes de que la statusline de usuario fuese un despachador), o la versión de su núcleo si es anterior a la de este plugin.
     Es un dato de usuario fuera del repo: ninguna migración lo toca, pero tras actualizar los plugins hay que refrescarlo con `/arkana-statusline:fix`."""
-    f = os.path.join(os.path.expanduser("~"), ".claude", "arkana-statusline", "arkana_core", "__init__.py")
+    d = os.path.join(os.path.expanduser("~"), ".claude", "arkana-statusline")
+    if os.path.isfile(os.path.join(d, "statusline.sh")) and not os.path.isfile(os.path.join(d, "dispatch.py")):
+        return "anterior al despachador"
+    f = os.path.join(d, "arkana_core", "__init__.py")
     try:
         with open(f, encoding="utf-8") as fh:
             m = re.search(r'CORE_VERSION\s*=\s*"([\d.]+)"', fh.read())
@@ -166,7 +170,8 @@ def migrar_registro(ctx, rep):
 def aviso_statusline(rep):
     old = statusline_copy_outdated()
     if old:
-        rep.add("WARN", "statusline", f"la copia de la statusline (~/.claude/arkana-statusline) lleva el núcleo {old}, anterior al de esta instalación: ejecuta /arkana-statusline:fix")
+        que = "es anterior al despachador de statusline (falta dispatch.py)" if old == "anterior al despachador" else f"lleva el núcleo {old}, anterior al de esta instalación"
+        rep.add("WARN", "statusline", f"la copia de la statusline (~/.claude/arkana-statusline) {que}: ejecuta /arkana-statusline:fix")
 
 
 # ---------- check ----------
