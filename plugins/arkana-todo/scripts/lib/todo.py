@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Lista de tareas de la persona usuaria en un workspace de Arkana (local, sin red, solo biblioteca estándar).
 
-  add      --title X [--priority critical|high|medium|low] [--due AAAA-MM-DD] [--component C|*] [--notes TEXTO]
-  list     [--status pending,in-progress,...|all] [--component C] [--priority P] [--overdue] [--json]
+  add      --title X [--priority critical|high|medium|low] [--due AAAA-MM-DD] [--component C[,C...]|*] [--notes TEXTO]
+  list     [--status pending,in-progress,...|all] [--component C[,C...]] [--priority P] [--overdue] [--json]
            por defecto muestra pending, in-progress, paused y blocked; done, rejected y removed solo si se piden
            salida: una tabla por estado (identificador|prioridad|componente|descripcion|estado), ordenadas por prioridad
   done     --id ID [--reopen]                                   cierra la tarea (done); --reopen la vuelve a pending
-  modify   --id ID [--title X] [--status S] [--priority P] [--due D|none] [--component C|*] [--notes T] [--restore]
+  modify   --id ID [--title X] [--status S] [--priority P] [--due D|none] [--component C[,C...]|*] [--notes T] [--restore]
   delete   --id ID                                              borrado lógico: queda en `removed` (modify --restore la recupera)
   validate                                                      solo lectura (lo usa `check`)
   install                                                       crea .arkana/arkana-todo/todos.json si falta
@@ -14,7 +14,8 @@
   rename   --from A --to B                                      cambia el alias de un componente en las tareas (lo invoca `component edit --rename`)
   Opciones comunes: --home DIR (carpeta del repo de Arkana; por defecto se localiza)  --dry-run (add, done, modify, delete, install, fix)  --json
 
-Estados: pending, in-progress, paused, blocked, done, rejected, removed. Componente: el alias o `*` (todos).
+Estados: pending, in-progress, paused, blocked, done, rejected, removed. Componente: una LISTA de alias (`--component M3WA,M3MF`: separados por comas; cada uno puede ser alias,
+carpeta o módulo) o `*` (todos), que no se combina con otros. En disco `componente` es siempre una lista (`["M3WA","M3MF"]`, `["*"]`); se siguen leyendo los textos de versiones anteriores.
 Los valores de versiones anteriores (open, deleted, normal, all, vacío) se leen como pending, removed, medium y `*`; `fix` los reescribe.
 
 Los datos viven en `.arkana/arkana-todo/todos.json` (local, no se versiona); `export --include-data` los lleva a otra máquina.
@@ -63,20 +64,37 @@ def store(home):
     return os.path.join(locate.state_dir(home), REL)
 
 
+def comps_of(t):
+    """Lista de componentes de una tarea (alias canónicos o `*`), sea cual sea la forma guardada: texto de versiones anteriores o lista. Sin valor, `*`."""
+    v = t.get("componente") if isinstance(t, dict) else None
+    out = []
+    for x in (v if isinstance(v, list) else [v]):
+        k = manifest.canon(x) if isinstance(x, str) else ""
+        k = ALL if k in ("", "all", "none") else k
+        if k not in out:
+            out.append(k)
+    return out or [ALL]
+
+
+def show_comps(comps):
+    """Componentes para mostrar: `*` tal cual y el resto en MAYÚSCULAS (alias), separados por coma."""
+    return ", ".join(c if c == ALL else manifest.display(c) for c in comps)
+
+
 def legacy(t):
-    """¿La tarea usa valores de versiones anteriores?"""
+    """¿La tarea usa valores de versiones anteriores? (estado, prioridad o un componente guardado como texto en vez de lista)"""
     return (t.get("estado") in LEGACY_STATE or t.get("prioridad") in LEGACY_PRIORITY
-            or t.get("componente") in ("all", "") and "componente" in t)
+            or ("componente" in t and not isinstance(t["componente"], list)))
 
 
 def normalize(t):
-    """Lleva una tarea a los valores actuales (open→pending, deleted→removed, normal→medium, all/vacío→*)."""
+    """Lleva una tarea a los valores actuales (open→pending, deleted→removed, normal→medium, componente → lista; all/vacío→["*"])."""
     if not isinstance(t, dict):
         return t
     t["estado"] = LEGACY_STATE.get(t.get("estado"), t.get("estado"))
     t["prioridad"] = LEGACY_PRIORITY.get(t.get("prioridad"), t.get("prioridad"))
-    if "componente" in t and t["componente"] in ("all", "", None):
-        t["componente"] = ALL
+    if "componente" in t:
+        t["componente"] = comps_of(t)
     return t
 
 
@@ -133,6 +151,21 @@ def check_component(home, v):
     return c
 
 
+def parse_components(home, v):
+    """`--component`: lista separada por comas → alias canónicos validados, sin repetidos y en el orden dado. `*` (o all, none o vacío) = todos y NO se combina con otros."""
+    partes = [x.strip() for x in str(v if v is not None else "").split(",") if x.strip()]
+    out = []
+    for x in partes:
+        c = check_component(home, x)
+        if c not in out:
+            out.append(c)
+    if not out:
+        return [ALL]
+    if ALL in out and len(out) > 1:
+        raise TError("`*` ya incluye a todos los componentes: no se combina con otros (usa solo `*` o la lista de componentes)", 2)
+    return out
+
+
 def find(d, id_):
     for t in d["tareas"]:
         if t["id"] == id_:
@@ -159,7 +192,7 @@ def cmd_add(a, home, rep):
         raise TError("el título no puede estar vacío", 2)
     d = load(home)
     t = {"id": f"t-{d['next']:03d}", "titulo": a.titulo.strip(), "estado": "pending", "prioridad": check_priority(a.priority),
-         "vence": check_date(a.due) if a.due else "", "componente": check_component(home, a.component), "creada": today(),
+         "vence": check_date(a.due) if a.due else "", "componente": parse_components(home, a.component), "creada": today(),
          "cerrada": "", "notas": a.notes or ""}
     if a.dry_run:
         return rep.add("DRY", "add", f"{t['id']}: se añadiría «{t['titulo']}»")
@@ -192,7 +225,7 @@ def table(tareas, estado):
         desc = esc(t["titulo"])
         if t.get("vence"):
             desc += f" ({'⚠ vencida ' if overdue(t) else 'vence '}{t['vence']})"
-        L.append(f"| {t['id']} | {t.get('prioridad', 'medium')} | {manifest.display(t['componente']) if t.get('componente') not in (None, '', ALL) else ALL} | {desc} | {t['estado']} |")
+        L.append(f"| {t['id']} | {t.get('prioridad', 'medium')} | {esc(show_comps(comps_of(t)))} | {desc} | {t['estado']} |")
     return L
 
 
@@ -207,8 +240,8 @@ def cmd_list(a, home, rep):
     estados = parse_status(a.status)
     tareas = [t for t in load(home)["tareas"] if t["estado"] in estados]
     if a.component:
-        c = check_component(home, a.component)
-        tareas = [t for t in tareas if t.get("componente") in (c, ALL)]   # una tarea para `*` afecta a todos
+        pedidos = set(parse_components(home, a.component))
+        tareas = [t for t in tareas if pedidos & set(comps_of(t)) or ALL in comps_of(t)]   # basta que la tarea incluya alguno; una tarea para `*` afecta a todos
     if a.priority:
         p = check_priority(a.priority)
         tareas = [t for t in tareas if t.get("prioridad") == p]
@@ -220,7 +253,7 @@ def cmd_list(a, home, rep):
         if grupo:
             rep.tables += table(grupo, e) + [""]
         for t in grupo:
-            rep.add("INFO", t["id"], f"[{e}] {t['titulo']} · {t.get('prioridad')} · {t.get('componente') or ALL}"
+            rep.add("INFO", t["id"], f"[{e}] {t['titulo']} · {t.get('prioridad')} · {','.join(comps_of(t))}"
                     + (f" · vence {t['vence']}" if t.get("vence") else ""))
     if not tareas:
         rep.add("INFO", "list", "sin tareas con ese filtro")
@@ -261,7 +294,7 @@ def cmd_modify(a, home, rep):
     if a.due is not None:
         cambios["vence"] = "" if a.due == "none" else check_date(a.due)
     if a.component is not None:
-        cambios["componente"] = check_component(home, a.component)
+        cambios["componente"] = parse_components(home, a.component)
     if a.notes is not None:
         cambios["notas"] = a.notes
     if a.restore:
@@ -312,6 +345,9 @@ def problems(d):
                 pro.append(f"fecha inválida en '{c}'")
         if t.get("estado") == "done" and not t.get("cerrada"):
             pro.append("cerrada sin fecha de cierre")
+        cs = t.get("componente", [ALL])
+        if isinstance(cs, list) and ALL in cs and len(cs) > 1:
+            pro.append("componente: `*` ya incluye a todos y no se combina con otros (modify --component)")
         res += [(i, p) for p in pro]
     nums = [int(t["id"][2:]) for t in d["tareas"] if isinstance(t.get("id"), str) and ID_RE.match(t["id"])]
     if nums and d.get("next", 0) <= max(nums):
@@ -353,10 +389,10 @@ def cmd_fix(a, home, rep):
         if isinstance(t, dict) and legacy(t):
             antes = (t.get("estado"), t.get("prioridad"), t.get("componente"))
             normalize(t)
-            cambios.append(f"{t.get('id', '?')}: {antes[0]}/{antes[1]}/{antes[2] or '-'} → {t['estado']}/{t['prioridad']}/{t['componente']}")
+            cambios.append(f"{t.get('id', '?')}: {antes[0]}/{antes[1]}/{antes[2] or '-'} → {t['estado']}/{t['prioridad']}/{','.join(t['componente'])}")
         for c in FIELDS:
             if c not in t:
-                t[c] = {"estado": "pending", "prioridad": "medium", "creada": today(), "componente": ALL}.get(c, "")
+                t[c] = {"estado": "pending", "prioridad": "medium", "creada": today(), "componente": [ALL]}.get(c, "")
                 cambios.append(f"{t.get('id', '?')}: añadido '{c}'")
     nums = [int(t["id"][2:]) for t in d["tareas"] if isinstance(t.get("id"), str) and ID_RE.match(t["id"])]
     nuevo = max(nums + [0]) + 1
@@ -376,8 +412,8 @@ def cmd_rename(a, home, rep):
     d = load(home)
     n = 0
     for t in d.get("tareas", []):
-        if isinstance(t, dict) and manifest.canon(t.get("componente")) == old:
-            t["componente"] = new
+        if isinstance(t, dict) and "componente" in t and old in comps_of(t):
+            t["componente"] = list(dict.fromkeys(new if c == old else c for c in comps_of(t)))      # solo cambia ese alias; los demás se quedan
             n += 1
     if n and not a.dry_run:
         save(home, d)

@@ -139,7 +139,7 @@ class TestModeloDeEstados(Base):
     def test_valores_por_defecto(self):
         self.ok("add", "--title", "X")
         t = self.tareas()[0]
-        self.assertEqual((t["estado"], t["prioridad"], t["componente"]), ("pending", "medium", "*"))
+        self.assertEqual((t["estado"], t["prioridad"], t["componente"]), ("pending", "medium", ["*"]))
 
     def test_una_tabla_por_estado_con_la_cabecera_pedida(self):
         self.alta()
@@ -212,9 +212,145 @@ class TestModeloDeEstados(Base):
         self.assertIn("DRY|", self.ok("fix", "--dry-run")); self.assertEqual(read(self.store), antes)
         self.ok("fix")
         self.assertEqual([(t["estado"], t["prioridad"], t["componente"]) for t in self.tareas()],
-                         [("pending", "medium", "*"), ("removed", "high", "*"), ("done", "low", "api")])
+                         [("pending", "medium", ["*"]), ("removed", "high", ["*"]), ("done", "low", ["api"])])
         self.assertNotIn("valores-antiguos", self.ok("validate"))
         self.assertIn("nada que reparar", self.ok("fix"))
+
+
+class TestVariosComponentes(Base):
+    """Una tarea puede afectar a varios componentes: en disco `componente` es siempre una lista; en el CLI, una lista separada por comas."""
+    def manifiesto(self):
+        write(os.path.join(self.h, ".arkana", "core", "workspace.json"),
+              json.dumps({"schema": 1, "arkana": {"alias": "ARKANA", "path": "."},
+                          "components": [{"alias": "m3wa", "type": "node", "path": "web", "id": "11111111-1111-4111-8111-111111111111"},
+                                         {"alias": "m3mf", "type": "node", "path": "mf"}, {"alias": "api", "type": "maven", "path": "back"}]}))
+        write(os.path.join(self.h, "arkana-project.json"), json.dumps({"schema_version": 1, "layout": 9, "workspace": {"id": "x", "name": "t"},
+              "components": [{"id": "11111111-1111-4111-8111-111111111111", "alias": "m3wa", "module": "viso_webapp"}]}))
+
+    def comp(self, i=-1):
+        return self.tareas()[i]["componente"]
+
+    def test_alta_con_uno_varios_y_asterisco(self):
+        self.manifiesto()
+        self.ok("add", "--title", "uno", "--component", "m3wa")
+        self.ok("add", "--title", "varios", "--component", "m3wa,m3mf")
+        self.ok("add", "--title", "todos", "--component", "*")
+        self.ok("add", "--title", "ninguno")
+        self.assertEqual([t["componente"] for t in self.tareas()], [["m3wa"], ["m3wa", "m3mf"], ["*"], ["*"]])
+
+    def test_cada_elemento_admite_alias_carpeta_modulo_y_prefijos_sin_repetidos_y_en_orden(self):
+        self.manifiesto()
+        self.ok("add", "--title", "mezcla", "--component", "mf, viso_webapp ,dir:back,M3MF,mod:viso_webapp")
+        self.assertEqual(self.comp(), ["m3mf", "m3wa", "api"])                     # carpeta, módulo, carpeta con prefijo; sin repetidos; en el orden dado
+
+    def test_asterisco_combinado_se_rechaza_y_no_se_escribe(self):
+        self.manifiesto()
+        for malo in ("*,m3mf", "m3mf,*", "all,m3wa", "m3wa,*,api"):
+            r = self.td("add", "--title", "x", "--component", malo)
+            self.assertEqual(r.returncode, 2, malo)
+            self.assertIn("no se combina con otros", r.stdout)
+        self.assertFalse(os.path.exists(self.store))
+        self.ok("add", "--title", "ok", "--component", "m3wa")
+        self.assertEqual(self.td("modify", "--id", "t-001", "--component", "*,api").returncode, 2)
+        self.assertEqual(self.comp(), ["m3wa"])                                      # el modify rechazado no cambió nada
+
+    def test_un_componente_desconocido_en_la_lista_se_rechaza(self):
+        self.manifiesto()
+        r = self.td("add", "--title", "x", "--component", "m3wa,nadie")
+        self.assertEqual(r.returncode, 2); self.assertIn("componente desconocido: nadie", r.stdout)
+        self.assertEqual(self.td("add", "--title", "x", "--component", "mod:back").returncode, 2)       # un prefijo de otro tipo no adivina
+
+    def test_modify_de_uno_a_varios_y_de_varios_a_uno_y_a_todos(self):
+        self.manifiesto()
+        self.ok("add", "--title", "t", "--component", "m3wa")
+        self.ok("modify", "--id", "t-001", "--component", "m3wa,api")
+        self.assertEqual(self.comp(), ["m3wa", "api"])
+        self.ok("modify", "--id", "t-001", "--component", "api")
+        self.assertEqual(self.comp(), ["api"])
+        self.ok("modify", "--id", "t-001", "--component", "m3mf,m3wa")
+        self.ok("modify", "--id", "t-001", "--component", "*")
+        self.assertEqual(self.comp(), ["*"])
+        self.ok("modify", "--id", "t-001", "--title", "otro título")                  # sin --component no se toca
+        self.assertEqual(self.comp(), ["*"])
+
+    def test_dry_run_no_escribe(self):
+        self.manifiesto()
+        self.ok("add", "--title", "t", "--component", "m3wa")
+        antes = read(self.store)
+        self.assertIn("DRY|", self.ok("modify", "--id", "t-001", "--component", "m3wa,m3mf", "--dry-run"))
+        self.assertEqual(read(self.store), antes)
+
+    def test_la_tabla_muestra_varios_en_mayusculas(self):
+        self.manifiesto()
+        self.ok("add", "--title", "dos", "--component", "m3wa,m3mf"); self.ok("add", "--title", "todos"); self.ok("add", "--title", "uno", "--component", "api")
+        out = self.ok("list")
+        self.assertIn("| t-001 | medium | M3WA, M3MF | dos | pending |", out)
+        self.assertIn("| t-002 | medium | * | todos | pending |", out)
+        self.assertIn("| t-003 | medium | API | uno | pending |", out)
+
+    def test_el_filtro_de_list_incluye_las_tareas_cuya_lista_contiene_alguno_y_las_de_todos(self):
+        self.manifiesto()
+        self.ok("add", "--title", "dos", "--component", "m3wa,m3mf"); self.ok("add", "--title", "solo-api", "--component", "api")
+        self.ok("add", "--title", "de-todos"); self.ok("add", "--title", "solo-mf", "--component", "m3mf")
+        out = self.ok("list", "--component", "m3wa")
+        self.assertIn("dos", out); self.assertIn("de-todos", out); self.assertNotIn("solo-api", out); self.assertNotIn("solo-mf", out)
+        out = self.ok("list", "--component", "m3mf")
+        self.assertIn("dos", out); self.assertIn("solo-mf", out); self.assertIn("de-todos", out); self.assertNotIn("solo-api", out)
+        out = self.ok("list", "--component", "api,m3mf")                              # el filtro también admite varios: basta con que coincida alguno
+        self.assertIn("solo-api", out); self.assertIn("solo-mf", out); self.assertIn("dos", out)
+        self.assertEqual(self.td("list", "--component", "*,api").returncode, 2)
+
+    def test_rename_cambia_solo_ese_alias_dentro_de_la_lista(self):
+        self.ok("add", "--title", "a", "--component", "m3wa,m3mf")
+        self.ok("add", "--title", "b", "--component", "m3mf"); self.ok("add", "--title", "c")
+        self.assertIn("2 tareas pasan de m3mf a movil", self.ok("rename", "--from", "M3MF", "--to", "movil"))
+        self.assertEqual([t["componente"] for t in self.tareas()], [["m3wa", "movil"], ["movil"], ["*"]])
+        self.ok("add", "--title", "d", "--component", "m3wa,movil")
+        self.ok("rename", "--from", "m3wa", "--to", "movil")                          # si el nuevo ya estaba, no se duplica
+        self.assertEqual(self.comp(), ["movil"])
+        self.assertIn("0 tareas", self.ok("rename", "--from", "nada", "--to", "otro"))
+
+    def test_rename_dry_run_no_escribe(self):
+        self.ok("add", "--title", "a", "--component", "m3wa,m3mf")
+        antes = read(self.store)
+        self.assertIn("DRY|rename|1 tareas", self.ok("rename", "--from", "m3wa", "--to", "web", "--dry-run"))
+        self.assertEqual(read(self.store), antes)
+
+    def test_datos_antiguos_texto_se_leen_se_avisan_y_fix_los_pasa_a_lista(self):
+        write(self.store, json.dumps({"version": 1, "next": 4, "tareas": [
+            {"id": "t-001", "titulo": "texto", "estado": "pending", "prioridad": "medium", "vence": "", "componente": "api", "creada": "2026-01-01", "cerrada": "", "notas": ""},
+            {"id": "t-002", "titulo": "todos", "estado": "pending", "prioridad": "medium", "vence": "", "componente": "*", "creada": "2026-01-01", "cerrada": "", "notas": ""},
+            {"id": "t-003", "titulo": "lista", "estado": "pending", "prioridad": "medium", "vence": "", "componente": ["m3wa", "m3mf"], "creada": "2026-01-01", "cerrada": "", "notas": ""}]}))
+        out = self.ok("list")
+        self.assertIn("| t-001 | medium | API | texto | pending |", out); self.assertIn("| t-003 | medium | M3WA, M3MF | lista | pending |", out)
+        val = self.ok("validate")
+        self.assertIn("WARN|valores-antiguos|2 tareas", val)                           # solo los dos que están guardados como texto
+        antes = read(self.store)
+        self.assertIn("DRY|", self.ok("fix", "--dry-run")); self.assertEqual(read(self.store), antes)
+        self.ok("fix")
+        self.assertEqual([t["componente"] for t in self.tareas()], [["api"], ["*"], ["m3wa", "m3mf"]])
+        self.assertNotIn("valores-antiguos", self.ok("validate"))
+        self.assertIn("nada que reparar", self.ok("fix"))
+
+    def test_validate_marca_un_asterisco_combinado_en_los_datos(self):
+        write(self.store, json.dumps({"version": 1, "next": 2, "tareas": [
+            {"id": "t-001", "titulo": "x", "estado": "pending", "prioridad": "medium", "vence": "", "componente": ["*", "api"], "creada": "2026-01-01", "cerrada": "", "notas": ""}]}))
+        r = self.td("validate")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("`*` ya incluye a todos", r.stdout)
+
+    def test_lista_vacia_o_con_vacios_se_lee_como_todos(self):
+        write(self.store, json.dumps({"version": 1, "next": 3, "tareas": [
+            {"id": "t-001", "titulo": "x", "estado": "pending", "prioridad": "medium", "vence": "", "componente": [], "creada": "2026-01-01", "cerrada": "", "notas": ""},
+            {"id": "t-002", "titulo": "y", "estado": "pending", "prioridad": "medium", "vence": "", "componente": ["", "all"], "creada": "2026-01-01", "cerrada": "", "notas": ""}]}))
+        out = self.ok("list")
+        self.assertIn("| t-001 | medium | * | x | pending |", out); self.assertIn("| t-002 | medium | * | y | pending |", out)
+
+    def test_json_lleva_los_componentes(self):
+        self.manifiesto()
+        self.ok("add", "--title", "dos", "--component", "m3wa,m3mf")
+        d = json.loads(self.ok("list", "--json"))
+        self.assertIn("m3wa,m3mf", d["items"][0]["detail"])
 
 
 class TestValidacion(Base):
@@ -234,7 +370,7 @@ class TestValidacion(Base):
         self.ok("add", "--title", "ok", "--component", "api")
         self.assertEqual(self.td("add", "--title", "mal", "--component", "nadie").returncode, 2)
         self.ok("add", "--title", "todos", "--component", "*")
-        self.assertEqual(self.tareas()[-1]["componente"], "*")
+        self.assertEqual(self.tareas()[-1]["componente"], ["*"])
 
     def test_el_componente_se_da_por_alias_carpeta_o_modulo_y_se_guarda_el_alias(self):
         write(os.path.join(self.h, ".arkana", "core", "workspace.json"),
@@ -243,7 +379,7 @@ class TestValidacion(Base):
               "components": [{"id": "11111111-1111-4111-8111-111111111111", "alias": "api", "module": "viso_rest"}]}))
         for ref in ("api", "API", "back", "viso_rest", "dir:back", "mod:viso_rest"):
             self.ok("add", "--title", f"t {ref}", "--component", ref)
-        self.assertEqual({t["componente"] for t in self.tareas()}, {"api"})
+        self.assertEqual({tuple(t["componente"]) for t in self.tareas()}, {("api",)})
         self.assertEqual(self.td("add", "--title", "x", "--component", "mod:back").returncode, 2)
         self.assertIn("| API |", self.ok("list"))                                              # se muestra en MAYÚSCULAS
         self.assertIn("viso_rest", self.ok("list", "--component", "viso_rest") + "viso_rest")  # el filtro acepta cualquier nombre
@@ -273,7 +409,7 @@ class TestValidacion(Base):
         self.assertIn("DRY|rename|1 tareas pasan de app a frontend", self.ok("rename", "--from", "app", "--to", "frontend", "--dry-run"))
         self.assertEqual(read(self.store), antes)
         self.assertIn("OK|rename|1 tareas pasan de app a frontend", self.ok("rename", "--from", "APP", "--to", "frontend"))
-        self.assertEqual([t["componente"] for t in self.tareas()], ["frontend", "api"])
+        self.assertEqual([t["componente"] for t in self.tareas()], [["frontend"], ["api"]])
         self.assertIn("0 tareas", self.ok("rename", "--from", "app", "--to", "frontend"))                  # idempotente
 
     def test_fix_repara_contador_y_campos_sin_perder_tareas(self):
