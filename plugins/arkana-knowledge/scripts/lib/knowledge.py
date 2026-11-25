@@ -31,10 +31,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import common as C  # noqa: E402  (añade el núcleo al sys.path)
 import docs  # noqa: E402
+import ignores  # noqa: E402
 from arkana_core import datafiles, locate, output, project  # noqa: E402
 from common import DOCS, INCOMING, KError, MD, OUT, ROOT, SRC, TOPICS  # noqa: E402
 
 INDEX_REL = os.path.join("arkana-knowledge", "index.json")
+HUERFANOS_PISTA = 50                                      # a partir de cuántos huérfanos sin fichero de ignores se sugiere declararlos
 FOLDERS = [ROOT, SRC, MD, OUT, INCOMING]                  # las carpetas FINALES (hojas): cada una lleva su .gitkeep para que git la versione; arkana-docs/ solo las agrupa
 INCOMING_GITIGNORE = "*\n!.gitignore\n!.gitkeep\n"
 MAX_BODY = 400_000
@@ -226,6 +228,11 @@ def cmd_install(a, home, rep):
             if not os.path.exists(gk):
                 datafiles.atomic_write(gk, "")
         rep.add("DRY" if a.dry_run else "OK", "carpeta", f"{d}/ {'se crearía' if a.dry_run else 'creada'}")
+    ig = os.path.join(home, DOCS, ignores.FILE)
+    if not os.path.isfile(ig) and os.path.isdir(os.path.join(home, DOCS)):
+        if not a.dry_run:
+            datafiles.atomic_write(ig, ignores.TEMPLATE)
+        rep.add("DRY" if a.dry_run else "OK", "carpeta", f"{DOCS}/{ignores.FILE} {'se crearía' if a.dry_run else 'creado'} (plantilla comentada: declara aquí lo que no son documentos, p. ej. código fuente)")
     gi = os.path.join(home, INCOMING, ".gitignore")
     if not os.path.isfile(gi):
         if not a.dry_run:
@@ -240,21 +247,26 @@ def elaborados(home, rep):
     """`arkana-docs/out/`: cada documento elaborado es una dupla. `<nombre>.md` es la fuente de la verdad y `<nombre>.<ext>` (docx, pdf, pptx, html…) su renderización en el
     formato que pidió la persona usuaria. Un render sin su `.md` no se puede regenerar ni auditar: WARN. Un `.md` sin render es un entregable en Markdown y es válido."""
     base = os.path.join(home, OUT)
-    fuentes = rendes = 0
-    for root, dirs, files in os.walk(base):
-        dirs[:] = sorted(d for d in dirs if not d.startswith("."))
-        nombres = set(files)
-        for f in sorted(files):
-            if f.startswith("."):
-                continue
-            stem, ext = os.path.splitext(f)
-            if ext.lower() == ".md":
-                fuentes += 1
-            elif stem + ".md" in nombres:
-                rendes += 1
-            else:
-                rep.add("WARN", "out", f"{os.path.relpath(os.path.join(root, f), home)} es un render sin su fuente {stem}.md en la misma carpeta: "
-                        "cada documento elaborado es una dupla (.md fuente + render); crea el .md o borra el render")
+    fuentes = rendes = ignorados = 0
+    todos = list(ignores.walk(home, base, DOCS))
+    nombres = {(os.path.dirname(p), os.path.basename(p)) for p, _r, _i in todos}
+    for p, _rel, ignorado in todos:
+        f = os.path.basename(p)
+        if f.startswith("."):
+            continue
+        if ignorado:                                                         # un script de apoyo o lo que declare .arkanaignore no es un render
+            ignorados += 1
+            continue
+        stem, ext = os.path.splitext(f)
+        if ext.lower() == ".md":
+            fuentes += 1
+        elif (os.path.dirname(p), stem + ".md") in nombres:
+            rendes += 1
+        else:
+            rep.add("WARN", "out", f"{os.path.relpath(p, home)} es un render sin su fuente {stem}.md en la misma carpeta: "
+                    "cada documento elaborado es una dupla (.md fuente + render); crea el .md o borra el render")
+    if ignorados:
+        rep.add("INFO", "ignorados", f"{ignorados} ficheros de {OUT}/ ignorados por {DOCS}/{ignores.FILE} (no son renders)")
     if fuentes or rendes:
         rep.add("INFO", "out", f"{fuentes} documentos elaborados (fuente .md) y {rendes} renders")
 
@@ -325,17 +337,29 @@ def cmd_validate(a, home, rep):
             rep.add("FAIL", f"doc:{i}", f"{ruta}: " + "; ".join(pro))
         elif meta.get("conversion") == "modelo" and meta.get("cobertura") not in ("completa",):
             rep.add("INFO", f"doc:{i}", f"{meta.get('original')}: Markdown hecho por el modelo ({meta.get('cobertura')}); `ingest reconvert` lo mejora si hay herramienta")
-    base = os.path.join(home, SRC)
-    for root, dirs, files in os.walk(base):
-        dirs[:] = sorted(d for d in dirs if not d.startswith("."))
-        for f in files:
-            p = os.path.normpath(os.path.join(root, f))
-            if f.startswith(".") or p in originales:
-                continue
-            if C.is_lfs_pointer(p):
+    ign = ignores.load(home, DOCS)
+    ignorados = huerfanos = 0
+    for p, _rel, ignorado in ignores.walk(home, os.path.join(home, SRC), DOCS, ign):
+        p = os.path.normpath(p)
+        if os.path.basename(p).startswith(".") or p in originales:
+            continue
+        if C.is_lfs_pointer(p):                                              # un puntero de git-lfs avisa siempre, esté ignorado o no: falta `git lfs pull`
+            if ignorado:
+                rep.add("WARN", "huerfano", f"{os.path.relpath(p, home)} es un puntero de git-lfs (ignorado en {DOCS}/{ignores.FILE}): pídele a la persona usuaria que instale git-lfs y ejecute `git lfs pull`")
+            else:
+                huerfanos += 1
                 rep.add("WARN", "huerfano", f"{os.path.relpath(p, home)} es un puntero de git-lfs sin su Markdown: pídele a la persona usuaria que instale git-lfs y ejecute `git lfs pull`, y luego ingiérelo con /arkana-knowledge:ingest")
-                continue
-            rep.add("WARN", "huerfano", f"{os.path.relpath(p, home)} está en {SRC}/ sin su Markdown: ingiérelo con /arkana-knowledge:ingest")
+            continue
+        if ignorado:
+            ignorados += 1
+            continue
+        huerfanos += 1
+        rep.add("WARN", "huerfano", f"{os.path.relpath(p, home)} está en {SRC}/ sin su Markdown: ingiérelo con /arkana-knowledge:ingest")
+    if ignorados:
+        rep.add("INFO", "ignorados", f"{ignorados} ficheros de {SRC}/ ignorados por {DOCS}/{ignores.FILE} (no son documentos)")
+    if huerfanos >= HUERFANOS_PISTA and not ign:
+        rep.add("INFO", "huerfano", f"hay {huerfanos} ficheros sin Markdown: si son código fuente, dependencias u otros que no son documentos, decláralos en {DOCS}/{ignores.FILE} "
+                "(sintaxis de .gitignore: *.py, node_modules/, src/proyecto/**) en lugar de ingerirlos")
     if os.path.isdir(os.path.join(home, DOCS)):
         sueltos = [n for n in sorted(os.listdir(os.path.join(home, DOCS))) if n not in ("src", "md", "out") and not n.startswith(".")]
         for n in sueltos:                                                    # layout anterior: los originales colgaban directamente de arkana-docs/

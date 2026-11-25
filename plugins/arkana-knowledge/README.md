@@ -15,6 +15,7 @@ Las crea `install` (y vienen en cualquier clon, porque llevan su `.gitkeep`):
 ├── arkana-incoming/            cola de entrada. Solo se versionan .gitignore y .gitkeep: el resto es local
 ├── arkana-knowledge/<topic>/<slug>.md      notas
 ├── arkana-docs/
+│   ├── .arkanaignore           qué NO son documentos (código fuente, dependencias…): no exigen Markdown (ver abajo)
 │   ├── src/                    los originales, tal cual los entregó el cliente; intactos y de solo lectura (0444)
 │   ├── md/                     su versión en Markdown, con el MISMO árbol: arkana-docs/src/a/b.pdf → arkana-docs/md/a/b.pdf.md
 │   └── out/                    documentos elaborados a petición de la persona usuaria, siempre en duplas (ver abajo)
@@ -22,6 +23,18 @@ Las crea `install` (y vienen en cualquier clon, porque llevan su `.gitkeep`):
 ```
 
 Los documentos de `arkana-docs/src/` son la fuente y la prueba (no se editan: `validate` compara su sha256 con el que guarda su Markdown, y `ingest` los deja en solo lectura; git no versiona ese permiso y un sync desde Windows lo pierde, así que la garantía real es el hash). Los de `arkana-docs/md/` son la versión transformada para que la IA los lea, y es la que `query` consulta.
+
+**`arkana-docs/.arkanaignore`: lo que no son documentos.** `validate` exige un Markdown para cada fichero de `src/`. Si en `src/` hay material que no es un documento (un proyecto de ejemplo, código fuente, dependencias, builds), se declara en este fichero (versionado, lo decide el equipo) en lugar de ingerirlo. Sintaxis como `.gitignore`, con rutas relativas a `arkana-docs/`:
+
+```text
+*.py                              un nombre o patrón en cualquier carpeta (file.name, file.*)
+node_modules/                     una carpeta y todo lo que contiene, en cualquier nivel
+src/proyecto-ejemplo/**           una ruta desde arkana-docs/ (** cruza carpetas; * y ? no)
+out/Operativa/fuente/**           también vale para out/: un script de apoyo no es un render
+!src/proyecto-ejemplo/guia.pdf    vuelve a incluir lo ignorado antes (gana la última regla)
+```
+
+Se aplica a `src/` (un original ignorado no exige su Markdown) y a `out/` (un fichero ignorado no se toma por un render sin su `.md` fuente). Lo que cuelga de una carpeta ignorada queda ignorado. Un puntero de git-lfs sigue avisando aunque esté ignorado (falta `git lfs pull`). `validate` resume cuántos ficheros ignora (`INFO|ignorados`) y, si hay 50 o más sin Markdown y no hay fichero de ignores, sugiere crearlo. `install` crea una plantilla solo con comentarios (no ignora nada) si falta; los documentos reales (PDF, DOCX, XLSX…) no se ignoran: se ingieren.
 
 **`arkana-docs/out/`: documentos elaborados, siempre en duplas.** Cada documento que Arkana elabora a petición de la persona usuaria son dos ficheros en la misma carpeta y con el mismo nombre:
 
@@ -75,7 +88,7 @@ Los hooks no ingieren nada: solo avisan. Ingerir es `/arkana-knowledge:ingest`.
 | `add` / `modify` / `delete` | crea, versiona o borra (lógico) una nota |
 | `query --q` / `query --id` | busca en notas y documentos (`--topic --component --kind --include-deleted`) o muestra una |
 | `ingest scan\|convert\|add\|reconvert` | documentos |
-| `validate` | solo lectura: frontmatter, UUID únicos, componentes contra el registro, Changelog, sha256 de los originales, huérfanos de `arkana-docs/src/`, originales sueltos del layout anterior (`WARN|suelto`), la regla de duplas de `arkana-docs/out/`, punteros git-lfs, catálogo antiguo y cola de `arkana-incoming/` |
+| `validate` | solo lectura: frontmatter, UUID únicos, componentes contra el registro, Changelog, sha256 de los originales, huérfanos de `arkana-docs/src/` (menos lo declarado en `arkana-docs/.arkanaignore`), originales sueltos del layout anterior (`WARN|suelto`), la regla de duplas de `arkana-docs/out/`, punteros git-lfs, catálogo antiguo y cola de `arkana-incoming/` |
 | `reindex` | reconstruye el índice local |
 
 ## 7. Skills
