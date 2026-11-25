@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-statusline
 
-> **Estado:** `beta` | **Versión:** `1.4.1`
+> **Estado:** `beta` | **Versión:** `1.4.2`
 
 ---
 
@@ -28,6 +28,7 @@ Statusline de Arkana en dos líneas, solo para workspaces de Arkana: ARKANA y lo
 
 | Versión | Cambios |
 |---------|---------|
+| 1.4.2 | Nucleo 1.13.0 vendorizado: LAYOUT_KNOWN 10 |
 | 1.4.1 | Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9 |
 | 1.4.0 | Linea 1: ARKANA muestra el directorio de trabajo en lugar de la rama (ARKANA@~/ruta:indicadores), acortado con puntos suspensivos como en p4cc-statusline cuando no cabe (cede antes la descripcion del plan) |
 | 1.3.1 | statusline: el esfuerzo del modelo como letra (l m h H M = low, medium, high, xhigh, max) en lugar de circulo |

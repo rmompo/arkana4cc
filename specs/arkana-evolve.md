@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-evolve
 
-> **Estado:** `beta` | **Versión:** `0.6.1`
+> **Estado:** `beta` | **Versión:** `0.6.3`
 
 ---
 
@@ -14,7 +14,7 @@ Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y 
 
 | Skill | Versión | Descripción |
 |-------|---------|-------------|
-| `apply` | 14 | Aplica las migraciones pendientes de Arkana (registro del proyecto con UUID, carpetas fijas, modelo de estados de las tareas, `/.arkana/` en el `.gitignore`, `arkana-docs/` en `src/`, `md/` y `out/`, y el registro de workspaces de usuario…) en orden y, después, los actualizadores de la máquina (p. ej. la copia de la statusline en ~/.claude), de forma idempotente y con copia de seguridad. Siempre ensaya primero con --dry-run y pide confirmación; nunca hace commit ni push. Acepta --dry-run, --to N y --json. |
+| `apply` | 2 | Aplica las migraciones pendientes de Arkana (registro del proyecto con UUID, carpetas fijas, modelo de estados de las tareas, `/.arkana/` en el `.gitignore`, `arkana-docs/` en `src/`, `md/` y `out/`, y el registro de workspaces de usuario…) en orden y, después, los actualizadores de la máquina (p. ej. la copia de la statusline en ~/.claude), de forma idempotente y con copia de seguridad. Siempre ensaya primero con --dry-run y pide confirmación; nunca hace commit ni push. Acepta --dry-run, --to N y --json. |
 | `check` | 15 | Diagnóstico de solo lectura de la evolución de Arkana - sello de layout del repo, migraciones aplicadas y pendientes, e integridad de lo ya aplicado. Avisa si el repo va por delante de esta instalación y lista los actualizadores de la máquina (p. ej. si la copia de la statusline de `~/.claude` es distinta de la del plugin). Acepta --json. |
 
 ---
@@ -23,6 +23,8 @@ Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y 
 
 | Versión | Cambios |
 |---------|---------|
+| 0.6.3 | Migracion 0010 (plantilla arkana-docs/.arkanaignore, layout 10) y actualizador u002 (registro de workspaces de usuario), listados por check y ejecutados por apply |
+| 0.6.2 | apply: apply: la descripcion recoge los componentes como lista, la plantilla .arkanaignore y el registro de usuario como actualizador |
 | 0.6.1 | Migracion 0009: el componente de las tareas de arkana-todo pasa a ser una lista, layout 9 |
 | 0.6.0 | Actualizadores de maquina (scripts/lib/updaters): apply los ejecuta tras las migraciones y check los lista; u001 deja al dia la copia de la statusline de usuario ejecutando arkana-statusline fix; sustituye al aviso de copia antigua |
 | 0.5.14 | check y apply: avisan tambien si la copia de la statusline de usuario es anterior al despachador (falta dispatch.py), aunque su nucleo sea reciente |

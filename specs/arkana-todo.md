@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-todo
 
-> **Estado:** `beta` | **Versión:** `1.1.32`
+> **Estado:** `beta` | **Versión:** `1.1.33`
 
 ---
 
@@ -29,6 +29,7 @@ Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: loca
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.33 | Nucleo 1.13.0 vendorizado: LAYOUT_KNOWN 10 |
 | 1.1.32 | list: list: el filtro de componente admite varios y la tabla muestra la lista en mayusculas |
 | 1.1.31 | modify: modify: cambia la lista de componentes de una tarea (varios separados por comas o *) |
 | 1.1.30 | add: add: varios componentes por tarea con una lista separada por comas; * no se combina |
