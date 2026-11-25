@@ -5,13 +5,12 @@ Evolución de una instalación de Arkana. Arkana cambia con el tiempo (carpetas 
 Es uno de los plugins del marketplace `arkana` (visión de conjunto en [`../README.md`](../README.md)). Solo usa la biblioteca estándar de Python 3. **No depende de ningún otro plugin**: debe poder ejecutarse cuando el layout está desactualizado, y es el único que conoce los formatos antiguos.
 
 
-**Registro de usuario.** `apply` mueve `~/.arkana-workspaces.json` a `~/.arkana/workspaces.json` (conservando las entradas de todos los workspaces) la primera vez; mientras tanto el antiguo se sigue leyendo.
-
 **Actualizadores de máquina.** Además de las migraciones del repo, `check` y `apply` llevan **actualizadores**: scripts de `scripts/lib/updaters/` (`u001_…`) que dejan al día lo que Arkana deja en **esta máquina**, fuera del repo y de `.arkana/`. Así, cada terminal que actualiza los plugins de Arkana queda al día con un solo `/arkana-evolve:apply`, sin pasos manuales. `check` los muestra (`WARN|u001|pendiente (actualizador de máquina)` o `OK|u001|al día`) y `apply` los ejecuta **después** de las migraciones (no con `--to N`). Son idempotentes, no llevan sello ni exigen git ni copia de `.arkana/`, y un fallo se avisa (`FAIL`) sin deshacer lo ya migrado.
 
 | Id | Qué hace |
 |---|---|
 | `u001` | **Statusline de usuario.** Si hay una copia del despachador en `~/.claude/arkana-statusline` y su contenido difiere del que trae el plugin `arkana-statusline` instalado (versión nueva del renderizador, del despachador o del núcleo), ejecuta `arkana-statusline fix`: la reinstala (con copia de los ajustes) y, si otra herramienta pisó la `statusLine` de usuario, la recupera dejando a la otra como proveedor. Sin copia instalada, o sin ese plugin, no hace nada: evolve no depende de ningún otro plugin, solo lo invoca si está (lo busca junto a este o en la caché de Claude Code; `ARKANA_STATUSLINE_PLUGIN` fuerza una carpeta). |
+| `u002` | **Registro de workspaces de usuario.** Si existe `~/.arkana-workspaces.json` y no `~/.arkana/workspaces.json`, lo mueve conservando las entradas de **todos** los workspaces de la máquina (y el nombre de este); mientras tanto el antiguo se sigue leyendo. `check` lo lista como pendiente hasta que se mueve. |
 
 ## Skills
 
@@ -56,6 +55,7 @@ Las `b*` son de **base**: convierten formatos antiguos y se ejecutan antes que l
 | `0007` | shared | Layout 7: el repo de ARKANA ignora `.arkana/` (datos locales y `.credentials`): añade `/.arkana/` a su `.gitignore` si git no lo ignora ya por otra vía. Si algún fichero de `.arkana/` ya estaba versionado lo **avisa** (`git rm -r --cached .arkana`, rotar credenciales): ignorarlo no lo saca de git. Cambio versionado: una sola persona lo aplica y commitea. |
 | `0008` | shared | Layout 8: `arkana-docs/` en tres subcarpetas. Mueve a `arkana-docs/src/` los originales que colgaban de `arkana-docs/` (`git mv` si están versionados: conserva historial y punteros de git-lfs; destino ocupado = aviso, no se pisa), los deja de solo lectura (0444) y crea `src/.gitkeep` y `out/.gitkeep`. El Markdown de `md/` no se toca y su campo `original` (relativo a `src/`) sigue valiendo. Si `.gitattributes` fija git-lfs en `arkana-docs/…` lo avisa para que apunte a `arkana-docs/src/…`. Cambio versionado: una sola persona lo aplica y commitea. |
 | `0009` | local | Layout 9: el componente de una tarea de `arkana-todo` es siempre una **lista** (una tarea puede afectar a varios componentes: `--component M3WA,M3MF`). Reescribe `.arkana/arkana-todo/todos.json` con copia previa: un texto pasa a lista de un elemento y `all`/vacío a `["*"]`; no toca el resto de campos. Las versiones nuevas leen ambas formas; las antiguas fallarían con una lista, por eso el sello avisa de actualizar el plugin. |
+| `0010` | shared | Layout 10: crea `arkana-docs/.arkanaignore`, la plantilla (solo comentarios: no ignora nada) para declarar lo que NO son documentos —código fuente, dependencias, un proyecto de ejemplo— y que `arkana-knowledge validate` no les exija Markdown. Nunca pisa uno existente. Cambio versionado: una sola persona lo aplica y commitea. |
 
 ## Pruebas
 

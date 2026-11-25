@@ -56,6 +56,33 @@ class TestSelloYMigraciones(unittest.TestCase):
         self.assertEqual(set(vistos.values()), {evolve.latest_layout(self.mods)}, vistos)
 
 
+class TestActualizadoresYPlantillas(unittest.TestCase):
+    def test_la_plantilla_de_arkanaignore_de_evolve_es_la_de_knowledge(self):
+        """Evolve no depende de arkana-knowledge, así que lleva su copia del texto: este test impide que se desincronicen."""
+        sys.path.insert(0, os.path.join(RAIZ, "plugins", "arkana-knowledge", "scripts", "lib"))
+        import ignores
+        m = next(x for x in evolve.load_migrations() if x.ID == "0010")
+        self.assertEqual(m.TEMPLATE, ignores.TEMPLATE)
+
+    def test_cada_actualizador_de_maquina_esta_en_el_readme(self):
+        with open(os.path.join(PLUGIN, "README.md"), encoding="utf-8") as f:
+            readme = f.read()
+        ups = evolve.load_updaters()
+        self.assertTrue(ups)
+        for u in ups:
+            self.assertIn(u.ID, readme, f"falta el actualizador {u.ID} en el README")
+
+    def test_check_lista_el_registro_de_usuario_antiguo_como_pendiente_y_apply_lo_resuelve(self):
+        with Lab() as lab:
+            antiguo = os.path.join(lab.home, ".arkana-workspaces.json")
+            with open(antiguo, "w") as f:
+                json.dump({"workspaces": [{"name": "otro", "arkana": "/x/arkana", "root": "/x"}]}, f)
+            self.assertRegex(lab.run("check").stdout, r"WARN\|u002\|pendiente \(actualizador de máquina\)")
+            self.assertIn("OK|registro-usuario|", lab.run("apply").stdout)
+            self.assertFalse(os.path.exists(antiguo))
+            self.assertRegex(lab.run("check").stdout, r"OK\|u002\|al día")
+
+
 class TestEscalera(unittest.TestCase):
     """Una instalación detenida en cualquier punto (cada migración numérica) llega al layout actual con un solo `apply`, sin pérdida de datos y de forma idempotente."""
 
@@ -79,6 +106,7 @@ class TestEscalera(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(lab.arkana, rel)), rel)
         self.assertFalse(os.path.exists(os.path.join(lab.arkana, "arkana-docs", "manual.pdf")))
         self.assertEqual(lab.read(".gitignore").count("/.arkana/"), 1)
+        self.assertTrue(os.path.isfile(os.path.join(lab.arkana, "arkana-docs", ".arkanaignore")))               # plantilla de lo que no son documentos
 
     def test_desde_cualquier_punto_se_llega_al_layout_actual(self):
         for parada in range(0, project.LAYOUT_KNOWN):
@@ -101,7 +129,7 @@ class TestEscalera(unittest.TestCase):
             self.datos_antiguos(lab)
             salida = lab.run("check").stdout
             pendientes = re.findall(r"WARN\|(\d{4})\|pendiente", salida)
-            self.assertEqual(pendientes, ["0006", "0007", "0008", "0009"])
+            self.assertEqual(pendientes, ["0006", "0007", "0008", "0009", "0010"])
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ class TestMigracion0009(unittest.TestCase):
                              [["api"], ["*"], ["*"], ["*"], ["m3wa", "m3mf"], ["*"]] + [d["tareas"][6].get("componente")])
             self.assertNotIn("componente", d["tareas"][6])                                    # una tarea sin campo no se inventa uno: lo repone `fix`
             self.assertEqual((d["next"], d["tareas"][0]["notas"], d["tareas"][0]["titulo"]), (9, "n", "xt-001"))
-            self.assertEqual(lab.project()["layout"], 9)
+            self.assertEqual(lab.project()["layout"], 10)
 
     def test_idempotente_y_dry_run_no_escribe(self):
         with Lab() as lab:
@@ -53,7 +53,7 @@ class TestMigracion0009(unittest.TestCase):
         with Lab() as lab:
             r = lab.run("apply")
             self.assertNotIn("0009:tareas", r.stdout)
-            self.assertEqual(lab.project()["layout"], 9)
+            self.assertEqual(lab.project()["layout"], 10)
         with Lab() as lab:
             lab.run("apply", "--to", "8")
             todos(lab, [t("t-001", ["api"])])

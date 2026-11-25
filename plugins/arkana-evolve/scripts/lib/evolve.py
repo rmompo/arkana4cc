@@ -180,14 +180,6 @@ def find_home(arg):
     return home
 
 
-def migrar_registro(ctx, rep):
-    """El registro de workspaces pasó de `~/.arkana-workspaces.json` a `~/.arkana/workspaces.json`: se mueve (conservando sus entradas) la primera vez que se aplica."""
-    if os.path.isfile(locate.legacy_registry_path()) and not os.path.isfile(locate.registry_path()):
-        if not ctx.dry:
-            locate.register(ctx.home)
-        rep.add("DRY" if ctx.dry else "OK", "registro-usuario", f"{locate.legacy_registry_path()} {'se movería a' if ctx.dry else 'movido a'} {locate.registry_path()}")
-
-
 # ---------- check ----------
 def cmd_check(a, ctx, rep):
     mods = load_migrations()
@@ -270,7 +262,6 @@ def cmd_apply(a, ctx, rep):
     if not pending:
         if not ctx.dry:
             settle(ctx, mods, before=None if hasta is None else hasta + 1)
-        migrar_registro(ctx, rep)
         if hasta is None:
             run_updaters(ctx, rep)
         rep.add("OK", "apply", f"nada que hacer: layout {project_layout(ctx)}, sin migraciones pendientes")
@@ -307,7 +298,6 @@ def cmd_apply(a, ctx, rep):
         pending = []
     if not ctx.dry:
         settle(ctx, mods, before=None if hasta is None else hasta + 1)
-    migrar_registro(ctx, rep)
     if hasta is None:
         run_updaters(ctx, rep)
     if ctx.dry:
