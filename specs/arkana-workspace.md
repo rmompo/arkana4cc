@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-workspace
 
-> **Estado:** `beta` | **Versión:** `6.2.39`
+> **Estado:** `beta` | **Versión:** `6.2.40`
 
 ---
 
@@ -32,6 +32,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 
 | Versión | Cambios |
 |---------|---------|
+| 6.2.40 | BRIEF: tras compact o resume se da siempre y llega tambien al contexto del modelo; las tareas de varios componentes salen con todos ellos |
 | 6.2.39 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 6.2.38 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 6.2.37 | El registro de workspaces vive en ~/.arkana/workspaces.json (el antiguo se lee y se migra) |

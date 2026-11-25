@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-knowledge
 
-> **Estado:** `beta` | **Versión:** `2.0.29`
+> **Estado:** `beta` | **Versión:** `2.0.30`
 
 ---
 
@@ -29,6 +29,7 @@ Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y d
 
 | Versión | Cambios |
 |---------|---------|
+| 2.0.30 | Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9 |
 | 2.0.29 | check: check: los huerfanos y las duplas de out respetan arkana-docs/.arkanaignore |
 | 2.0.28 | fix: fix: los huerfanos que no son documentos se declaran en arkana-docs/.arkanaignore, decision del equipo |
 | 2.0.27 | install: install: crea la plantilla arkana-docs/.arkanaignore (solo comentarios) para declarar lo que no son documentos |

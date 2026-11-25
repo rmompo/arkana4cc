@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-todo
 
-> **Estado:** `beta` | **Versión:** `1.1.29`
+> **Estado:** `beta` | **Versión:** `1.1.32`
 
 ---
 
@@ -14,14 +14,14 @@ Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: loca
 
 | Skill | Versión | Descripción |
 |-------|---------|-------------|
-| `add` | 18 | Añade una tarea a la lista de pendientes con prioridad, vencimiento y componente opcionales. Antes busca si ya existe una equivalente. Acepta --dry-run y --json. |
+| `add` | 30 | Añade una tarea a la lista de pendientes con prioridad, vencimiento y componente opcionales. Antes busca si ya existe una equivalente. Acepta --dry-run y --json. |
 | `check` | 19 | Valida la lista de tareas de solo lectura - campos obligatorios, ids únicos, estados, prioridades, fechas y contador; avisa de las tareas vencidas. Nunca corrige. Acepta --json. |
 | `delete` | 20 | Borra una tarea de forma lógica (queda con estado deleted, se oculta de list y se conserva). Se recupera con modify --restore. Pide confirmación. Acepta --dry-run y --json. |
 | `done` | 21 | Cierra una tarea de la lista (o la reabre con --reopen). Acepta --dry-run y --json. |
 | `fix` | 22 | Repara la lista de tareas - añade los campos que faltan y recalcula el contador de ids. No borra ni reescribe tareas. Acepta --dry-run y --json. |
 | `install` | 14 | Primera puesta en marcha - crea la lista de tareas (.arkana/arkana-todo/todos.json) si falta. Repetible. Acepta --dry-run y --json. |
-| `list` | 23 | Lista las tareas pendientes (por defecto las abiertas), ordenadas por vencimiento y prioridad; filtra por estado, componente, prioridad o vencidas. Solo lectura. Acepta --json. |
-| `modify` | 24 | Cambia el título, la prioridad, el vencimiento (o none), el componente (o none) o las notas de una tarea, o restaura una borrada con --restore. Acepta --dry-run y --json. |
+| `list` | 32 | Lista las tareas pendientes (por defecto las abiertas), ordenadas por vencimiento y prioridad; filtra por estado, componente, prioridad o vencidas. Solo lectura. Acepta --json. |
+| `modify` | 31 | Cambia el título, la prioridad, el vencimiento (o none), el componente (o none) o las notas de una tarea, o restaura una borrada con --restore. Acepta --dry-run y --json. |
 
 ---
 
@@ -29,6 +29,9 @@ Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: loca
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.32 | list: list: el filtro de componente admite varios y la tabla muestra la lista en mayusculas |
+| 1.1.31 | modify: modify: cambia la lista de componentes de una tarea (varios separados por comas o *) |
+| 1.1.30 | add: add: varios componentes por tarea con una lista separada por comas; * no se combina |
 | 1.1.29 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
 | 1.1.28 | Nucleo 1.11.0 vendorizado: LAYOUT_KNOWN 8 |
 | 1.1.27 | Nucleo vendorizado: registro de workspaces en ~/.arkana/workspaces.json |

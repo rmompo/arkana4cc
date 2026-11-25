@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana
 
-> **Estado:** `beta` | **Versión:** `1.1.11`
+> **Estado:** `beta` | **Versión:** `1.1.12`
 
 ---
 
@@ -22,6 +22,7 @@ Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (w
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.12 | Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9 |
 | 1.1.11 | Andamiaje: arkana-docs/.arkanaignore (plantilla) creado por knowledge install |
 | 1.1.10 | install: el paso statusline describe el despachador de usuario (la statusLine ajena pasa a ser un proveedor) |
 | 1.1.9 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |

@@ -11,7 +11,7 @@
       "description": "Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente",
       "category": "other",
       "status": "beta",
-      "version": "1.1.11",
+      "version": "1.1.12",
       "spec": "specs/arkana.md",
       "path": "plugins/arkana",
       "skills": [
@@ -47,6 +47,10 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.12",
+          "changes": "Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9"
+        },
         {
           "version": "1.1.11",
           "changes": "Andamiaje: arkana-docs/.arkanaignore (plantilla) creado por knowledge install"
@@ -102,10 +106,14 @@
       "description": "Orquestación multi-repo desde ARKANA: plan, un worker a la vez sin shell, verificación por scripts, límites y control (estado, parada, recuperación).",
       "category": "other",
       "status": "beta",
-      "version": "0.10.27",
+      "version": "0.10.28",
       "spec": "specs/arkana-agentic.md",
       "path": "plugins/arkana-agentic",
       "changelog": [
+        {
+          "version": "0.10.28",
+          "changes": "Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9"
+        },
         {
           "version": "0.10.27",
           "changes": "Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente"
@@ -407,10 +415,14 @@
       "description": "Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y con --dry-run que llevan el layout (carpetas, registro del proyecto, datos) de una versión a otra, y actualizadores de máquina que dejan al día cada terminal tras actualizar Arkana (apply, check)",
       "category": "other",
       "status": "beta",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "spec": "specs/arkana-evolve.md",
       "path": "plugins/arkana-evolve",
       "changelog": [
+        {
+          "version": "0.6.1",
+          "changes": "Migracion 0009: el componente de las tareas de arkana-todo pasa a ser una lista, layout 9"
+        },
         {
           "version": "0.6.0",
           "changes": "Actualizadores de maquina (scripts/lib/updaters): apply los ejecuta tras las migraciones y check los lista; u001 deja al dia la copia de la statusline de usuario ejecutando arkana-statusline fix; sustituye al aviso de copia antigua"
@@ -548,10 +560,14 @@
       "description": "Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y documentos de origen con su versión en Markdown, ingesta desde arkana-incoming y consulta (add, query, modify, delete, ingest)",
       "category": "other",
       "status": "beta",
-      "version": "2.0.29",
+      "version": "2.0.30",
       "spec": "specs/arkana-knowledge.md",
       "path": "plugins/arkana-knowledge",
       "changelog": [
+        {
+          "version": "2.0.30",
+          "changes": "Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9"
+        },
         {
           "version": "2.0.29",
           "changes": "check: check: los huerfanos y las duplas de out respetan arkana-docs/.arkanaignore"
@@ -849,10 +865,14 @@
       "description": "Mensajes entre los componentes de un workspace de Arkana: put, get, delete (lógico), sync y reconcile; almacén local, sin git ni red",
       "category": "other",
       "status": "beta",
-      "version": "2.1.22",
+      "version": "2.1.23",
       "spec": "specs/arkana-messaging.md",
       "path": "plugins/arkana-messaging",
       "changelog": [
+        {
+          "version": "2.1.23",
+          "changes": "Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9"
+        },
         {
           "version": "2.1.22",
           "changes": "Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente"
@@ -1098,7 +1118,7 @@
       "description": "Notas de la persona usuaria en un workspace de Arkana: locales, sin red, con título, texto y componente (alias o * para todos); borrado lógico; salen en el BRIEF de la sesión (install, add, list, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.11",
+      "version": "1.1.12",
       "spec": "specs/arkana-note.md",
       "path": "plugins/arkana-note",
       "skills": [
@@ -1175,6 +1195,10 @@
       ],
       "changelog": [
         {
+          "version": "1.1.12",
+          "changes": "Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9"
+        },
+        {
           "version": "1.1.11",
           "changes": "Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente"
         },
@@ -1229,10 +1253,14 @@
       "description": "Statusline de Arkana en dos líneas, solo para workspaces de Arkana: ARKANA y los componentes con su rama y estado git, y el plan activo, coste y uso de Claude. Un despachador de usuario elige entre la de Arkana, la de plugin4cc y otra según la carpeta; escribe el coste real de la sesión",
       "category": "other",
       "status": "beta",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "spec": "specs/arkana-statusline.md",
       "path": "plugins/arkana-statusline",
       "changelog": [
+        {
+          "version": "1.4.1",
+          "changes": "Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9"
+        },
         {
           "version": "1.4.0",
           "changes": "Linea 1: ARKANA muestra el directorio de trabajo en lugar de la rama (ARKANA@~/ruta:indicadores), acortado con puntos suspensivos como en p4cc-statusline cuando no cabe (cede antes la descripcion del plan)"
@@ -1448,10 +1476,22 @@
       "description": "Lista de tareas pendientes de la persona usuaria en un workspace de Arkana: local, sin red, con prioridad, vencimiento y componente, cierre reversible y borrado lógico (add, list, done, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.29",
+      "version": "1.1.32",
       "spec": "specs/arkana-todo.md",
       "path": "plugins/arkana-todo",
       "changelog": [
+        {
+          "version": "1.1.32",
+          "changes": "list: list: el filtro de componente admite varios y la tabla muestra la lista en mayusculas"
+        },
+        {
+          "version": "1.1.31",
+          "changes": "modify: modify: cambia la lista de componentes de una tarea (varios separados por comas o *)"
+        },
+        {
+          "version": "1.1.30",
+          "changes": "add: add: varios componentes por tarea con una lista separada por comas; * no se combina"
+        },
         {
           "version": "1.1.29",
           "changes": "Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente"
@@ -1576,8 +1616,12 @@
       "skills": [
         {
           "name": "add",
-          "version": 18,
+          "version": 30,
           "changelog": [
+            {
+              "version": 30,
+              "changes": "add: varios componentes por tarea con una lista separada por comas; * no se combina"
+            },
             {
               "version": 18,
               "changes": "Modelo nuevo: estados pending, in-progress, paused, blocked, done, rejected y removed; prioridad critical a low; componente * para todos"
@@ -1704,8 +1748,12 @@
         },
         {
           "name": "list",
-          "version": 23,
+          "version": 32,
           "changelog": [
+            {
+              "version": 32,
+              "changes": "list: el filtro de componente admite varios y la tabla muestra la lista en mayusculas"
+            },
             {
               "version": 23,
               "changes": "list: una tabla por estado (identificador, prioridad, componente, descripcion, estado) ordenadas por prioridad; done, rejected y removed ocultos por defecto"
@@ -1726,8 +1774,12 @@
         },
         {
           "name": "modify",
-          "version": 24,
+          "version": 31,
           "changelog": [
+            {
+              "version": 31,
+              "changes": "modify: cambia la lista de componentes de una tarea (varios separados por comas o *)"
+            },
             {
               "version": 24,
               "changes": "modify: nuevo --status y componente * para todos; removed solo sale con --restore"
@@ -1753,10 +1805,14 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.39",
+      "version": "6.2.40",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.40",
+          "changes": "BRIEF: tras compact o resume se da siempre y llega tambien al contexto del modelo; las tareas de varios componentes salen con todos ellos"
+        },
         {
           "version": "6.2.39",
           "changes": "Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente"

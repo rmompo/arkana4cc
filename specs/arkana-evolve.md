@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-evolve
 
-> **Estado:** `beta` | **Versión:** `0.6.0`
+> **Estado:** `beta` | **Versión:** `0.6.1`
 
 ---
 
@@ -23,6 +23,7 @@ Evolución de una instalación de Arkana: migraciones numeradas, idempotentes y 
 
 | Versión | Cambios |
 |---------|---------|
+| 0.6.1 | Migracion 0009: el componente de las tareas de arkana-todo pasa a ser una lista, layout 9 |
 | 0.6.0 | Actualizadores de maquina (scripts/lib/updaters): apply los ejecuta tras las migraciones y check los lista; u001 deja al dia la copia de la statusline de usuario ejecutando arkana-statusline fix; sustituye al aviso de copia antigua |
 | 0.5.14 | check y apply: avisan tambien si la copia de la statusline de usuario es anterior al despachador (falta dispatch.py), aunque su nucleo sea reciente |
 | 0.5.13 | check: check: avisa tambien de la copia de la statusline anterior; tests de cobertura de la cadena de migraciones |
