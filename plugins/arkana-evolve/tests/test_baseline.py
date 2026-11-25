@@ -175,7 +175,7 @@ class TestB004AliasShared(unittest.TestCase):
             self.assertFalse(os.path.exists(os.path.join(lab.arkana, ".arkana/arkana-messaging/state/index.json")))
             self.assertEqual(json.loads(lab.read(".arkana/arkana-agentic/state/planes/P1/tareas/T001.json"))["repo"], "arkana")
             self.assertEqual(list(json.loads(lab.read(".arkana/arkana-agentic/state/planes/P1/plan.json"))["ramas"]), ["arkana"])
-            self.assertEqual(json.loads(lab.read(".arkana/arkana-todo/todos.json"))["tareas"][0]["componente"], "arkana")
+            self.assertEqual(json.loads(lab.read(".arkana/arkana-todo/todos.json"))["tareas"][0]["componente"], ["arkana"])     # b004 lo renombra y la 0009 lo deja como lista
             loc = json.loads(lab.read(".arkana/arkana-workspace/local.json"))
             self.assertEqual((sorted(loc["paths"]), list(loc["git"])), (["api", "arkana"], ["arkana"]))
             ids = {c["alias"]: c["id"] for c in json.loads(lab.read("arkana-project.json"))["components"]}      # la 0004 encadenada guarda los componentes por id

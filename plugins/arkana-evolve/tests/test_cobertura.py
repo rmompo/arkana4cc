@@ -73,7 +73,7 @@ class TestEscalera(unittest.TestCase):
         self.assertEqual(lab.project()["layout"], project.LAYOUT_KNOWN)
         self.assertEqual([h["id"] for h in lab.project()["history"]], ["%04d" % i for i in range(1, project.LAYOUT_KNOWN + 1)])
         tareas = json.loads(lab.read(".arkana/arkana-todo/todos.json"))["tareas"]
-        self.assertEqual([(t["estado"], t["prioridad"], t["componente"]) for t in tareas], [("pending", "medium", "*"), ("removed", "high", "api")])
+        self.assertEqual([(t["estado"], t["prioridad"], t["componente"]) for t in tareas], [("pending", "medium", ["*"]), ("removed", "high", ["api"])])
         self.assertEqual(tareas[0]["notas"], "n")
         for rel in ("arkana-docs/src/manual.pdf", "arkana-docs/src/cliente/a.md", "arkana-docs/md/manual.pdf.md", "arkana-docs/out/.gitkeep"):
             self.assertTrue(os.path.exists(os.path.join(lab.arkana, rel)), rel)
@@ -101,7 +101,7 @@ class TestEscalera(unittest.TestCase):
             self.datos_antiguos(lab)
             salida = lab.run("check").stdout
             pendientes = re.findall(r"WARN\|(\d{4})\|pendiente", salida)
-            self.assertEqual(pendientes, ["0006", "0007", "0008"])
+            self.assertEqual(pendientes, ["0006", "0007", "0008", "0009"])
 
 
 if __name__ == "__main__":

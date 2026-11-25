@@ -44,7 +44,7 @@ class TestMigracion0008(unittest.TestCase):
             self.assertTrue(existe(lab, "arkana-docs/md/cliente/specs/a.md.md"))
             self.assertTrue(existe(lab, "arkana-docs/out/.gitkeep"))
             self.assertTrue(existe(lab, "arkana-docs/src/.gitkeep") or os.listdir(os.path.join(lab.arkana, "arkana-docs", "src")))
-            self.assertEqual(lab.project()["layout"], 8)
+            self.assertEqual(lab.project()["layout"], 9)
 
     def test_los_originales_quedan_de_solo_lectura(self):
         with Lab() as lab:

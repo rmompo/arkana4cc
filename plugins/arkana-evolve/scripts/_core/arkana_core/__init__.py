@@ -4,4 +4,4 @@ Fuente canónica en `lib/arkana_core/`. Cada plugin lleva una copia en `scripts/
 `scripts/vendor-core.sh` (un plugin instalado no puede referenciar a otro: Claude Code los copia por versión).
 Solo biblioteca estándar de Python.
 """
-CORE_VERSION = "1.11.1"
+CORE_VERSION = "1.12.0"
