@@ -11,7 +11,7 @@
       "description": "Instalación guiada de Arkana: monta el espacio de trabajo mínimo de una vez (workspace, statusline, mensajería, orquestación, conocimiento, tareas, permisos y herramientas) y sugiere añadir el primer componente",
       "category": "other",
       "status": "beta",
-      "version": "1.1.10",
+      "version": "1.1.11",
       "spec": "specs/arkana.md",
       "path": "plugins/arkana",
       "skills": [
@@ -47,6 +47,10 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.11",
+          "changes": "Andamiaje: arkana-docs/.arkanaignore (plantilla) creado por knowledge install"
+        },
         {
           "version": "1.1.10",
           "changes": "install: el paso statusline describe el despachador de usuario (la statusLine ajena pasa a ser un proveedor)"
@@ -544,10 +548,22 @@
       "description": "Conocimiento común de un workspace de Arkana: notas versionadas con id UUID y documentos de origen con su versión en Markdown, ingesta desde arkana-incoming y consulta (add, query, modify, delete, ingest)",
       "category": "other",
       "status": "beta",
-      "version": "2.0.26",
+      "version": "2.0.29",
       "spec": "specs/arkana-knowledge.md",
       "path": "plugins/arkana-knowledge",
       "changelog": [
+        {
+          "version": "2.0.29",
+          "changes": "check: check: los huerfanos y las duplas de out respetan arkana-docs/.arkanaignore"
+        },
+        {
+          "version": "2.0.28",
+          "changes": "fix: fix: los huerfanos que no son documentos se declaran en arkana-docs/.arkanaignore, decision del equipo"
+        },
+        {
+          "version": "2.0.27",
+          "changes": "install: install: crea la plantilla arkana-docs/.arkanaignore (solo comentarios) para declarar lo que no son documentos"
+        },
         {
           "version": "2.0.26",
           "changes": "Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente"
@@ -674,8 +690,12 @@
         },
         {
           "name": "check",
-          "version": 11,
+          "version": 29,
           "changelog": [
+            {
+              "version": 29,
+              "changes": "check: los huerfanos y las duplas de out respetan arkana-docs/.arkanaignore"
+            },
             {
               "version": 11,
               "changes": "Se añade allowed-tools limitado (Read, AskUserQuestion) y el sufijo de invocación en la descripción (C4 y C7 de skill-doctor)"
@@ -710,8 +730,12 @@
         },
         {
           "name": "fix",
-          "version": 24,
+          "version": 28,
           "changelog": [
+            {
+              "version": 28,
+              "changes": "fix: los huerfanos que no son documentos se declaran en arkana-docs/.arkanaignore, decision del equipo"
+            },
             {
               "version": 24,
               "changes": "fix: indica que hacer con originales sueltos y renders sin fuente"
@@ -754,8 +778,12 @@
         },
         {
           "name": "install",
-          "version": 25,
+          "version": 27,
           "changelog": [
+            {
+              "version": 27,
+              "changes": "install: crea la plantilla arkana-docs/.arkanaignore (solo comentarios) para declarar lo que no son documentos"
+            },
             {
               "version": 25,
               "changes": "install: las carpetas finales (src, md, out, incoming y knowledge) llevan .gitkeep; arkana-docs/ ya no"
