@@ -30,7 +30,7 @@ Arkana es una herramienta general para gobernar proyectos de varias piezas en re
 ├── arkana-project.json              registro del proyecto (versionado): UUID, alias y nombre-módulo (`module`, opcional) de cada pieza y sello `layout`
 ├── arkana-incoming/                 entrada de documentos; solo `.gitkeep` y su `.gitignore` interno se versionan
 ├── arkana-knowledge/                notas versionadas en git (<topic>/<slug>.md); su índice es local y derivado (.arkana/arkana-knowledge/index.json)
-├── arkana-docs/                     versionado; tres subcarpetas con el mismo árbol de nombres:
+├── arkana-docs/                     versionado; tres subcarpetas con el mismo árbol de nombres y `.arkanaignore` (lo que no son documentos: código fuente, dependencias…):
 │   ├── src/                         los originales, intactos y de solo lectura
 │   ├── md/                          su versión en Markdown (`src/a/b.pdf` → `md/a/b.pdf.md`)
 │   └── out/                         documentos elaborados a petición, siempre en duplas: `x.md` (fuente) + `x.docx`… (render)

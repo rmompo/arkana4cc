@@ -61,6 +61,8 @@ class TestAndamiaje(unittest.TestCase):
     def test_solo_las_carpetas_finales_llevan_gitkeep_y_lo_local_no_se_versiona(self):
         self.instalar()
         self.assertFalse(os.path.exists(os.path.join(self.repo, "arkana-docs", ".gitkeep")))          # arkana-docs/ solo agrupa
+        self.assertTrue(os.path.isfile(os.path.join(self.repo, "arkana-docs", ".arkanaignore")))      # plantilla para lo que no son documentos
+        self.assertIn("arkana-docs/.arkanaignore", self.git("add", "-A", "-n"))                        # y se versiona: lo decide el equipo
         versionables = self.git("add", "-A", "-n")
         self.assertNotIn(".arkana/", versionables)                                                      # el estado local y .credentials nunca
         self.assertIn(".gitignore", versionables); self.assertIn("arkana-project.json", versionables)
