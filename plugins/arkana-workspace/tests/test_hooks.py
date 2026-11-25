@@ -11,8 +11,8 @@ import test_credentials as TC
 HOOK = os.path.join(E.SCRIPTS, "hooks.py")
 
 
-def run(lab, cwd, env=None):
-    return subprocess.run([sys.executable, "-I", HOOK, "session-status"], input=json.dumps({"cwd": cwd, "source": "startup"}), capture_output=True, text=True,
+def run(lab, cwd, env=None, source="startup"):
+    return subprocess.run([sys.executable, "-I", HOOK, "session-status"], input=json.dumps({"cwd": cwd, "source": source}), capture_output=True, text=True,
                           env=dict(lab.env, **(env or {})), cwd=cwd, timeout=30)
 
 
@@ -120,6 +120,57 @@ class TestSeccionTodo(unittest.TestCase):
             self.tareas(lab, [{"id": "t-001", "titulo": "Algo", "estado": "pending", "prioridad": "medium"}])
             m = self.brief(lab)
             self.assertNotIn("NOTES", m); self.assertNotIn("/arkana-note:list", m)
+
+    def test_las_tareas_de_varios_componentes_salen_con_todos_ellos(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            base = {"estado": "pending", "prioridad": "medium", "vence": ""}
+            self.tareas(lab, [dict(base, id="t-001", titulo="Varias", componente=["app", "api"]), dict(base, id="t-002", titulo="Texto", componente="api"),
+                              dict(base, id="t-003", titulo="Todas", componente=["*"]), dict(base, id="t-004", titulo="Sin campo")])
+            m = self.brief(lab)
+            self.assertIn("Varias [t-001] (APP, API)", m)
+            self.assertIn("Texto [t-002] (API)", m)                                     # el texto de versiones anteriores se sigue leyendo
+            self.assertIn("Todas [t-003]\n", m); self.assertIn("Sin campo [t-004]\n", m)      # * y sin campo: sin paréntesis
+
+    def test_tras_un_compact_o_un_resume_el_brief_sale_siempre_y_tambien_llega_al_modelo(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            wj(os.path.join(lab.arkana, ".arkana", "arkana-todo", "todos.json"), {"version": 1, "next": 2, "tareas": [{"id": "t-001", "titulo": "Pendiente", "estado": "pending", "prioridad": "high", "componente": ["*"]}]})
+            app = os.path.join(lab.ws, "app")
+            for fuente, frase in (("compact", "tras compactar"), ("resume", "tras reanudar")):
+                out = json.loads(run(lab, app, source=fuente).stdout)
+                self.assertIn("### TODO:", out["systemMessage"])                                   # la persona usuaria lo ve
+                ctx = out["hookSpecificOutput"]["additionalContext"]
+                self.assertIn(frase, ctx); self.assertIn("### QUICK START", ctx); self.assertIn("Pendiente [t-001]", ctx)   # y el modelo también
+                self.assertIn("Directrices para APP", ctx)                                         # sin perder las directrices de la pieza
+
+    def test_sin_nada_pendiente_el_arranque_no_da_brief_pero_compact_y_resume_si(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("arkana_hooks_under_test", HOOK)
+        h = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(h)
+        self.assertIsNone(h.brief([], [], None))                                                    # arranque limpio: sin ruido, como antes
+        forzado = h.brief([], [], None, force=True)                                                 # tras un compact o un resume: siempre, aunque solo lleve el QUICK START
+        self.assertIn("### QUICK START", forzado)
+        for seccion in ("### TODO", "### NOTES", "### GIT", "### MESSAGING", "### ORCHESTRATION"):
+            self.assertNotIn(seccion, forzado)
+
+    def test_clear_y_startup_no_meten_el_brief_en_el_contexto_del_modelo(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            wj(os.path.join(lab.arkana, ".arkana", "arkana-todo", "todos.json"), {"version": 1, "next": 2, "tareas": [{"id": "t-001", "titulo": "Pendiente", "estado": "pending", "prioridad": "medium", "componente": ["*"]}]})
+            app = os.path.join(lab.ws, "app")
+            for fuente in ("startup", "clear"):
+                out = json.loads(run(lab, app, source=fuente).stdout)
+                self.assertIn("### TODO:", out["systemMessage"])
+                self.assertNotIn("QUICK START", out["hookSpecificOutput"]["additionalContext"], fuente)
+
+    def test_fuera_de_una_pieza_el_brief_tras_un_compact_llega_igualmente_al_modelo(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            os.makedirs(os.path.join(lab.ws, "otra-carpeta"), exist_ok=True)
+            out = json.loads(run(lab, lab.arkana, source="compact").stdout)                         # el cwd es ARKANA (también una pieza)
+            self.assertIn("QUICK START", out["hookSpecificOutput"]["additionalContext"])
 
     def test_orden_de_las_secciones(self):
         with TC.CLab() as lab:

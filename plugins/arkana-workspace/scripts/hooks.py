@@ -91,7 +91,9 @@ def todo_pending(st):
         if not isinstance(t, dict) or t.get("estado") not in TODO_ACTIVE or not t.get("titulo"):
             continue
         vence = str(t.get("vence") or "")
-        res.append((str(t.get("id", "")), str(t["titulo"]), str(t.get("prioridad") or "medium"), vence, str(t.get("componente") or ""), bool(vence) and vence < hoy, str(t["estado"])))
+        cv = t.get("componente")                                                # texto (versiones anteriores) o lista de alias; en la tupla va como «a,b»
+        comps = ",".join(x for x in (cv if isinstance(cv, list) else [cv]) if isinstance(x, str) and x)
+        res.append((str(t.get("id", "")), str(t["titulo"]), str(t.get("prioridad") or "medium"), vence, comps, bool(vence) and vence < hoy, str(t["estado"])))
     return sorted(res, key=lambda r: (PRIO.get(r[2], 2), r[3] or "9999", r[0]))
 
 
@@ -123,13 +125,14 @@ def statusline_installed():
 def todo_line(i, t):
     id_, titulo, prio, vence, comp, vencida, estado = t
     extra = [x for x in (prio if prio not in ("medium", "normal") else "", estado if estado not in ("pending", "open") else "",
-                         ("⚠ vencida " if vencida else "vence ") + vence if vence else "", manifest.display(comp) if comp not in ("", "*", "all") else "") if x]
+                         ("⚠ vencida " if vencida else "vence ") + vence if vence else "", ", ".join(manifest.display(c) for c in comp.split(",") if c not in ("", "*", "all"))) if x]
     return f"{i}. {titulo} [{id_}]" + (f" ({', '.join(extra)})" if extra else "")
 
 
-def brief(git, msgs, plan, todos=(), notes=()):
-    """Texto del BRIEF, o None si no hay nada pendiente. Orden de las secciones: QUICK START, MESSAGING, TODO, NOTES, GIT y ORCHESTRATION."""
-    if not (git or msgs or plan or todos or notes):
+def brief(git, msgs, plan, todos=(), notes=(), force=False):
+    """Texto del BRIEF, o None si no hay nada pendiente (salvo `force`: tras un compact o un resume se da siempre, aunque solo lleve el QUICK START).
+    Orden de las secciones: QUICK START, MESSAGING, TODO, NOTES, GIT y ORCHESTRATION."""
+    if not (git or msgs or plan or todos or notes or force):
         return None
     qs = []                                                                      # primero la puesta a punto (config → check → fix), luego el trabajo del día
     if not statusline_installed():
@@ -180,7 +183,9 @@ def main(argv):
         ws = manifest.load(home)
         st = locate.state_dir(home)
         aliases = ws.aliases()
-        text = brief(git_pending(ws, aliases), messaging_pending(st, aliases), active_plan(st), todo_pending(st), note_pending(st))
+        source = str(ev.get("source") or "")                                    # startup | resume | clear | compact
+        repetir = source in ("resume", "compact")                               # el contexto se perdió o se recuperó: el BRIEF se vuelve a dar siempre
+        text = brief(git_pending(ws, aliases), messaging_pending(st, aliases), active_plan(st), todo_pending(st), note_pending(st), force=repetir)
         have = project.layout(home)
         if have < project.LAYOUT_REQUIRED:                                      # instalación sin migrar: lo primero que debe ver la persona usuaria
             aviso = f"[ARKANA] ⚠ Instalación en layout {have}; esta versión necesita {project.LAYOUT_REQUIRED}. Ejecuta /arkana-evolve:apply."
@@ -192,8 +197,11 @@ def main(argv):
         if text:
             out["systemMessage"] = text
         actor = ws.owner_of(ev.get("cwd") or os.getcwd())                       # la pieza cuya carpeta contiene el cwd (ARKANA incluida)
-        if actor:
-            out["hookSpecificOutput"] = {"hookEventName": "SessionStart", "additionalContext": directives.render(ws, actor)}
+        contexto = directives.render(ws, actor) if actor else ""
+        if repetir and text:                                                    # tras un compact o un resume el modelo ve también el BRIEF, no solo la persona usuaria
+            contexto = f"[Arkana] Estado del workspace tras {'compactar' if source == 'compact' else 'reanudar'} la sesión:\n\n{text}\n" + (("\n" + contexto) if contexto else "")
+        if contexto:
+            out["hookSpecificOutput"] = {"hookEventName": "SessionStart", "additionalContext": contexto}
         if out:
             sys.stdout.write(json.dumps(out, ensure_ascii=False))
     except Exception:

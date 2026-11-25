@@ -72,7 +72,7 @@ class TestRenombrar(unittest.TestCase):
             self.assertEqual((m["para"], m["destinatarios"], list(m["confirmaciones"]), list(m["entregas"])), (["frontend", "api"], ["frontend", "api"], ["frontend"], ["frontend"]))
             self.assertTrue(os.path.isfile(os.path.join(st, "arkana-messaging/state/read/frontend.json")))
             self.assertFalse(os.path.isfile(os.path.join(st, "arkana-messaging/state/read/app.json")))
-            self.assertEqual(rj(os.path.join(st, "arkana-todo/todos.json"))["tareas"][0]["componente"], "frontend")
+            self.assertEqual(rj(os.path.join(st, "arkana-todo/todos.json"))["tareas"][0]["componente"], ["frontend"])
             self.assertEqual(rj(os.path.join(st, "arkana-agentic/state/planes/P1/tareas/T001.json"))["repo"], "frontend")
             self.assertEqual(list(rj(os.path.join(st, "arkana-agentic/state/planes/P1/plan.json"))["ramas"]), ["frontend"])
             self.assertEqual(rj(os.path.join(st, "arkana-agentic/data/ledger/sessions/s1.json"))["component"], "frontend")
@@ -119,7 +119,7 @@ class TestRenombrar(unittest.TestCase):
             r = run(lab, "edit", "--alias", "app", "--rename", "frontend")
             self.assertEqual(r.returncode, 0, r.stdout)
             self.assertEqual(next(c for c in rj(os.path.join(st, "core", "workspace.json"))["components"] if c["alias"] == "frontend")["id"], IDS["app"])
-            self.assertEqual(rj(os.path.join(st, "arkana-todo/todos.json"))["tareas"][0]["componente"], "frontend")
+            self.assertEqual(rj(os.path.join(st, "arkana-todo/todos.json"))["tareas"][0]["componente"], ["frontend"])
 
     def test_alta_con_id_y_baja_conserva_el_id_en_el_registro(self):
         with TC.CLab() as lab:
