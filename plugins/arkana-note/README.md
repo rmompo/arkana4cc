@@ -26,16 +26,16 @@ Todas aceptan `--json`; las que escriben aceptan `--dry-run`. Salida `ESTADO|ID|
 
 ## En el BRIEF
 
-El hook de sesión de `arkana-workspace` lee `notes.json` y añade, justo después de TODO:
+El hook de sesión de `arkana-workspace` lee `notes.json` y añade, justo después de TODOS, **todas** las notas que no están eliminadas (también las ve `/arkana-workspace:brief`):
 
 ```
-### NOTES:
-1. Rotar el token del CI [n-004] (API)
-2. Hablar con el cliente de los permisos [n-002]
-... and 3 more
+### NOTES
+1. [N-004] (API) Rotar el token del CI
+2. [N-002] (ARKANA) Hablar con el cliente de los permisos
+3. [N-001] (*) Revisar la estructura de arkana-docs
 ```
 
-Hasta 5, las modificadas más recientemente primero; el componente (en MAYÚSCULAS) solo si no es `*`. Si hay notas, el QUICK START añade `Use '/arkana-note:list' - your notes`.
+Sin recortar, las modificadas más recientemente primero; `[ID]` en mayúsculas y el componente en MAYÚSCULAS (`*` = todos). Si hay notas, el QUICK START añade `/arkana-note:list`.
 
 ## Modelo de datos
 
