@@ -12,7 +12,8 @@
     "rew-grants",
     "export",
     "import",
-    "handover"
+    "handover",
+    "brief"
   ],
   "data": [
     {

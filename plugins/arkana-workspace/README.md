@@ -258,6 +258,7 @@ Resumen:
 | `fix` | `settings.local.json`, `.git/info/exclude`, `.gitignore`… del componente | no | `checks/component.py` + `permissions.py` / `excludes.py apply` |
 | `component` | manifiesto, `local.json` | no | `lib/components.py` |
 | `config` | manifiesto (`jira`), `tools.json` | no | `lib/config.py` |
+| `brief` | nada | no | `hooks.py brief` |
 | `status` | nada | no | `lib/status.py` |
 | `sync` | referencias git (`FETCH_HEAD`, remotas) | sí, acotada | `lib/sync.py` |
 | `rew-grants` | nada | no | `lib/permissions.py` |
@@ -850,49 +851,60 @@ Asistente de `credential.helper`. Para `get` con `protocol` https/http busca la 
 
 **Tras `compact` y `resume`.** El BRIEF se da **siempre** (aunque no haya nada pendiente: entonces solo lleva el QUICK START) y llega **también al modelo**, en su contexto adicional y antes de las directrices de la pieza, porque en esos dos arranques la conversación perdió o recuperó contexto y el modelo necesita volver a saber qué hay pendiente. Con `startup` y `clear` el BRIEF sigue siendo solo para la persona usuaria y solo si hay algo que contar.
 
-**Qué hace.** (1) Muestra al **usuario** (campo `systemMessage`) un BRIEF corto, solo si hay algo que contar (tareas abiertas, cambios sin subir, mensajes, plan activo; tras `compact` y `resume`, siempre), precedido de un aviso `⚠ Instalación en layout N; esta versión necesita M. Ejecuta /arkana-evolve:apply.` cuando el registro del proyecto está por debajo del layout que esperan los plugins. (2) Inyecta en el contexto del **modelo** (`hookSpecificOutput.additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (la más específica; ARKANA incluida): reglas comunes, convención de commits y `ARKANA.local.md`. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker) ni si no hay workspace. Nunca falla (siempre sale con 0).
+**Qué hace.** (1) Muestra al **usuario** (campo `systemMessage`) un BRIEF, solo si hay algo que contar (tareas abiertas, cambios sin subir, mensajes, plan activo; tras `compact` y `resume`, siempre), precedido de un aviso `⚠ Instalación en layout N; esta versión necesita M. Ejecuta /arkana-evolve:apply.` cuando el registro del proyecto está por debajo del layout que esperan los plugins. (2) Inyecta en el contexto del **modelo** (`hookSpecificOutput.additionalContext`) las directrices de la pieza cuya carpeta contiene el cwd (la más específica; ARKANA incluida): reglas comunes, convención de commits y `ARKANA.local.md`. Solo usa git local y ficheros de estado: sin red. No hace nada si `ARKANA_WORKER=1` (dentro de un worker) ni si no hay workspace. Nunca falla (siempre sale con 0).
 
-**Formato del BRIEF** (secciones en este orden: QUICK START, MESSAGING, TODO, NOTES, GIT y ORCHESTRATION; cada una solo si tiene contenido, salvo QUICK START, que sale siempre que haya BRIEF):
+**Formato del BRIEF** (empieza por una línea en blanco intencionada y una cabecera en caja; secciones en este orden: QUICK START, MESSAGING, TODOS, NOTES, GIT y ORCHESTRATION; cada una solo si tiene contenido, salvo QUICK START, que sale siempre que haya BRIEF). Los títulos van sin dos puntos y **TODOS y NOTES listan todas las filas**, sin recortar:
 
 ```text
-****** [ARKANA] BRIEF ******
+
+****************************************
+************ [ARKANA] BRIEF ************
+****************************************
 
 ### QUICK START
-- Use '/arkana-statusline:install' - show the Arkana status bar (git, plan, cost, usage)
-- Use '/arkana-workspace:config' - set tool versions (and optional Jira)
-- Use '/arkana-workspace:check' - diagnose the workspace and the environment
-- Use '/arkana-workspace:fix' - repair what check reports, step by step
-- Use '/arkana-messaging:query --unread' - list what is waiting for this component (read-only: it does not mark anything as read)
-- Use '/arkana-workspace:sync' - fetch the remotes so the commits to pull (⇣) are up to date
-- Use '/arkana-workspace:status' - git state of every component
-- Use '/arkana-agentic:status' - progress and cost of the active plan
-- Use '/arkana-todo:list' - active tasks grouped by status, with priority and due date
-- Use '/arkana-knowledge:ingest' - turn what is waiting in arkana-incoming/ into notes and documents
-- Use '/arkana-evolve:check' - check whether this installation needs migrations (then '/arkana-evolve:apply')
+- /arkana-statusline:install - show the Arkana status bar (git, plan, cost, usage)
+- /arkana-workspace:config  - set tool versions (and optional Jira)
+- /arkana-workspace:check   - diagnose the workspace and the environment
+- /arkana-workspace:fix     - repair what check reports, step by step
+- /arkana-messaging:query --unread - list what is waiting for this component
+- /arkana-workspace:sync    - fetch the remotes so the commits to pull (⇣) are up to date
+- /arkana-workspace:status  - git state of every component
+- /arkana-agentic:status    - progress and cost of the active plan
+- /arkana-todo:list         - active tasks grouped by status, with priority and due date
+- /arkana-note:list         - your notes (add one with /arkana-note:add)
+- /arkana-knowledge:ingest  - turn what is waiting in arkana-incoming/ into notes and documents
+- /arkana-evolve:check      - check whether this installation needs migrations
 
-### MESSAGING:
-1. api (2 tasks, 1 repeat)
+### MESSAGING
+1. API (2 tasks, 1 repeat)
 
-### TODO:
-1. Revisar la migración [t-003] (⚠ vencida 2026-11-10)
-2. Actualizar el manifiesto [t-001] (high, vence 2026-11-20, api)
-3. Preparar la demo [t-002]
+### TODOS
+1. [T-003] (critical, API, ⚠ vencida 2026-11-10) Revisar la migración
+2. [T-001] (high, API, vence 2026-11-20) Actualizar el manifiesto
+3. [T-002] (medium, *, in-progress) Preparar la demo
 
-### GIT (pending):
-1. app (develop)
+### NOTES
+1. [N-002] (ARKANA) Hablar con el cliente de los permisos
+2. [N-001] (*) Rotar el token del CI
+
+### GIT (pending)
+1. APP (develop)
 2. ARKANA (develop)
 
-### ORCHESTRATION:
+### ORCHESTRATION
 - plan P2601011200-abcd (ejecutando, 0.42 USD)
-
 ```
+
+Las líneas del QUICK START van en dos columnas: el comando rellenado hasta 25 caracteres y ` - ` y la descripción (un comando más largo, como `/arkana-messaging:query --unread`, solo lleva un espacio). Una tarea es `N. [ID] (prioridad, componentes[, estado][, vencimiento]) título`: la prioridad y los componentes salen siempre (`*` = todos) y el estado solo si no es `pending`. Una nota es `N. [ID] (componentes) título`. Los ids van en mayúsculas (`T-014`, `N-001`).
+
+**A demanda: `/arkana-workspace:brief`.** El mismo BRIEF se puede pedir cuando se quiera (`python3 scripts/hooks.py brief [--home DIR]`): sale siempre, aunque no haya nada pendiente, y sin workspace termina con código 3 y `FAIL|workspace|…`. Es solo lectura.
 
 | Sección | Contenido y origen |
 |---|---|
 | `QUICK START` | Comandos en el orden **config → check → fix → uso diario**: primero la puesta a punto (`config`, `check`, `fix`), luego el trabajo del día. `/arkana-statusline:install` solo si `statusLine` de `~/.claude/settings.json` no apunta a `arkana-statusline`; `messaging query --unread` solo con mensajes; `sync` siempre; `status` solo con cambios git; `agentic:status` solo con plan |
 | `MESSAGING` | Por pieza, de `arkana-messaging/state/index.json` y `state/read/<actor>.json`: `N tasks` (task, review o question de una vez, abiertas y sin confirmar por ella), `N repeat` (directrices vigentes que le alcanzan; no las `propuesto`) y `N unread notices` (avisos sin leer, solo si los hay). Se excluyen borrados, reconciliados y propios |
-| `TODO` | Tareas activas de `arkana-todo/todos.json` (`pending`, `in-progress`, `paused`, `blocked`; no `done`, `rejected` ni `removed`), por prioridad (`critical` primero), vencimiento e id; hasta 5 y `... and N more`. Cada línea: título, `[id]` y entre paréntesis lo que no es el valor por defecto (prioridad distinta de `medium`, estado distinto de `pending`, `vence`/`⚠ vencida`, componente distinto de `*`) |
-| `NOTES` | Notas activas de `arkana-note/notes.json`, las modificadas más recientemente primero; hasta 5 y `... and N more`. Cada línea: título, `[id]` y, entre paréntesis, el componente si no es `*` (en MAYÚSCULAS). Va justo después de TODO. El QUICK START añade `/arkana-note:list` cuando hay notas |
+| `TODOS` | **Todas** las tareas activas de `arkana-todo/todos.json` (`pending`, `in-progress`, `paused`, `blocked`; no `done`, `rejected` ni `removed`), por prioridad (`critical` primero), vencimiento e id; sin recortar. Cada línea: `[ID] (prioridad, componentes[, estado][, vencimiento o ⚠ vencida]) título`, con el id en mayúsculas y los componentes de la lista de la tarea en MAYÚSCULAS (`*` = todos) |
+| `NOTES` | **Todas** las notas no eliminadas de `arkana-note/notes.json`, las modificadas más recientemente primero; sin recortar. Cada línea: `[ID] (componentes) título`, con el id en mayúsculas. Va justo después de TODOS. El QUICK START añade `/arkana-note:list` cuando hay notas |
 | `GIT` | Piezas con cambios o commits sin subir (`gitstate`, hasta 8 repos en paralelo), con su rama |
 | `ORCHESTRATION` | Plan activo (`arkana-agentic/state/actual` y su `plan.json`, salvo `completado`, `archivado` o `cancelado`) con su estado y gasto |
 

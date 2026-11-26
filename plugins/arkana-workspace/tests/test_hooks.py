@@ -1,5 +1,6 @@
 """Hook de sesión: BRIEF al usuario (systemMessage) y directrices de la pieza al modelo (additionalContext); solo local; nada en workers ni fuera de un workspace."""
 import json
+import re
 import os
 import subprocess
 import sys
@@ -82,12 +83,12 @@ class TestSeccionTodo(unittest.TestCase):
                               t("t-006", "Bloqueada", estado="blocked", prioridad="low"), t("t-007", "Legado", estado="open", prioridad="normal", componente=""),
                               t("t-008", "Rechazada", estado="rejected")])
             m = self.brief(lab)
-            self.assertIn("\n### TODO:\n", m)
-            self.assertIn("1. Urgente [t-002] (high, vence 2099-01-01, API)\n2. Atrasada [t-003] (⚠ vencida 2000-01-01)\n3. Sin fecha [t-001]\n"
-                          "4. Legado [t-007]\n5. Bloqueada [t-006] (low, blocked)\n", m)
+            self.assertIn("\n### TODOS\n", m)
+            self.assertIn("1. [T-002] (high, API, vence 2099-01-01) Urgente\n2. [T-003] (medium, *, ⚠ vencida 2000-01-01) Atrasada\n3. [T-001] (medium, *) Sin fecha\n"
+                          "4. [T-007] (medium, *) Legado\n5. [T-006] (low, *, blocked) Bloqueada\n", m)
             for oculta in ("Hecha", "Borrada", "Rechazada"):
                 self.assertNotIn(oculta, m)
-            self.assertIn("- Use '/arkana-todo:list'", m)
+            self.assertIn("- /arkana-todo:list         - active tasks grouped by status, with priority and due date", m)
 
     def notas(self, lab, notas):
         wj(os.path.join(lab.arkana, ".arkana", "arkana-note", "notes.json"), {"version": 1, "next": 99, "notas": notas})
@@ -98,11 +99,11 @@ class TestSeccionTodo(unittest.TestCase):
             n = lambda i, titulo, **kw: dict({"id": i, "titulo": titulo, "estado": "active", "componente": "*", "modificada": "2026-01-01"}, **kw)
             self.notas(lab, [n("n-001", "Vieja"), n("n-002", "Reciente", modificada="2026-06-01", componente="api"), n("n-003", "Borrada", estado="removed")])
             m = self.brief(lab)
-            self.assertIn("\n### NOTES:\n1. Reciente [n-002] (API)\n2. Vieja [n-001]\n", m)
+            self.assertIn("\n### NOTES\n1. [N-002] (API) Reciente\n2. [N-001] (*) Vieja\n", m)
             self.assertNotIn("Borrada", m)
-            self.assertIn("- Use '/arkana-note:list' - your notes", m)
+            self.assertIn("- /arkana-note:list         - your notes (add one with /arkana-note:add)", m)
 
-    def test_las_notas_van_despues_de_todo_y_antes_de_git_y_se_acotan(self):
+    def test_las_notas_van_despues_de_todos_y_antes_de_git_y_salen_todas(self):
         with TC.CLab() as lab:
             migrada(lab)
             app = os.path.join(lab.ws, "app")
@@ -111,8 +112,9 @@ class TestSeccionTodo(unittest.TestCase):
             self.tareas(lab, [{"id": "t-001", "titulo": "Algo", "estado": "pending", "prioridad": "medium"}])
             self.notas(lab, [{"id": f"n-{i:03d}", "titulo": f"Nota {i}", "estado": "active", "modificada": f"2026-01-{i:02d}"} for i in range(1, 9)])
             m = self.brief(lab)
-            self.assertLess(m.index("### TODO:"), m.index("### NOTES:")); self.assertLess(m.index("### NOTES:"), m.index("### GIT (pending):"))
-            self.assertIn("5. Nota 4 [n-004]\n... and 3 more", m)
+            self.assertLess(m.index("### TODOS"), m.index("### NOTES")); self.assertLess(m.index("### NOTES"), m.index("### GIT (pending)"))
+            self.assertIn("1. [N-008] (*) Nota 8\n", m); self.assertIn("8. [N-001] (*) Nota 1\n", m)      # todas, las modificadas más recientemente primero
+            self.assertNotIn("more", m)
 
     def test_sin_notas_no_hay_seccion_ni_linea_en_el_quick_start(self):
         with TC.CLab() as lab:
@@ -128,9 +130,9 @@ class TestSeccionTodo(unittest.TestCase):
             self.tareas(lab, [dict(base, id="t-001", titulo="Varias", componente=["app", "api"]), dict(base, id="t-002", titulo="Texto", componente="api"),
                               dict(base, id="t-003", titulo="Todas", componente=["*"]), dict(base, id="t-004", titulo="Sin campo")])
             m = self.brief(lab)
-            self.assertIn("Varias [t-001] (APP, API)", m)
-            self.assertIn("Texto [t-002] (API)", m)                                     # el texto de versiones anteriores se sigue leyendo
-            self.assertIn("Todas [t-003]\n", m); self.assertIn("Sin campo [t-004]\n", m)      # * y sin campo: sin paréntesis
+            self.assertIn("1. [T-001] (medium, APP, API) Varias", m) if False else self.assertIn("[T-001] (medium, APP, API) Varias", m)
+            self.assertIn("[T-002] (medium, API) Texto", m)                                     # el texto de versiones anteriores se sigue leyendo
+            self.assertIn("[T-003] (medium, *) Todas\n", m); self.assertIn("[T-004] (medium, *) Sin campo\n", m)      # * y sin campo: se muestra *
 
     def test_tras_un_compact_o_un_resume_el_brief_sale_siempre_y_tambien_llega_al_modelo(self):
         with TC.CLab() as lab:
@@ -139,9 +141,9 @@ class TestSeccionTodo(unittest.TestCase):
             app = os.path.join(lab.ws, "app")
             for fuente, frase in (("compact", "tras compactar"), ("resume", "tras reanudar")):
                 out = json.loads(run(lab, app, source=fuente).stdout)
-                self.assertIn("### TODO:", out["systemMessage"])                                   # la persona usuaria lo ve
+                self.assertIn("### TODOS", out["systemMessage"])                                   # la persona usuaria lo ve
                 ctx = out["hookSpecificOutput"]["additionalContext"]
-                self.assertIn(frase, ctx); self.assertIn("### QUICK START", ctx); self.assertIn("Pendiente [t-001]", ctx)   # y el modelo también
+                self.assertIn(frase, ctx); self.assertIn("### QUICK START", ctx); self.assertIn("[T-001] (high, *) Pendiente", ctx)   # y el modelo también
                 self.assertIn("Directrices para APP", ctx)                                         # sin perder las directrices de la pieza
 
     def test_sin_nada_pendiente_el_arranque_no_da_brief_pero_compact_y_resume_si(self):
@@ -162,7 +164,7 @@ class TestSeccionTodo(unittest.TestCase):
             app = os.path.join(lab.ws, "app")
             for fuente in ("startup", "clear"):
                 out = json.loads(run(lab, app, source=fuente).stdout)
-                self.assertIn("### TODO:", out["systemMessage"])
+                self.assertIn("### TODOS", out["systemMessage"])
                 self.assertNotIn("QUICK START", out["hookSpecificOutput"]["additionalContext"], fuente)
 
     def test_fuera_de_una_pieza_el_brief_tras_un_compact_llega_igualmente_al_modelo(self):
@@ -171,6 +173,37 @@ class TestSeccionTodo(unittest.TestCase):
             os.makedirs(os.path.join(lab.ws, "otra-carpeta"), exist_ok=True)
             out = json.loads(run(lab, lab.arkana, source="compact").stdout)                         # el cwd es ARKANA (también una pieza)
             self.assertIn("QUICK START", out["hookSpecificOutput"]["additionalContext"])
+
+    def test_la_cabecera_es_una_caja_de_40_y_el_quick_start_va_en_columnas(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            m = self.brief(lab)
+            lineas = m.split("\n")
+            self.assertEqual(lineas[0], "")                                                       # salto de línea inicial intencionado
+            self.assertEqual(lineas[1:4], ["*" * 40, "*" * 12 + " [ARKANA] BRIEF " + "*" * 12, "*" * 40])
+            self.assertEqual({len(l) for l in lineas[1:4]}, {40})
+            self.assertEqual(lineas[4:6], ["", "### QUICK START"])
+            qs = lineas[6:lineas.index("", 6)]
+            self.assertTrue(len(qs) >= 5)
+            for l in qs:
+                self.assertTrue(l.startswith("- /arkana-"), l)
+                if len(l.split(" - ")[0]) <= 2 + 25:                                              # los comandos cortos alinean el « - » en la misma columna
+                    self.assertEqual(l[27:30], " - ", l)
+            self.assertIn("- /arkana-workspace:config  - set tool versions (and optional Jira)", qs)
+            self.assertNotIn("Use '", m)
+
+    def test_todos_y_notas_listan_todo_con_ids_en_mayusculas(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            self.tareas(lab, [{"id": f"t-{i:03d}", "titulo": f"Tarea {i}", "estado": "pending", "prioridad": "critical" if i == 1 else "medium", "componente": ["m3wa"]} for i in range(1, 13)])
+            wj(os.path.join(lab.arkana, ".arkana", "arkana-note", "notes.json"), {"version": 1, "next": 99, "notas": [
+                {"id": f"n-{i:03d}", "titulo": f"Nota {i}", "estado": "active" if i != 4 else "removed", "componente": "*", "modificada": f"2026-02-{i:02d}"} for i in range(1, 11)]})
+            m = self.brief(lab)
+            self.assertEqual(len(re.findall(r"^\d+\. \[T-\d+\]", m, re.M)), 12)                  # las 12, sin recortar
+            self.assertIn("1. [T-001] (critical, M3WA) Tarea 1\n", m); self.assertIn("12. [T-012] (medium, M3WA) Tarea 12\n", m)
+            self.assertEqual(len(re.findall(r"^\d+\. \[N-\d+\]", m, re.M)), 9)                   # las 10 menos la eliminada
+            self.assertNotIn("Nota 4", m); self.assertNotIn("more", m)
+            self.assertNotRegex(m, r"\[t-\d+\]|\[n-\d+\]")                                       # ids siempre en mayúsculas
 
     def test_orden_de_las_secciones(self):
         with TC.CLab() as lab:
@@ -183,24 +216,24 @@ class TestSeccionTodo(unittest.TestCase):
             wj(os.path.join(lab.arkana, ".arkana", "arkana-messaging", "state", "index.json"), {"messages": {
                 "N1": {"de": "arkana", "para": ["app"], "tipo": "task", "estado": "open"}}})
             m = self.brief(lab)
-            pos = [m.index(x) for x in ("### QUICK START", "### MESSAGING:", "### TODO:", "### GIT (pending):")]
+            pos = [m.index(x) for x in ("### QUICK START", "### MESSAGING", "### TODOS", "### GIT (pending)")]
             self.assertEqual(pos, sorted(pos), m)                                               # QUICK START, MESSAGING, TODO y luego GIT
-            self.assertTrue(m.startswith("****** [ARKANA] BRIEF ******\n\n### QUICK START\n"), m)
+            self.assertTrue(m.startswith("\n" + "*" * 40 + "\n" + "*" * 12 + " [ARKANA] BRIEF " + "*" * 12 + "\n" + "*" * 40 + "\n\n### QUICK START\n"), m)
 
-    def test_recorta_a_cinco_y_dice_cuantas_faltan(self):
+    def test_lista_todas_las_tareas_sin_recortar(self):
         with TC.CLab() as lab:
             migrada(lab)
             self.tareas(lab, [{"id": f"t-{i:03d}", "titulo": f"Tarea {i}", "estado": "open", "prioridad": "normal"} for i in range(1, 9)])
             m = self.brief(lab)
-            self.assertIn("5. Tarea 5 [t-005]\n... and 3 more\n", m)
-            self.assertNotIn("Tarea 6", m)
+            self.assertIn("1. [T-001] (medium, *) Tarea 1\n", m); self.assertIn("8. [T-008] (medium, *) Tarea 8\n", m)
+            self.assertNotIn("more", m)                                                           # sin «... and N more»: salen todas
 
     def test_sin_tareas_abiertas_no_hay_seccion_ni_brief(self):
         with TC.CLab() as lab:
             migrada(lab)
             self.tareas(lab, [{"id": "t-001", "titulo": "Hecha", "estado": "done", "prioridad": "normal"}])
             m = self.brief(lab)
-            self.assertNotIn("### TODO:", m)
+            self.assertNotIn("### TODOS", m)
             self.assertNotIn("/arkana-todo:list", m)
 
     def test_fichero_roto_o_ausente_no_rompe_el_hook(self):
@@ -210,15 +243,49 @@ class TestSeccionTodo(unittest.TestCase):
             os.makedirs(os.path.dirname(p), exist_ok=True)
             with open(p, "w") as f:
                 f.write("{no es json")
-            self.assertNotIn("### TODO:", self.brief(lab))
+            self.assertNotIn("### TODOS", self.brief(lab))
 
     def test_quick_start_incluye_ingest_y_evolve(self):
         with TC.CLab() as lab:
             migrada(lab)
             self.tareas(lab, [{"id": "t-001", "titulo": "Algo", "estado": "open", "prioridad": "normal"}])
             m = self.brief(lab)
-            self.assertIn("- Use '/arkana-knowledge:ingest'", m)
-            self.assertIn("- Use '/arkana-evolve:check'", m)
+            self.assertIn("- /arkana-knowledge:ingest  - turn what is waiting in arkana-incoming/ into notes and documents", m)
+            self.assertIn("- /arkana-evolve:check      - check whether this installation needs migrations", m)
+
+
+class TestComandoBrief(unittest.TestCase):
+    """`hooks.py brief`: el BRIEF a demanda (lo usa /arkana-workspace:brief)."""
+    def brief(self, lab, *extra, cwd=None, home=None):
+        return subprocess.run([sys.executable, "-I", HOOK, "brief", *extra, *(["--home", lab.arkana] if home is None else [])], capture_output=True, text=True,
+                              env=lab.env, cwd=cwd or lab.ws, stdin=subprocess.DEVNULL, timeout=30)
+
+    def test_imprime_el_mismo_brief_que_el_hook(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            self.tareas = None
+            wj(os.path.join(lab.arkana, ".arkana", "arkana-todo", "todos.json"), {"version": 1, "next": 2, "tareas": [{"id": "t-001", "titulo": "Pendiente", "estado": "pending", "prioridad": "high", "componente": ["*"]}]})
+            r = self.brief(lab)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue(r.stdout.startswith("\n" + "*" * 40 + "\n"), r.stdout)
+            self.assertIn("### TODOS\n1. [T-001] (high, *) Pendiente", r.stdout)
+            hook = json.loads(run(lab, os.path.join(lab.ws, "app")).stdout)["systemMessage"]
+            self.assertEqual(r.stdout, hook)                                                     # idéntico al del arranque
+
+    def test_se_localiza_desde_el_directorio_actual_y_da_siempre_el_quick_start(self):
+        with TC.CLab() as lab:
+            migrada(lab)
+            r = subprocess.run([sys.executable, "-I", HOOK, "brief"], capture_output=True, text=True, env=dict(lab.env, ARKANA_HOME=lab.arkana), cwd=lab.ws, timeout=30)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("### QUICK START", r.stdout)
+
+    def test_fuera_de_un_workspace_falla_con_codigo_3_sin_traza(self):
+        with TC.CLab() as lab:
+            fuera = os.path.join(lab.root, "fuera"); os.makedirs(fuera)
+            env = {k: v for k, v in lab.env.items() if not k.startswith("ARKANA_")}
+            r = subprocess.run([sys.executable, "-I", HOOK, "brief"], capture_output=True, text=True, env=env, cwd=fuera, timeout=30)
+            self.assertEqual(r.returncode, 3)
+            self.assertIn("FAIL|workspace|", r.stderr); self.assertNotIn("Traceback", r.stderr)
 
 
 class TestHookEstado(unittest.TestCase):
@@ -248,16 +315,16 @@ class TestHookEstado(unittest.TestCase):
             self.assertEqual(sorted(out), ["hookSpecificOutput", "systemMessage"])      # BRIEF al usuario y directrices al modelo, por canales distintos
             self.assertNotIn("BRIEF", out["hookSpecificOutput"]["additionalContext"])
             m = out["systemMessage"]
-            self.assertTrue(m.startswith("****** [ARKANA] BRIEF ******"), m)
-            self.assertIn("### GIT (pending):\n", m)
+            self.assertTrue(m.startswith("\n" + "*" * 40 + "\n"), m)
+            self.assertIn("### GIT (pending)\n", m)
             self.assertRegex(m, r"\d\. APP \(\S+\)")
-            self.assertIn("### MESSAGING:\n1. APP (1 tasks, 1 repeat)", m)
+            self.assertIn("### MESSAGING\n1. APP (1 tasks, 1 repeat)", m)
             self.assertIn("plan P1 (en_ejecucion, 0.40 USD)", m)
             self.assertIn("### QUICK START", m)
             usos = [l for l in m.split("### QUICK START\n")[1].splitlines()]
             orden = ["/arkana-workspace:config", "/arkana-workspace:check", "/arkana-workspace:fix", "/arkana-messaging:query --unread",
                      "/arkana-workspace:sync", "/arkana-workspace:status", "/arkana-agentic:status"]
-            pos = [next(i for i, l in enumerate(usos) if f"'{c}'" in l) for c in orden]
+            pos = [next(i for i, l in enumerate(usos) if f"- {c} " in l) for c in orden]
             self.assertEqual(pos, sorted(pos), usos)                            # config → check → fix, y luego lo del día
             self.assertTrue(m.endswith("\n"), repr(m[-40:]))                    # línea en blanco final
             self.assertNotIn(lab.root, m)
