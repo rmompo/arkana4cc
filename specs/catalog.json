@@ -1146,7 +1146,7 @@
       "description": "Notas de la persona usuaria en un workspace de Arkana: locales, sin red, con título, texto y componente (alias o * para todos); borrado lógico; salen en el BRIEF de la sesión (install, add, list, modify, delete)",
       "category": "other",
       "status": "beta",
-      "version": "1.1.13",
+      "version": "1.1.14",
       "spec": "specs/arkana-note.md",
       "path": "plugins/arkana-note",
       "skills": [
@@ -1222,6 +1222,10 @@
         }
       ],
       "changelog": [
+        {
+          "version": "1.1.14",
+          "changes": "README: las notas salen todas en el BRIEF con el formato nuevo (id en mayusculas, sin recortar)"
+        },
         {
           "version": "1.1.13",
           "changes": "Nucleo 1.13.0 vendorizado: LAYOUT_KNOWN 10"
@@ -1845,10 +1849,14 @@
       "description": "Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, herramientas, red/VPN, comprobaciones (check/fix), export/import, handover y convención de commits. La statusline es de arkana-statusline y los mensajes, de arkana-messaging.",
       "category": "other",
       "status": "beta",
-      "version": "6.2.41",
+      "version": "6.2.42",
       "spec": "specs/arkana-workspace.md",
       "path": "plugins/arkana-workspace",
       "changelog": [
+        {
+          "version": "6.2.42",
+          "changes": "brief: Se crea la skill brief (el BRIEF a demanda) y el BRIEF cambia de formato: cabecera en caja, columnas, TODOS y NOTES con todas las filas e ids en mayusculas"
+        },
         {
           "version": "6.2.41",
           "changes": "Nucleo 1.13.0 vendorizado: LAYOUT_KNOWN 10"
@@ -2019,6 +2027,16 @@
         }
       ],
       "skills": [
+        {
+          "name": "brief",
+          "version": 42,
+          "changelog": [
+            {
+              "version": 42,
+              "changes": "Se crea la skill brief (el BRIEF a demanda) y el BRIEF cambia de formato: cabecera en caja, columnas, TODOS y NOTES con todas las filas e ids en mayusculas"
+            }
+          ]
+        },
         {
           "name": "check",
           "version": 27,

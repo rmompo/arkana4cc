@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-workspace
 
-> **Estado:** `beta` | **Versión:** `6.2.41`
+> **Estado:** `beta` | **Versión:** `6.2.42`
 
 ---
 
@@ -14,6 +14,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 
 | Skill | Versión | Descripción |
 |-------|---------|-------------|
+| `brief` | 42 | Muestra el BRIEF de Arkana a demanda - QUICK START con los comandos útiles, mensajes sin leer, todas las tareas activas, todas las notas, componentes con cambios sin subir y el plan activo. Es el mismo que se ve al abrir, reanudar o compactar una sesión, pero siempre sale, aunque no haya nada pendiente. Solo lectura. Acepta --home. Also invoked explicitly as /arkana-workspace:brief |
 | `check` | 27 | Diagnóstico de solo lectura de todo el workspace - cada componente (permisos, commits, git, .gitignore, identidad), herramientas y entorno (las declaradas con config tools, git, y Jira solo si está configurado), credenciales y los check que declara cada plugin de Arkana (statusline, mensajería, agentic…). Acepta --component, --network y --json. |
 | `component` | 36 | Gestiona los componentes (repos) del workspace en el manifiesto core/workspace.json - list, add, edit y remove - con alias, ruta, tipo, remoto, ramas, referencia de token, VPN y herramientas. Valida, hace copia .bak y acepta --dry-run y --json. La identidad git personal y las rutas absolutas van a local.json. |
 | `config` | 14 | Configura el workspace - jira (extensión opcional: URL y nombre de la clave del token), tools (herramientas, versiones y rutas locales) y policy (políticas compartidas del proyecto). Los componentes se gestionan con component. Valida, hace copia .bak y acepta --dry-run y --json. |
@@ -32,6 +33,7 @@ Gobierno del workspace de Arkana: componentes, permisos R/E/W, credenciales, her
 
 | Versión | Cambios |
 |---------|---------|
+| 6.2.42 | brief: Se crea la skill brief (el BRIEF a demanda) y el BRIEF cambia de formato: cabecera en caja, columnas, TODOS y NOTES con todas las filas e ids en mayusculas |
 | 6.2.41 | Nucleo 1.13.0 vendorizado: LAYOUT_KNOWN 10 |
 | 6.2.40 | BRIEF: tras compact o resume se da siempre y llega tambien al contexto del modelo; las tareas de varios componentes salen con todos ellos |
 | 6.2.39 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |

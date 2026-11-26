@@ -1,6 +1,6 @@
 # Especificación del plugin: arkana-note
 
-> **Estado:** `beta` | **Versión:** `1.1.13`
+> **Estado:** `beta` | **Versión:** `1.1.14`
 
 ---
 
@@ -28,6 +28,7 @@ Notas de la persona usuaria en un workspace de Arkana: locales, sin red, con tí
 
 | Versión | Cambios |
 |---------|---------|
+| 1.1.14 | README: las notas salen todas en el BRIEF con el formato nuevo (id en mayusculas, sin recortar) |
 | 1.1.13 | Nucleo 1.13.0 vendorizado: LAYOUT_KNOWN 10 |
 | 1.1.12 | Nucleo 1.12.0 vendorizado: LAYOUT_KNOWN 9 |
 | 1.1.11 | Nucleo 1.11.1 vendorizado: el registro de workspaces conserva el nombre de una entrada existente |
